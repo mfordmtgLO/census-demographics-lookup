@@ -170,6 +170,18 @@
             margin: 20px 30px;
         }
         .error.show { display: block; }
+        .debug-info {
+            background: #f0fff4;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #c6f6d5;
+            margin: 20px 30px;
+            display: none;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        .debug-info.show { display: block; }
         .disclaimer {
             background: #f8f9fa;
             padding: 15px 30px;
@@ -216,6 +228,7 @@
         </div>
         
         <div class="error" id="error"></div>
+        <div class="debug-info" id="debugInfo"></div>
         
         <div id="resultsSection" style="display:none;">
             <div class="tabs">
@@ -262,32 +275,7 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             var states = [
-                {code:"01",name:"Alabama",abbr:"AL"},{code:"02",name:"Alaska",abbr:"AK"},
-                {code:"04",name:"Arizona",abbr:"AZ"},{code:"05",name:"Arkansas",abbr:"AR"},
-                {code:"06",name:"California",abbr:"CA"},{code:"08",name:"Colorado",abbr:"CO"},
-                {code:"09",name:"Connecticut",abbr:"CT"},{code:"10",name:"Delaware",abbr:"DE"},
-                {code:"11",name:"District of Columbia",abbr:"DC"},{code:"12",name:"Florida",abbr:"FL"},
-                {code:"13",name:"Georgia",abbr:"GA"},{code:"15",name:"Hawaii",abbr:"HI"},
-                {code:"16",name:"Idaho",abbr:"ID"},{code:"17",name:"Illinois",abbr:"IL"},
-                {code:"18",name:"Indiana",abbr:"IN"},{code:"19",name:"Iowa",abbr:"IA"},
-                {code:"20",name:"Kansas",abbr:"KS"},{code:"21",name:"Kentucky",abbr:"KY"},
-                {code:"22",name:"Louisiana",abbr:"LA"},{code:"23",name:"Maine",abbr:"ME"},
-                {code:"24",name:"Maryland",abbr:"MD"},{code:"25",name:"Massachusetts",abbr:"MA"},
-                {code:"26",name:"Michigan",abbr:"MI"},{code:"27",name:"Minnesota",abbr:"MN"},
-                {code:"28",name:"Mississippi",abbr:"MS"},{code:"29",name:"Missouri",abbr:"MO"},
-                {code:"30",name:"Montana",abbr:"MT"},{code:"31",name:"Nebraska",abbr:"NE"},
-                {code:"32",name:"Nevada",abbr:"NV"},{code:"33",name:"New Hampshire",abbr:"NH"},
-                {code:"34",name:"New Jersey",abbr:"NJ"},{code:"35",name:"New Mexico",abbr:"NM"},
-                {code:"36",name:"New York",abbr:"NY"},{code:"37",name:"North Carolina",abbr:"NC"},
-                {code:"38",name:"North Dakota",abbr:"ND"},{code:"39",name:"Ohio",abbr:"OH"},
-                {code:"40",name:"Oklahoma",abbr:"OK"},{code:"41",name:"Oregon",abbr:"OR"},
-                {code:"42",name:"Pennsylvania",abbr:"PA"},{code:"44",name:"Rhode Island",abbr:"RI"},
-                {code:"45",name:"South Carolina",abbr:"SC"},{code:"46",name:"South Dakota",abbr:"SD"},
-                {code:"47",name:"Tennessee",abbr:"TN"},{code:"48",name:"Texas",abbr:"TX"},
-                {code:"49",name:"Utah",abbr:"UT"},{code:"50",name:"Vermont",abbr:"VT"},
-                {code:"51",name:"Virginia",abbr:"VA"},{code:"53",name:"Washington",abbr:"WA"},
-                {code:"54",name:"West Virginia",abbr:"WV"},{code:"55",name:"Wisconsin",abbr:"WI"},
-                {code:"56",name:"Wyoming",abbr:"WY"}
+                {code:"01",name:"Alabama",abbr:"AL"},{code:"02",name:"Alaska",abbr:"AK"},{code:"04",name:"Arizona",abbr:"AZ"},{code:"05",name:"Arkansas",abbr:"AR"},{code:"06",name:"California",abbr:"CA"},{code:"08",name:"Colorado",abbr:"CO"},{code:"09",name:"Connecticut",abbr:"CT"},{code:"10",name:"Delaware",abbr:"DE"},{code:"11",name:"District of Columbia",abbr:"DC"},{code:"12",name:"Florida",abbr:"FL"},{code:"13",name:"Georgia",abbr:"GA"},{code:"15",name:"Hawaii",abbr:"HI"},{code:"16",name:"Idaho",abbr:"ID"},{code:"17",name:"Illinois",abbr:"IL"},{code:"18",name:"Indiana",abbr:"IN"},{code:"19",name:"Iowa",abbr:"IA"},{code:"20",name:"Kansas",abbr:"KS"},{code:"21",name:"Kentucky",abbr:"KY"},{code:"22",name:"Louisiana",abbr:"LA"},{code:"23",name:"Maine",abbr:"ME"},{code:"24",name:"Maryland",abbr:"MD"},{code:"25",name:"Massachusetts",abbr:"MA"},{code:"26",name:"Michigan",abbr:"MI"},{code:"27",name:"Minnesota",abbr:"MN"},{code:"28",name:"Mississippi",abbr:"MS"},{code:"29",name:"Missouri",abbr:"MO"},{code:"30",name:"Montana",abbr:"MT"},{code:"31",name:"Nebraska",abbr:"NE"},{code:"32",name:"Nevada",abbr:"NV"},{code:"33",name:"New Hampshire",abbr:"NH"},{code:"34",name:"New Jersey",abbr:"NJ"},{code:"35",name:"New Mexico",abbr:"NM"},{code:"36",name:"New York",abbr:"NY"},{code:"37",name:"North Carolina",abbr:"NC"},{code:"38",name:"North Dakota",abbr:"ND"},{code:"39",name:"Ohio",abbr:"OH"},{code:"40",name:"Oklahoma",abbr:"OK"},{code:"41",name:"Oregon",abbr:"OR"},{code:"42",name:"Pennsylvania",abbr:"PA"},{code:"44",name:"Rhode Island",abbr:"RI"},{code:"45",name:"South Carolina",abbr:"SC"},{code:"46",name:"South Dakota",abbr:"SD"},{code:"47",name:"Tennessee",abbr:"TN"},{code:"48",name:"Texas",abbr:"TX"},{code:"49",name:"Utah",abbr:"UT"},{code:"50",name:"Vermont",abbr:"VT"},{code:"51",name:"Virginia",abbr:"VA"},{code:"53",name:"Washington",abbr:"WA"},{code:"54",name:"West Virginia",abbr:"WV"},{code:"55",name:"Wisconsin",abbr:"WI"},{code:"56",name:"Wyoming",abbr:"WY"}
             ];
             
             var select = document.getElementById('state');
@@ -320,6 +308,12 @@
             return await response.json();
         }
         
+        function showDebug(data) {
+            var debugEl = document.getElementById('debugInfo');
+            debugEl.innerHTML = '<strong>🔍 Debug Info:</strong><br>' + JSON.stringify(data, null, 2).substring(0, 2000);
+            debugEl.classList.add('show');
+        }
+        
         async function handleSearch(e) {
             e.preventDefault();
             var street = document.getElementById('street').value.trim();
@@ -334,6 +328,7 @@
             
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('error').classList.remove('show');
+            document.getElementById('debugInfo').classList.remove('show');
             document.getElementById('loading').classList.add('show');
             searchBtn.disabled = true;
             
@@ -343,14 +338,21 @@
                     '&state=' + stateFips + '&benchmark=Public_AR_Current&format=json';
                 
                 var geoData = await fetchViaProxy(geoUrl);
-                console.log('Geo data:', JSON.stringify(geoData).substring(0, 500));
                 
-                // Handle different response structures
+                // Show debug info
+                var debugObj = {
+                    hasResult: !!geoData.result,
+                    hasAddressMatches: !!(geoData.result && geoData.result.addressMatches),
+                    matchCount: geoData.result && geoData.result.addressMatches ? geoData.result.addressMatches.length : 0,
+                    firstMatchKeys: geoData.result && geoData.result.addressMatches && geoData.result.addressMatches[0] ? Object.keys(geoData.result.addressMatches[0]) : [],
+                    hasGeographies: !!(geoData.result && geoData.result.addressMatches && geoData.result.addressMatches[0] && geoData.result.addressMatches[0].geographies),
+                    geographyKeys: geoData.result && geoData.result.addressMatches && geoData.result.addressMatches[0] && geoData.result.addressMatches[0].geographies ? Object.keys(geoData.result.addressMatches[0].geographies) : []
+                };
+                showDebug(debugObj);
+                
                 var addressMatches = null;
                 if (geoData.result && geoData.result.addressMatches) {
                     addressMatches = geoData.result.addressMatches;
-                } else if (geoData.addressMatches) {
-                    addressMatches = geoData.addressMatches;
                 }
                 
                 if (!addressMatches || addressMatches.length === 0) {
@@ -360,37 +362,87 @@
                 var match = addressMatches[0];
                 var geos = match.geographies || {};
                 
+                // Check all possible geography keys
+                var allGeoKeys = Object.keys(geos);
+                debugObj.allGeographyKeys = allGeoKeys;
+                
+                // Look for tract info in different possible formats
+                var tractCode = null;
+                var countyFips = null;
+                var countyName = 'Unknown';
+                
+                // Try 'Census Tracts' key
+                if (geos['Census Tracts'] && Array.isArray(geos['Census Tracts']) && geos['Census Tracts'].length > 0) {
+                    var t = geos['Census Tracts'][0];
+                    tractCode = t.TRACT || t.tract || t.TRACTCE || null;
+                    countyFips = t.COUNTY || t.county || t.COUNTYFP || null;
+                    countyName = t.COUNTYNAME || t.countyName || t.NAMELSAD || 'Unknown County';
+                }
+                
+                // Try '2020 Census Tracts' key
+                if (!tractCode && geos['2020 Census Tracts'] && Array.isArray(geos['2020 Census Tracts']) && geos['2020 Census Tracts'].length > 0) {
+                    var t2 = geos['2020 Census Tracts'][0];
+                    tractCode = t2.TRACT || t2.tract || t2.TRACTCE || null;
+                    countyFips = t2.COUNTY || t2.county || t2.COUNTYFP || null;
+                    countyName = t2.COUNTYNAME || t2.countyName || t2.NAMELSAD || 'Unknown County';
+                }
+                
+                // Try to find any tract-like key
+                if (!tractCode) {
+                    for (var i = 0; i < allGeoKeys.length; i++) {
+                        var key = allGeoKeys[i];
+                        if (key.toLowerCase().indexOf('tract') >= 0 && Array.isArray(geos[key]) && geos[key].length > 0) {
+                            var t3 = geos[key][0];
+                            tractCode = t3.TRACT || t3.tract || t3.TRACTCE || t3.GEOID || null;
+                            countyFips = t3.COUNTY || t3.county || t3.COUNTYFP || null;
+                            countyName = t3.COUNTYNAME || t3.countyName || t3.NAMELSAD || 'Unknown County';
+                            debugObj.foundTractIn = key;
+                            debugObj.tractData = t3;
+                            break;
+                        }
+                    }
+                }
+                
+                // Extract MSA info
+                var msaCode = null;
+                var msaName = 'Not in a Metropolitan Statistical Area';
+                
+                if (geos['Metropolitan Statistical Areas'] && Array.isArray(geos['Metropolitan Statistical Areas']) && geos['Metropolitan Statistical Areas'].length > 0) {
+                    var m = geos['Metropolitan Statistical Areas'][0];
+                    msaCode = m.MSA || m.msa || m.GEOID || null;
+                    msaName = m.NAME || m.name || m.NAMELSAD || 'Unknown MSA';
+                }
+                
+                // Try other MSA keys
+                if (!msaCode) {
+                    for (var j = 0; j < allGeoKeys.length; j++) {
+                        var mkey = allGeoKeys[j];
+                        if ((mkey.toLowerCase().indexOf('metro') >= 0 || mkey.toLowerCase().indexOf('msa') >= 0) && Array.isArray(geos[mkey]) && geos[mkey].length > 0) {
+                            var m2 = geos[mkey][0];
+                            msaCode = m2.MSA || m2.msa || m2.GEOID || m2.CBSAFP || null;
+                            msaName = m2.NAME || m2.name || m2.NAMELSAD || 'Unknown MSA';
+                            debugObj.foundMsaIn = mkey;
+                            break;
+                        }
+                    }
+                }
+                
+                showDebug(debugObj);
+                
+                if (!tractCode || !countyFips) {
+                    throw new Error('Census tract not found. Debug: ' + JSON.stringify(debugObj));
+                }
+                
                 var tractData = {
                     stateFips: stateFips,
                     stateName: stateFipsMap[stateFips] ? stateFipsMap[stateFips].name : 'Unknown',
                     stateAbbr: stateFipsMap[stateFips] ? stateFipsMap[stateFips].abbr : 'Unknown',
-                    countyFips: null,
-                    countyName: 'Unknown',
-                    tractCode: null,
-                    msaCode: null,
-                    msaName: 'Not in a Metropolitan Statistical Area'
+                    countyFips: countyFips,
+                    countyName: countyName,
+                    tractCode: tractCode,
+                    msaCode: msaCode,
+                    msaName: msaName
                 };
-                
-                // Extract tract info safely
-                if (geos['Census Tracts'] && geos['Census Tracts'].length > 0) {
-                    var tract = geos['Census Tracts'][0];
-                    tractData.tractCode = tract.TRACT || tract.tract || null;
-                    tractData.countyFips = tract.COUNTY || tract.county || null;
-                    tractData.countyName = tract.COUNTYNAME || tract.countyName || 'Unknown County';
-                }
-                
-                // Extract MSA info safely
-                if (geos['Metropolitan Statistical Areas'] && geos['Metropolitan Statistical Areas'].length > 0) {
-                    var msa = geos['Metropolitan Statistical Areas'][0];
-                    tractData.msaCode = msa.MSA || msa.msa || null;
-                    tractData.msaName = msa.NAME || msa.name || 'Unknown MSA';
-                }
-                
-                if (!tractData.tractCode || !tractData.countyFips) {
-                    throw new Error('Census tract not found for this address. Try a different address.');
-                }
-                
-                console.log('Tract found:', tractData.tractCode, 'County:', tractData.countyFips);
                 
                 var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
                 var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + 
@@ -398,7 +450,6 @@
                     '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
                 
                 var acsData = await fetchViaProxy(acsUrl);
-                console.log('ACS data received');
                 
                 if (!acsData || acsData.length < 2) {
                     throw new Error('No demographic data available for this census tract.');
@@ -409,6 +460,7 @@
                 var result = {};
                 headers.forEach(function(h, i) { result[h] = values[i]; });
                 
+                document.getElementById('debugInfo').classList.remove('show');
                 displayResults(tractData, result, match.coordinates || {x: 0, y: 0});
                 document.getElementById('resultsSection').style.display = 'block';
                 document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
