@@ -27,9 +27,7 @@ export default async function handler(req, res) {
         method: 'GET',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'application/json, text/plain, */*',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://www.census.gov/'
+          'Accept': 'application/json'
         },
         timeout: 15000
       };
@@ -38,27 +36,16 @@ export default async function handler(req, res) {
         let body = '';
         response.on('data', (chunk) => body += chunk);
         response.on('end', () => {
-          // Check if response is HTML (error page)
-          if (body.trim().startsWith('<!DOCTYPE') || body.trim().startsWith('<html')) {
-            reject(new Error('Census API returned HTML instead of JSON. Status: ' + response.statusCode));
-            return;
-          }
-          
           try {
-            const parsed = JSON.parse(body);
-            resolve(parsed);
+            resolve(JSON.parse(body));
           } catch (e) {
-            // Return the raw body so we can debug
-            reject(new Error('Parse error. Status: ' + response.statusCode + '. Body preview: ' + body.substring(0, 300)));
+            reject(new Error('Invalid JSON: ' + body.substring(0, 200)));
           }
         });
       });
       
-      request.on('error', (err) => reject(new Error('Network error: ' + err.message)));
-      request.on('timeout', () => {
-        request.destroy();
-        reject(new Error('Request timeout'));
-      });
+      request.on('error', reject);
+      request.on('timeout', () => { request.destroy(); reject(new Error('Timeout')); });
       request.end();
     });
     
