@@ -6,188 +6,49 @@
     <title>Census Tract Demographics Lookup</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #1a3a5c 0%, #2c5282 100%);
-            color: white;
-            padding: 25px 30px;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1a3a5c 0%, #2c5282 100%); color: white; padding: 25px 30px; }
         .header h1 { font-size: 28px; margin-bottom: 8px; }
         .header p { font-size: 14px; opacity: 0.95; }
-        .search-section {
-            padding: 25px 30px;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        .search-form {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
-            gap: 12px;
-            align-items: end;
-        }
+        .search-section { padding: 25px 30px; background: #f8f9fa; border-bottom: 2px solid #e2e8f0; }
+        .search-form { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #4a5568;
-            text-transform: uppercase;
-        }
-        .form-group input, .form-group select {
-            padding: 10px 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .search-btn {
-            padding: 10px 30px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            height: 42px;
-        }
+        .form-group label { font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #4a5568; text-transform: uppercase; }
+        .form-group input, .form-group select { padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .search-btn { padding: 10px 30px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; height: 42px; }
         .search-btn:hover { background: #764ba2; }
         .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .tabs {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        .tab {
-            padding: 14px 24px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #718096;
-            border-bottom: 3px solid transparent;
-        }
-        .tab.active {
-            color: #1a3a5c;
-            border-bottom-color: #667eea;
-            background: white;
-        }
+        .tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #e2e8f0; }
+        .tab { padding: 14px 24px; cursor: pointer; font-weight: 600; color: #718096; border-bottom: 3px solid transparent; }
+        .tab.active { color: #1a3a5c; border-bottom-color: #667eea; background: white; }
         .tab-content { display: none; padding: 25px 30px; }
         .tab-content.active { display: block; }
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .data-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #e2e8f0;
-        }
-        .data-card h3 {
-            font-size: 12px;
-            color: #718096;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        .data-card .value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1a3a5c;
-        }
-        .data-card .subtitle {
-            font-size: 12px;
-            color: #a0aec0;
-            margin-top: 5px;
-        }
-        .info-box {
-            background: #ebf4ff;
-            border: 2px solid #c3dafe;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .data-card { background: white; padding: 20px; border-radius: 8px; border: 2px solid #e2e8f0; }
+        .data-card h3 { font-size: 12px; color: #718096; margin-bottom: 10px; text-transform: uppercase; }
+        .data-card .value { font-size: 24px; font-weight: bold; color: #1a3a5c; }
+        .data-card .subtitle { font-size: 12px; color: #a0aec0; margin-top: 5px; }
+        .info-box { background: #ebf4ff; border: 2px solid #c3dafe; border-radius: 8px; padding: 20px; margin-top: 20px; }
         .info-box h3 { color: #1a3a5c; margin-bottom: 12px; }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
         .info-item { display: flex; flex-direction: column; }
-        .info-item label {
-            font-size: 11px;
-            color: #718096;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-        .info-item span {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3748;
-        }
-        .loading {
-            text-align: center;
-            padding: 50px;
-            display: none;
-        }
+        .info-item label { font-size: 11px; color: #718096; text-transform: uppercase; margin-bottom: 3px; }
+        .info-item span { font-size: 14px; font-weight: 600; color: #2d3748; }
+        .loading { text-align: center; padding: 50px; display: none; }
         .loading.show { display: block; }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .error {
-            background: #fff5f5;
-            color: #c53030;
-            padding: 15px 20px;
-            border-radius: 8px;
-            border: 2px solid #fed7d7;
-            display: none;
-            margin: 20px 30px;
-        }
+        .error { background: #fff5f5; color: #c53030; padding: 15px 20px; border-radius: 8px; border: 2px solid #fed7d7; display: none; margin: 20px 30px; }
         .error.show { display: block; }
-        .disclaimer {
-            background: #f8f9fa;
-            padding: 15px 30px;
-            border-top: 2px solid #e2e8f0;
-            font-size: 11px;
-            color: #718096;
-            text-align: center;
-        }
+        .disclaimer { background: #f8f9fa; padding: 15px 30px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #718096; text-align: center; }
         .disclaimer a { color: #667eea; text-decoration: none; }
-        @media (max-width: 768px) {
-            .search-form { grid-template-columns: 1fr; }
-            .data-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 768px) { .search-form { grid-template-columns: 1fr; } .data-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🏠 Census Tract Demographics Lookup</h1>
-            <p>Enter any US address to find detailed demographic, income, population, and housing data for the census tract and MSA.</p>
-        </div>
+        <div class="header"><h1>🏠 Census Tract Demographics Lookup</h1><p>Enter any US address to find detailed demographic, income, population, and housing data for the census tract and MSA.</p></div>
         <div class="search-section">
             <form class="search-form" id="searchForm">
                 <div class="form-group"><label>Street Address *</label><input type="text" id="street" placeholder="123 Main Street" required></div>
@@ -239,12 +100,12 @@
         });
         
         async function fetchViaProxy(targetUrl) {
-            var response = await fetch(PROXY_URL + '?url=' + encodeURIComponent(targetUrl));
-            if (!response.ok) {
-                var errorData = await response.json().catch(function() { return {error: 'HTTP ' + response.status}; });
-                throw new Error(errorData.error || 'HTTP ' + response.status);
+            var resp = await fetch(PROXY_URL + '?url=' + encodeURIComponent(targetUrl));
+            if (!resp.ok) {
+                var errData = await resp.json().catch(function() { return {error: 'HTTP ' + resp.status}; });
+                throw new Error(errData.error || 'HTTP ' + resp.status);
             }
-            return await response.json();
+            return await resp.json();
         }
         
         async function handleSearch(e) {
@@ -265,73 +126,73 @@
             searchBtn.disabled = true;
             
             try {
-                // Use onelineaddress endpoint which INCLUDES geographies
-                var fullAddress = encodeURIComponent(street + ', ' + city + ', ' + (stateFipsMap[stateFips] ? stateFipsMap[stateFips].abbr : ''));
-                var geoUrl = 'https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=' + fullAddress + '&benchmark=Public_AR_Current&vintage=Current_Current&format=json';
+                // Step 1: Geocode using the address endpoint (not onelineaddress)
+                var geoUrl = 'https://geocoding.geo.census.gov/geocoder/locations/address?street=' + 
+                    encodeURIComponent(street) + '&city=' + encodeURIComponent(city) + 
+                    '&state=' + stateFips + '&benchmark=Public_AR_Census2020&format=json';
                 
                 var geoData = await fetchViaProxy(geoUrl);
                 
                 if (!geoData.result || !geoData.result.addressMatches || geoData.result.addressMatches.length === 0) {
-                    throw new Error('Address not found. Please check the address and try again.');
+                    throw new Error('Address not found. Please check and try again.');
                 }
                 
                 var match = geoData.result.addressMatches[0];
-                var geos = match.geographies || {};
+                var coords = match.coordinates;
                 
-                var tractCode = null;
-                var countyFips = null;
-                var countyName = 'Unknown';
-                var msaCode = null;
-                var msaName = 'Not in a Metropolitan Statistical Area';
+                // Step 2: Use coordinates to get geography data
+                var geoUrl2 = 'https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=' + coords.x + '&y=' + coords.y + '&benchmark=Public_AR_Census2020&vintage=Census2020_Current&format=json';
+                var geoData2 = await fetchViaProxy(geoUrl2);
                 
-                // Extract tract info
-                if (geos['Census Tracts'] && Array.isArray(geos['Census Tracts']) && geos['Census Tracts'].length > 0) {
+                var geos = {};
+                if (geoData2.result && geoData2.result.geographies) {
+                    geos = geoData2.result.geographies;
+                }
+                
+                var tractCode = null, countyFips = null, countyName = 'Unknown';
+                var msaCode = null, msaName = 'Not in a Metropolitan Statistical Area';
+                
+                if (geos['Census Tracts'] && geos['Census Tracts'].length > 0) {
                     var t = geos['Census Tracts'][0];
                     tractCode = t.TRACT || t.GEOID || null;
                     countyFips = t.COUNTY || null;
                     countyName = t.NAMELSAD || t.BASENAME || 'Unknown County';
                 }
                 
-                // Extract MSA info
-                if (geos['Metropolitan Statistical Areas'] && Array.isArray(geos['Metropolitan Statistical Areas']) && geos['Metropolitan Statistical Areas'].length > 0) {
+                if (geos['Metropolitan Statistical Areas'] && geos['Metropolitan Statistical Areas'].length > 0) {
                     var m = geos['Metropolitan Statistical Areas'][0];
-                    msaCode = m.GEOID || m.MSA || m.CBSAFP || null;
+                    msaCode = m.GEOID || m.CBSAFP || null;
                     msaName = m.NAMELSAD || m.NAME || 'Unknown MSA';
                 }
                 
                 if (!tractCode || !countyFips) {
-                    throw new Error('Census tract not found for this address. Try a different address.');
+                    throw new Error('Census tract not found. Try a different address.');
                 }
+                
+                // Step 3: Get ACS data
+                var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
+                var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + '&for=tract:' + tractCode + '&in=state:' + stateFips + '%20county:' + countyFips;
+                var acsData = await fetchViaProxy(acsUrl);
+                
+                if (!acsData || acsData.length < 2) throw new Error('No demographic data available.');
+                
+                var headers = acsData[0], values = acsData[1], result = {};
+                headers.forEach(function(h, i) { result[h] = values[i]; });
                 
                 var tractData = {
                     stateFips: stateFips,
                     stateName: stateFipsMap[stateFips] ? stateFipsMap[stateFips].name : 'Unknown',
                     stateAbbr: stateFipsMap[stateFips] ? stateFipsMap[stateFips].abbr : 'Unknown',
-                    countyFips: countyFips,
-                    countyName: countyName,
-                    tractCode: tractCode,
-                    msaCode: msaCode,
-                    msaName: msaName
+                    countyFips: countyFips, countyName: countyName,
+                    tractCode: tractCode, msaCode: msaCode, msaName: msaName
                 };
                 
-                var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
-                var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + '&for=tract:' + tractData.tractCode + '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
-                
-                var acsData = await fetchViaProxy(acsUrl);
-                
-                if (!acsData || acsData.length < 2) {
-                    throw new Error('No demographic data available.');
-                }
-                
-                var headers = acsData[0], values = acsData[1], result = {};
-                headers.forEach(function(h, i) { result[h] = values[i]; });
-                
-                displayResults(tractData, result, match.coordinates || {x: 0, y: 0});
+                displayResults(tractData, result, coords);
                 document.getElementById('resultsSection').style.display = 'block';
                 document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
                 
             } catch (error) {
-                showError('Unable to fetch data: ' + (error.message || 'Please try again.'));
+                showError('Error: ' + (error.message || 'Please try again.'));
             } finally {
                 document.getElementById('loading').classList.remove('show');
                 searchBtn.disabled = false;
@@ -351,7 +212,7 @@
             document.getElementById('tractInfo').innerHTML = 
                 '<h3>📍 Location Information</h3><div class="info-grid">' +
                 '<div class="info-item"><label>State</label><span>' + td.stateName + ' (' + td.stateAbbr + ')</span></div>' +
-                '<div class="info-item"><label>Coordinates</label><span>' + (coords.x || 0).toFixed(4) + ', ' + (coords.y || 0).toFixed(4) + '</span></div>' +
+                '<div class="info-item"><label>Coordinates</label><span>' + coords.x.toFixed(4) + ', ' + coords.y.toFixed(4) + '</span></div>' +
                 '<div class="info-item"><label>Data Year</label><span>2022 ACS 5-Year</span></div>' +
                 '<div class="info-item"><label>Population</label><span>' + fmt(d['B01003_001E']) + '</span></div></div>';
             
