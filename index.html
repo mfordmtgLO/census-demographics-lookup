@@ -343,13 +343,22 @@
                     '&state=' + stateFips + '&benchmark=Public_AR_Current&format=json';
                 
                 var geoData = await fetchViaProxy(geoUrl);
+                console.log('Geo data:', JSON.stringify(geoData).substring(0, 500));
                 
-                if (!geoData.result || !geoData.result.addressMatches || geoData.result.addressMatches.length === 0) {
+                // Handle different response structures
+                var addressMatches = null;
+                if (geoData.result && geoData.result.addressMatches) {
+                    addressMatches = geoData.result.addressMatches;
+                } else if (geoData.addressMatches) {
+                    addressMatches = geoData.addressMatches;
+                }
+                
+                if (!addressMatches || addressMatches.length === 0) {
                     throw new Error('Address not found. Please check the address and try again.');
                 }
                 
-                var match = geoData.result.addressMatches[0];
-                var geos = match.geographies;
+                var match = addressMatches[0];
+                var geos = match.geographies || {};
                 
                 var tractData = {
                     stateFips: stateFips,
@@ -362,20 +371,26 @@
                     msaName: 'Not in a Metropolitan Statistical Area'
                 };
                 
+                // Extract tract info safely
                 if (geos['Census Tracts'] && geos['Census Tracts'].length > 0) {
-                    tractData.tractCode = geos['Census Tracts'][0].TRACT;
-                    tractData.countyFips = geos['Census Tracts'][0].COUNTY;
-                    tractData.countyName = geos['Census Tracts'][0].COUNTYNAME || 'Unknown County';
+                    var tract = geos['Census Tracts'][0];
+                    tractData.tractCode = tract.TRACT || tract.tract || null;
+                    tractData.countyFips = tract.COUNTY || tract.county || null;
+                    tractData.countyName = tract.COUNTYNAME || tract.countyName || 'Unknown County';
                 }
                 
+                // Extract MSA info safely
                 if (geos['Metropolitan Statistical Areas'] && geos['Metropolitan Statistical Areas'].length > 0) {
-                    tractData.msaCode = geos['Metropolitan Statistical Areas'][0].MSA;
-                    tractData.msaName = geos['Metropolitan Statistical Areas'][0].NAME || 'Unknown MSA';
+                    var msa = geos['Metropolitan Statistical Areas'][0];
+                    tractData.msaCode = msa.MSA || msa.msa || null;
+                    tractData.msaName = msa.NAME || msa.name || 'Unknown MSA';
                 }
                 
                 if (!tractData.tractCode || !tractData.countyFips) {
-                    throw new Error('Census tract not found for this address.');
+                    throw new Error('Census tract not found for this address. Try a different address.');
                 }
+                
+                console.log('Tract found:', tractData.tractCode, 'County:', tractData.countyFips);
                 
                 var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
                 var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + 
@@ -383,6 +398,7 @@
                     '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
                 
                 var acsData = await fetchViaProxy(acsUrl);
+                console.log('ACS data received');
                 
                 if (!acsData || acsData.length < 2) {
                     throw new Error('No demographic data available for this census tract.');
@@ -393,7 +409,7 @@
                 var result = {};
                 headers.forEach(function(h, i) { result[h] = values[i]; });
                 
-                displayResults(tractData, result, match.coordinates);
+                displayResults(tractData, result, match.coordinates || {x: 0, y: 0});
                 document.getElementById('resultsSection').style.display = 'block';
                 document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
                 
@@ -420,7 +436,7 @@
                 '<h3>📍 Location Information</h3>' +
                 '<div class="info-grid">' +
                 '<div class="info-item"><label>State</label><span>' + td.stateName + ' (' + td.stateAbbr + ')</span></div>' +
-                '<div class="info-item"><label>Coordinates</label><span>' + coords.x.toFixed(4) + ', ' + coords.y.toFixed(4) + '</span></div>' +
+                '<div class="info-item"><label>Coordinates</label><span>' + (coords.x || 0).toFixed(4) + ', ' + (coords.y || 0).toFixed(4) + '</span></div>' +
                 '<div class="info-item"><label>Data Year</label><span>2022 ACS 5-Year</span></div>' +
                 '<div class="info-item"><label>Population</label><span>' + fmt(d['B01003_001E']) + '</span></div>' +
                 '</div>';
