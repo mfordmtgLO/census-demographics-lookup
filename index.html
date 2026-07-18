@@ -156,10 +156,7 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .error {
             background: #fff5f5;
             color: #c53030;
@@ -170,18 +167,6 @@
             margin: 20px 30px;
         }
         .error.show { display: block; }
-        .debug-info {
-            background: #f0fff4;
-            color: #22543d;
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #c6f6d5;
-            margin: 20px 30px;
-            display: none;
-            font-size: 13px;
-            word-break: break-all;
-        }
-        .debug-info.show { display: block; }
         .disclaimer {
             background: #f8f9fa;
             padding: 15px 30px;
@@ -203,33 +188,16 @@
             <h1>🏠 Census Tract Demographics Lookup</h1>
             <p>Enter any US address to find detailed demographic, income, population, and housing data for the census tract and MSA.</p>
         </div>
-        
         <div class="search-section">
             <form class="search-form" id="searchForm">
-                <div class="form-group">
-                    <label>Street Address *</label>
-                    <input type="text" id="street" placeholder="123 Main Street" required>
-                </div>
-                <div class="form-group">
-                    <label>City *</label>
-                    <input type="text" id="city" placeholder="City name" required>
-                </div>
-                <div class="form-group">
-                    <label>State *</label>
-                    <select id="state" required><option value="">Select state...</option></select>
-                </div>
+                <div class="form-group"><label>Street Address *</label><input type="text" id="street" placeholder="123 Main Street" required></div>
+                <div class="form-group"><label>City *</label><input type="text" id="city" placeholder="City name" required></div>
+                <div class="form-group"><label>State *</label><select id="state" required><option value="">Select state...</option></select></div>
                 <button type="submit" class="search-btn" id="searchBtn">🔍 Search</button>
             </form>
         </div>
-        
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p style="color: #4a5568;">Fetching demographic data from Census Bureau...</p>
-        </div>
-        
+        <div class="loading" id="loading"><div class="spinner"></div><p style="color: #4a5568;">Fetching demographic data from Census Bureau...</p></div>
         <div class="error" id="error"></div>
-        <div class="debug-info" id="debugInfo"></div>
-        
         <div id="resultsSection" style="display:none;">
             <div class="tabs">
                 <div class="tab active" data-tab="overview">📊 Overview</div>
@@ -237,36 +205,12 @@
                 <div class="tab" data-tab="population">👥 Population</div>
                 <div class="tab" data-tab="housing">🏘️ Housing</div>
             </div>
-            
-            <div class="tab-content active" id="overview">
-                <h2 style="margin-bottom:20px; color:#1a3a5c;">Census Tract & MSA Overview</h2>
-                <div class="data-grid" id="overviewData"></div>
-                <div class="info-box" id="tractInfo"></div>
-            </div>
-            
-            <div class="tab-content" id="income">
-                <h2 style="margin-bottom:20px; color:#1a3a5c;">Income & Economic Data</h2>
-                <div class="data-grid" id="incomeData"></div>
-                <div class="info-box" id="msaIncomeInfo"></div>
-            </div>
-            
-            <div class="tab-content" id="population">
-                <h2 style="margin-bottom:20px; color:#1a3a5c;">Population & Demographics</h2>
-                <div class="data-grid" id="populationData"></div>
-                <div class="info-box" id="msaPopulationInfo"></div>
-            </div>
-            
-            <div class="tab-content" id="housing">
-                <h2 style="margin-bottom:20px; color:#1a3a5c;">Housing Characteristics</h2>
-                <div class="data-grid" id="housingData"></div>
-                <div class="info-box" id="msaHousingInfo"></div>
-            </div>
+            <div class="tab-content active" id="overview"><h2 style="margin-bottom:20px; color:#1a3a5c;">Census Tract & MSA Overview</h2><div class="data-grid" id="overviewData"></div><div class="info-box" id="tractInfo"></div></div>
+            <div class="tab-content" id="income"><h2 style="margin-bottom:20px; color:#1a3a5c;">Income & Economic Data</h2><div class="data-grid" id="incomeData"></div><div class="info-box" id="msaIncomeInfo"></div></div>
+            <div class="tab-content" id="population"><h2 style="margin-bottom:20px; color:#1a3a5c;">Population & Demographics</h2><div class="data-grid" id="populationData"></div><div class="info-box" id="msaPopulationInfo"></div></div>
+            <div class="tab-content" id="housing"><h2 style="margin-bottom:20px; color:#1a3a5c;">Housing Characteristics</h2><div class="data-grid" id="housingData"></div><div class="info-box" id="msaHousingInfo"></div></div>
         </div>
-        
-        <div class="disclaimer">
-            <p><strong>Data Source:</strong> U.S. Census Bureau, ACS 2022 5-Year Estimates. Not affiliated with FFIEC. 
-            <a href="https://geomap.ffiec.gov" target="_blank">Official FFIEC System</a></p>
-        </div>
+        <div class="disclaimer"><p><strong>Data Source:</strong> U.S. Census Bureau, ACS 2022 5-Year Estimates. Not affiliated with FFIEC. <a href="https://geomap.ffiec.gov" target="_blank">Official FFIEC System</a></p></div>
     </div>
 
     <script>
@@ -277,18 +221,13 @@
             var states = [
                 {code:"01",name:"Alabama",abbr:"AL"},{code:"02",name:"Alaska",abbr:"AK"},{code:"04",name:"Arizona",abbr:"AZ"},{code:"05",name:"Arkansas",abbr:"AR"},{code:"06",name:"California",abbr:"CA"},{code:"08",name:"Colorado",abbr:"CO"},{code:"09",name:"Connecticut",abbr:"CT"},{code:"10",name:"Delaware",abbr:"DE"},{code:"11",name:"District of Columbia",abbr:"DC"},{code:"12",name:"Florida",abbr:"FL"},{code:"13",name:"Georgia",abbr:"GA"},{code:"15",name:"Hawaii",abbr:"HI"},{code:"16",name:"Idaho",abbr:"ID"},{code:"17",name:"Illinois",abbr:"IL"},{code:"18",name:"Indiana",abbr:"IN"},{code:"19",name:"Iowa",abbr:"IA"},{code:"20",name:"Kansas",abbr:"KS"},{code:"21",name:"Kentucky",abbr:"KY"},{code:"22",name:"Louisiana",abbr:"LA"},{code:"23",name:"Maine",abbr:"ME"},{code:"24",name:"Maryland",abbr:"MD"},{code:"25",name:"Massachusetts",abbr:"MA"},{code:"26",name:"Michigan",abbr:"MI"},{code:"27",name:"Minnesota",abbr:"MN"},{code:"28",name:"Mississippi",abbr:"MS"},{code:"29",name:"Missouri",abbr:"MO"},{code:"30",name:"Montana",abbr:"MT"},{code:"31",name:"Nebraska",abbr:"NE"},{code:"32",name:"Nevada",abbr:"NV"},{code:"33",name:"New Hampshire",abbr:"NH"},{code:"34",name:"New Jersey",abbr:"NJ"},{code:"35",name:"New Mexico",abbr:"NM"},{code:"36",name:"New York",abbr:"NY"},{code:"37",name:"North Carolina",abbr:"NC"},{code:"38",name:"North Dakota",abbr:"ND"},{code:"39",name:"Ohio",abbr:"OH"},{code:"40",name:"Oklahoma",abbr:"OK"},{code:"41",name:"Oregon",abbr:"OR"},{code:"42",name:"Pennsylvania",abbr:"PA"},{code:"44",name:"Rhode Island",abbr:"RI"},{code:"45",name:"South Carolina",abbr:"SC"},{code:"46",name:"South Dakota",abbr:"SD"},{code:"47",name:"Tennessee",abbr:"TN"},{code:"48",name:"Texas",abbr:"TX"},{code:"49",name:"Utah",abbr:"UT"},{code:"50",name:"Vermont",abbr:"VT"},{code:"51",name:"Virginia",abbr:"VA"},{code:"53",name:"Washington",abbr:"WA"},{code:"54",name:"West Virginia",abbr:"WV"},{code:"55",name:"Wisconsin",abbr:"WI"},{code:"56",name:"Wyoming",abbr:"WY"}
             ];
-            
             var select = document.getElementById('state');
             states.forEach(function(s) {
                 var opt = document.createElement('option');
-                opt.value = s.code;
-                opt.textContent = s.name + ' (' + s.abbr + ')';
-                select.appendChild(opt);
-                stateFipsMap[s.code] = s;
+                opt.value = s.code; opt.textContent = s.name + ' (' + s.abbr + ')';
+                select.appendChild(opt); stateFipsMap[s.code] = s;
             });
-            
             document.getElementById('searchForm').addEventListener('submit', handleSearch);
-            
             document.querySelectorAll('.tab').forEach(function(tab) {
                 tab.addEventListener('click', function() {
                     document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
@@ -308,12 +247,6 @@
             return await response.json();
         }
         
-        function showDebug(data) {
-            var debugEl = document.getElementById('debugInfo');
-            debugEl.innerHTML = '<strong>🔍 Debug Info:</strong><br>' + JSON.stringify(data, null, 2).substring(0, 2000);
-            debugEl.classList.add('show');
-        }
-        
         async function handleSearch(e) {
             e.preventDefault();
             var street = document.getElementById('street').value.trim();
@@ -328,109 +261,46 @@
             
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('error').classList.remove('show');
-            document.getElementById('debugInfo').classList.remove('show');
             document.getElementById('loading').classList.add('show');
             searchBtn.disabled = true;
             
             try {
-                var geoUrl = 'https://geocoding.geo.census.gov/geocoder/locations/address?street=' + 
-                    encodeURIComponent(street) + '&city=' + encodeURIComponent(city) + 
-                    '&state=' + stateFips + '&benchmark=Public_AR_Current&format=json';
+                // Use onelineaddress endpoint which INCLUDES geographies
+                var fullAddress = encodeURIComponent(street + ', ' + city + ', ' + (stateFipsMap[stateFips] ? stateFipsMap[stateFips].abbr : ''));
+                var geoUrl = 'https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=' + fullAddress + '&benchmark=Public_AR_Current&vintage=Current_Current&format=json';
                 
                 var geoData = await fetchViaProxy(geoUrl);
                 
-                // Show debug info
-                var debugObj = {
-                    hasResult: !!geoData.result,
-                    hasAddressMatches: !!(geoData.result && geoData.result.addressMatches),
-                    matchCount: geoData.result && geoData.result.addressMatches ? geoData.result.addressMatches.length : 0,
-                    firstMatchKeys: geoData.result && geoData.result.addressMatches && geoData.result.addressMatches[0] ? Object.keys(geoData.result.addressMatches[0]) : [],
-                    hasGeographies: !!(geoData.result && geoData.result.addressMatches && geoData.result.addressMatches[0] && geoData.result.addressMatches[0].geographies),
-                    geographyKeys: geoData.result && geoData.result.addressMatches && geoData.result.addressMatches[0] && geoData.result.addressMatches[0].geographies ? Object.keys(geoData.result.addressMatches[0].geographies) : []
-                };
-                showDebug(debugObj);
-                
-                var addressMatches = null;
-                if (geoData.result && geoData.result.addressMatches) {
-                    addressMatches = geoData.result.addressMatches;
-                }
-                
-                if (!addressMatches || addressMatches.length === 0) {
+                if (!geoData.result || !geoData.result.addressMatches || geoData.result.addressMatches.length === 0) {
                     throw new Error('Address not found. Please check the address and try again.');
                 }
                 
-                var match = addressMatches[0];
+                var match = geoData.result.addressMatches[0];
                 var geos = match.geographies || {};
                 
-                // Check all possible geography keys
-                var allGeoKeys = Object.keys(geos);
-                debugObj.allGeographyKeys = allGeoKeys;
-                
-                // Look for tract info in different possible formats
                 var tractCode = null;
                 var countyFips = null;
                 var countyName = 'Unknown';
-                
-                // Try 'Census Tracts' key
-                if (geos['Census Tracts'] && Array.isArray(geos['Census Tracts']) && geos['Census Tracts'].length > 0) {
-                    var t = geos['Census Tracts'][0];
-                    tractCode = t.TRACT || t.tract || t.TRACTCE || null;
-                    countyFips = t.COUNTY || t.county || t.COUNTYFP || null;
-                    countyName = t.COUNTYNAME || t.countyName || t.NAMELSAD || 'Unknown County';
-                }
-                
-                // Try '2020 Census Tracts' key
-                if (!tractCode && geos['2020 Census Tracts'] && Array.isArray(geos['2020 Census Tracts']) && geos['2020 Census Tracts'].length > 0) {
-                    var t2 = geos['2020 Census Tracts'][0];
-                    tractCode = t2.TRACT || t2.tract || t2.TRACTCE || null;
-                    countyFips = t2.COUNTY || t2.county || t2.COUNTYFP || null;
-                    countyName = t2.COUNTYNAME || t2.countyName || t2.NAMELSAD || 'Unknown County';
-                }
-                
-                // Try to find any tract-like key
-                if (!tractCode) {
-                    for (var i = 0; i < allGeoKeys.length; i++) {
-                        var key = allGeoKeys[i];
-                        if (key.toLowerCase().indexOf('tract') >= 0 && Array.isArray(geos[key]) && geos[key].length > 0) {
-                            var t3 = geos[key][0];
-                            tractCode = t3.TRACT || t3.tract || t3.TRACTCE || t3.GEOID || null;
-                            countyFips = t3.COUNTY || t3.county || t3.COUNTYFP || null;
-                            countyName = t3.COUNTYNAME || t3.countyName || t3.NAMELSAD || 'Unknown County';
-                            debugObj.foundTractIn = key;
-                            debugObj.tractData = t3;
-                            break;
-                        }
-                    }
-                }
-                
-                // Extract MSA info
                 var msaCode = null;
                 var msaName = 'Not in a Metropolitan Statistical Area';
                 
+                // Extract tract info
+                if (geos['Census Tracts'] && Array.isArray(geos['Census Tracts']) && geos['Census Tracts'].length > 0) {
+                    var t = geos['Census Tracts'][0];
+                    tractCode = t.TRACT || t.GEOID || null;
+                    countyFips = t.COUNTY || null;
+                    countyName = t.NAMELSAD || t.BASENAME || 'Unknown County';
+                }
+                
+                // Extract MSA info
                 if (geos['Metropolitan Statistical Areas'] && Array.isArray(geos['Metropolitan Statistical Areas']) && geos['Metropolitan Statistical Areas'].length > 0) {
                     var m = geos['Metropolitan Statistical Areas'][0];
-                    msaCode = m.MSA || m.msa || m.GEOID || null;
-                    msaName = m.NAME || m.name || m.NAMELSAD || 'Unknown MSA';
+                    msaCode = m.GEOID || m.MSA || m.CBSAFP || null;
+                    msaName = m.NAMELSAD || m.NAME || 'Unknown MSA';
                 }
-                
-                // Try other MSA keys
-                if (!msaCode) {
-                    for (var j = 0; j < allGeoKeys.length; j++) {
-                        var mkey = allGeoKeys[j];
-                        if ((mkey.toLowerCase().indexOf('metro') >= 0 || mkey.toLowerCase().indexOf('msa') >= 0) && Array.isArray(geos[mkey]) && geos[mkey].length > 0) {
-                            var m2 = geos[mkey][0];
-                            msaCode = m2.MSA || m2.msa || m2.GEOID || m2.CBSAFP || null;
-                            msaName = m2.NAME || m2.name || m2.NAMELSAD || 'Unknown MSA';
-                            debugObj.foundMsaIn = mkey;
-                            break;
-                        }
-                    }
-                }
-                
-                showDebug(debugObj);
                 
                 if (!tractCode || !countyFips) {
-                    throw new Error('Census tract not found. Debug: ' + JSON.stringify(debugObj));
+                    throw new Error('Census tract not found for this address. Try a different address.');
                 }
                 
                 var tractData = {
@@ -445,28 +315,22 @@
                 };
                 
                 var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
-                var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + 
-                    '&for=tract:' + tractData.tractCode + 
-                    '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
+                var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + '&for=tract:' + tractData.tractCode + '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
                 
                 var acsData = await fetchViaProxy(acsUrl);
                 
                 if (!acsData || acsData.length < 2) {
-                    throw new Error('No demographic data available for this census tract.');
+                    throw new Error('No demographic data available.');
                 }
                 
-                var headers = acsData[0];
-                var values = acsData[1];
-                var result = {};
+                var headers = acsData[0], values = acsData[1], result = {};
                 headers.forEach(function(h, i) { result[h] = values[i]; });
                 
-                document.getElementById('debugInfo').classList.remove('show');
                 displayResults(tractData, result, match.coordinates || {x: 0, y: 0});
                 document.getElementById('resultsSection').style.display = 'block';
                 document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
                 
             } catch (error) {
-                console.error('Error:', error);
                 showError('Unable to fetch data: ' + (error.message || 'Please try again.'));
             } finally {
                 document.getElementById('loading').classList.remove('show');
@@ -485,20 +349,15 @@
                 '<div class="data-card"><h3>MSA Name</h3><div class="value" style="font-size:16px;">' + td.msaName + '</div></div>';
             
             document.getElementById('tractInfo').innerHTML = 
-                '<h3>📍 Location Information</h3>' +
-                '<div class="info-grid">' +
+                '<h3>📍 Location Information</h3><div class="info-grid">' +
                 '<div class="info-item"><label>State</label><span>' + td.stateName + ' (' + td.stateAbbr + ')</span></div>' +
                 '<div class="info-item"><label>Coordinates</label><span>' + (coords.x || 0).toFixed(4) + ', ' + (coords.y || 0).toFixed(4) + '</span></div>' +
                 '<div class="info-item"><label>Data Year</label><span>2022 ACS 5-Year</span></div>' +
-                '<div class="info-item"><label>Population</label><span>' + fmt(d['B01003_001E']) + '</span></div>' +
-                '</div>';
+                '<div class="info-item"><label>Population</label><span>' + fmt(d['B01003_001E']) + '</span></div></div>';
             
             var mhi = parseInt(d['B19013_001E']) || 0;
             var level = 'Low';
-            if (mhi > 100000) level = 'Upper';
-            else if (mhi > 75000) level = 'Middle-Upper';
-            else if (mhi > 50000) level = 'Middle';
-            else if (mhi > 30000) level = 'Moderate';
+            if (mhi > 100000) level = 'Upper'; else if (mhi > 75000) level = 'Middle-Upper'; else if (mhi > 50000) level = 'Middle'; else if (mhi > 30000) level = 'Moderate';
             
             document.getElementById('incomeData').innerHTML = 
                 '<div class="data-card"><h3>Median Household Income</h3><div class="value">' + curr(d['B19013_001E']) + '</div></div>' +
@@ -506,12 +365,9 @@
                 '<div class="data-card"><h3>Per Capita Income</h3><div class="value">' + curr(d['B19301_001E']) + '</div></div>' +
                 '<div class="data-card"><h3>Tract Income Level</h3><div class="value">' + level + '</div></div>';
             
-            var tp = parseInt(d['B01003_001E']) || 0;
-            var wp = parseInt(d['B02001_002E']) || 0;
-            var hp = parseInt(d['B03002_012E']) || 0;
-            var ap = parseInt(d['B02001_005E']) || 0;
-            var mp = tp - wp;
-            var mpct = tp > 0 ? ((mp / tp) * 100).toFixed(1) : 0;
+            var tp = parseInt(d['B01003_001E']) || 0, wp = parseInt(d['B02001_002E']) || 0;
+            var hp = parseInt(d['B03002_012E']) || 0, ap = parseInt(d['B02001_005E']) || 0;
+            var mp = tp - wp, mpct = tp > 0 ? ((mp / tp) * 100).toFixed(1) : 0;
             
             document.getElementById('populationData').innerHTML = 
                 '<div class="data-card"><h3>Total Population</h3><div class="value">' + fmt(tp) + '</div></div>' +
@@ -519,9 +375,7 @@
                 '<div class="data-card"><h3>Hispanic or Latino</h3><div class="value">' + fmt(hp) + '</div></div>' +
                 '<div class="data-card"><h3>Asian Population</h3><div class="value">' + fmt(ap) + '</div></div>';
             
-            var tu = parseInt(d['B25001_001E']) || 0;
-            var oo = parseInt(d['B25003_002E']) || 0;
-            var ro = parseInt(d['B25003_003E']) || 0;
+            var tu = parseInt(d['B25001_001E']) || 0, oo = parseInt(d['B25003_002E']) || 0, ro = parseInt(d['B25003_003E']) || 0;
             
             document.getElementById('housingData').innerHTML = 
                 '<div class="data-card"><h3>Total Housing Units</h3><div class="value">' + fmt(tu) + '</div></div>' +
