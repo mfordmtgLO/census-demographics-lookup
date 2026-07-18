@@ -76,7 +76,6 @@
     <script>
         var PROXY_URL = '/api/proxy';
         var stateFipsMap = {};
-        var stateAbbrToFips = {};
         
         document.addEventListener('DOMContentLoaded', function() {
             var states = [
@@ -86,9 +85,7 @@
             states.forEach(function(s) {
                 var opt = document.createElement('option');
                 opt.value = s.code; opt.textContent = s.name + ' (' + s.abbr + ')';
-                select.appendChild(opt);
-                stateFipsMap[s.code] = s;
-                stateAbbrToFips[s.abbr] = s.code;
+                select.appendChild(opt); stateFipsMap[s.code] = s;
             });
             document.getElementById('searchForm').addEventListener('submit', handleSearch);
             document.querySelectorAll('.tab').forEach(function(tab) {
@@ -128,81 +125,70 @@
             searchBtn.disabled = true;
             
             try {
-                var stateAbbr = stateFipsMap[stateFips] ? stateFipsMap[stateFips].abbr : '';
-                var fullAddress = street + ', ' + city + ', ' + stateAbbr;
-                
-                // Use FFIEC's own public geocoding API
-                var ffiecUrl = 'https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx/GetGeocodeData';
-                
-                var requestBody = {
-                    address: fullAddress,
-                    countyCheck: '',
-                    tractCheck: '',
-                    msaCheck: ''
-                };
-                
-                // Since FFIEC API requires POST, we need to use a different approach
-                // Let's use Census Bureau's address search with returnGeographies=true
+                // Use the address geocoder with benchmark=4 (Public_AR_Current)
                 var geoUrl = 'https://geocoding.geo.census.gov/geocoder/locations/address?street=' + 
                     encodeURIComponent(street) + '&city=' + encodeURIComponent(city) + 
-                    '&state=' + stateFips + '&benchmark=Public_AR_Current&format=json';
+                    '&state=' + stateFips + '&benchmark=4&format=json';
                 
                 var geoData = await fetchViaProxy(geoUrl);
                 
                 if (!geoData.result || !geoData.result.addressMatches || geoData.result.addressMatches.length === 0) {
-                    throw new Error('Address not found. Please check and try again.');
+                    throw new Error('Address not found.');
                 }
                 
                 var match = geoData.result.addressMatches[0];
-                var coords = match.coordinates;
                 
-                // Try getting tract from TigerWeb API
-                var tigerUrl = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query?where=&geometry=' + 
-                    coords.x + '%2C' + coords.y + 
-                    '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json';
+                // Get coordinates
+                var x = match.coordinates.x;
+                var y = match.coordinates.y;
                 
-                var tigerData = await fetchViaProxy(tigerUrl);
+                // Use the spatial geocoder to get tract info from coordinates
+                var spatialUrl = 'https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=' + x + '&y=' + y + '&benchmark=4&vintage=4&format=json';
+                var spatialData = await fetchViaProxy(spatialUrl);
                 
                 var tractCode = null, countyFips = null, countyName = 'Unknown';
                 var msaCode = null, msaName = 'Not in MSA';
                 
-                if (tigerData.features && tigerData.features.length > 0) {
-                    var attrs = tigerData.features[0].attributes;
-                    tractCode = attrs.TRACT || attrs.GEOID || null;
-                    if (attrs.GEOID && attrs.GEOID.length >= 5) {
-                        countyFips = attrs.GEOID.substring(0, 5);
+                // Parse spatial data
+                if (spatialData.result && spatialData.result.geographies) {
+                    var geos = spatialData.result.geographies;
+                    
+                    // Try different possible keys for tracts
+                    var tractKeys = ['Census Tracts', 'Tracts', '2020 Census Tracts', 'tracts'];
+                    for (var i = 0; i < tractKeys.length; i++) {
+                        if (geos[tractKeys[i]] && geos[tractKeys[i]].length > 0) {
+                            var t = geos[tractKeys[i]][0];
+                            tractCode = t.TRACT || t.tract || t.GEOID || null;
+                            countyFips = t.COUNTY || t.county || (t.GEOID ? t.GEOID.substring(0,5) : null);
+                            countyName = t.COUNTYNAME || t.countyName || t.NAMELSAD || 'Unknown County';
+                            break;
+                        }
                     }
-                    countyName = attrs.NAMELSAD || attrs.COUNTY || 'Unknown';
-                }
-                
-                // Try CBSA API for MSA
-                var cbsaUrl = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/CBSA/MapServer/0/query?where=&geometry=' + 
-                    coords.x + '%2C' + coords.y + 
-                    '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json';
-                
-                try {
-                    var cbsaData = await fetchViaProxy(cbsaUrl);
-                    if (cbsaData.features && cbsaData.features.length > 0) {
-                        var cbsaAttrs = cbsaData.features[0].attributes;
-                        msaCode = cbsaAttrs.CBSAFP || cbsaAttrs.GEOID || null;
-                        msaName = cbsaAttrs.NAMELSAD || cbsaAttrs.NAME || 'Unknown MSA';
+                    
+                    // Try MSA keys
+                    var msaKeys = ['Metropolitan Statistical Areas', 'Metropolitan Statistical Area', 'CBSA', 'Metropolitan Areas'];
+                    for (var j = 0; j < msaKeys.length; j++) {
+                        if (geos[msaKeys[j]] && geos[msaKeys[j]].length > 0) {
+                            var m = geos[msaKeys[j]][0];
+                            msaCode = m.MSA || m.GEOID || m.CBSAFP || null;
+                            msaName = m.NAME || m.NAMELSAD || 'Unknown MSA';
+                            break;
+                        }
                     }
-                } catch(e) {
-                    console.log('CBSA lookup failed, continuing without MSA');
                 }
                 
                 if (!tractCode || !countyFips) {
-                    throw new Error('Could not determine census tract for this address.');
+                    throw new Error('Tract not found. Try a different address or format.');
                 }
                 
                 // Get ACS data
-                var countyPart = countyFips.length >= 5 ? countyFips.substring(2, 5) : countyFips;
+                var countyPart = countyFips.length > 2 ? countyFips.substring(countyFips.length - 3) : countyFips;
                 var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
                 var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + '&for=tract:' + tractCode + '&in=state:' + stateFips + '%20county:' + countyPart;
                 
                 var acsData = await fetchViaProxy(acsUrl);
                 
-                if (!acsData || acsData.length < 2) throw new Error('No demographic data available.');
+                if (!acsData || acsData.length < 2) throw new Error('No demographic data.');
                 
                 var headers = acsData[0], values = acsData[1], result = {};
                 headers.forEach(function(h, i) { result[h] = values[i]; });
@@ -214,7 +200,7 @@
                     tractCode: tractCode, msaCode: msaCode, msaName: msaName
                 };
                 
-                displayResults(tractData, result, coords);
+                displayResults(tractData, result, {x:x, y:y});
                 document.getElementById('resultsSection').style.display = 'block';
                 document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
                 
