@@ -29,7 +29,7 @@ export default async function handler(req, res) {
           'User-Agent': 'Mozilla/5.0 (compatible; CensusDemo/1.0)',
           'Accept': 'application/json'
         },
-        timeout: 10000
+        timeout: 15000
       };
       
       const request = client.request(options, (response) => {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
           try {
             resolve(JSON.parse(body));
           } catch (e) {
-            reject(new Error('Invalid JSON response'));
+            reject(new Error('Invalid JSON response: ' + body.substring(0, 200)));
           }
         });
       });
