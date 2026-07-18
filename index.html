@@ -308,39 +308,30 @@
             });
         });
         
-        // CORS Proxy function
-        function fetchWithProxy(url) {
-            // Try multiple CORS proxies in case one is down
-            var proxies = [
-                'https://api.allorigins.win/raw?url=',
-                'https://corsproxy.io/?',
-                'https://api.codetabs.com/v1/proxy?quest='
-            ];
-            
-            // Try direct first (some browsers/extensions handle CORS)
-            return fetch(url)
-                .then(function(response) {
-                    if (response.ok) return response;
-                    throw new Error('Direct access failed');
-                })
-                .catch(function() {
-                    // Try proxies one by one
-                    return tryProxy(0);
-                });
-            
-            function tryProxy(index) {
-                if (index >= proxies.length) {
-                    throw new Error('All connection methods failed');
-                }
-                return fetch(proxies[index] + encodeURIComponent(url))
-                    .then(function(response) {
-                        if (response.ok) return response;
-                        return tryProxy(index + 1);
-                    })
-                    .catch(function() {
-                        return tryProxy(index + 1);
-                    });
-            }
+        function fetchJson(url) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch(e) {
+                            reject(new Error('Invalid JSON response'));
+                        }
+                    } else {
+                        reject(new Error('HTTP Error ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error'));
+                };
+                xhr.ontimeout = function() {
+                    reject(new Error('Request timeout'));
+                };
+                xhr.timeout = 15000;
+                xhr.send();
+            });
         }
         
         async function handleSearch(e) {
@@ -361,13 +352,15 @@
             searchBtn.disabled = true;
             
             try {
+                // Using Cloudflare CORS proxy (most reliable)
+                var proxyBase = 'https://corsproxy.io/?';
+                
                 var geoUrl = 'https://geocoding.geo.census.gov/geocoder/locations/address?street=' + 
                     encodeURIComponent(street) + '&city=' + encodeURIComponent(city) + 
                     '&state=' + stateFips + '&benchmark=Public_AR_Current&format=json';
                 
-                console.log('Fetching geocoding data...');
-                var geoResp = await fetchWithProxy(geoUrl);
-                var geoData = await geoResp.json();
+                console.log('Fetching geocoding data via proxy...');
+                var geoData = await fetchJson(proxyBase + encodeURIComponent(geoUrl));
                 
                 if (!geoData.result || !geoData.result.addressMatches || geoData.result.addressMatches.length === 0) {
                     throw new Error('Address not found. Please check the address and try again.');
@@ -402,18 +395,19 @@
                     throw new Error('Census tract not found. Try a different address.');
                 }
                 
+                console.log('Tract found:', tractData.tractCode);
+                
                 var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
                 
                 var acsUrl = 'https://api.census.gov/data/2022/acs/acs5?get=' + vars + 
                     '&for=tract:' + tractData.tractCode + 
                     '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
                 
-                console.log('Fetching ACS data...');
-                var acsResp = await fetchWithProxy(acsUrl);
-                var acsData = await acsResp.json();
+                console.log('Fetching ACS data via proxy...');
+                var acsData = await fetchJson(proxyBase + encodeURIComponent(acsUrl));
                 
                 if (!acsData || acsData.length < 2) {
-                    throw new Error('No demographic data available.');
+                    throw new Error('No demographic data available for this census tract.');
                 }
                 
                 var headers = acsData[0];
@@ -427,7 +421,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                showError('Unable to fetch data. Please try again. If the problem persists, the Census API may be temporarily unavailable.');
+                showError('Unable to fetch data: ' + (error.message || 'Unknown error. Please try again.'));
             } finally {
                 document.getElementById('loading').classList.remove('show');
                 searchBtn.disabled = false;
