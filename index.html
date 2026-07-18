@@ -68,6 +68,7 @@
             height: 42px;
         }
         .search-btn:hover { background: #764ba2; }
+        .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .tabs {
             display: flex;
             background: #f8f9fa;
@@ -110,12 +111,33 @@
             font-weight: bold;
             color: #1a3a5c;
         }
+        .data-card .subtitle {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 5px;
+        }
         .info-box {
             background: #ebf4ff;
             border: 2px solid #c3dafe;
             border-radius: 8px;
             padding: 20px;
             margin-top: 20px;
+        }
+        .info-box h3 { color: #1a3a5c; margin-bottom: 12px; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .info-item label {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+        }
+        .info-item span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
         }
         .loading {
             text-align: center;
@@ -141,6 +163,7 @@
             color: #c53030;
             padding: 15px 20px;
             border-radius: 8px;
+            border: 2px solid #fed7d7;
             display: none;
             margin: 20px 30px;
         }
@@ -164,7 +187,7 @@
     <div class="container">
         <div class="header">
             <h1>🏠 Census Tract Demographics Lookup</h1>
-            <p>Enter any US address to find demographic, income, population, and housing data for the census tract and MSA.</p>
+            <p>Enter any US address to find detailed demographic, income, population, and housing data for the census tract and MSA.</p>
         </div>
         
         <div class="search-section">
@@ -181,7 +204,7 @@
                     <label>State *</label>
                     <select id="state" required><option value="">Select state...</option></select>
                 </div>
-                <button type="submit" class="search-btn">🔍 Search</button>
+                <button type="submit" class="search-btn" id="searchBtn">🔍 Search</button>
             </form>
         </div>
         
@@ -285,11 +308,47 @@
             });
         });
         
+        // CORS Proxy function
+        function fetchWithProxy(url) {
+            // Try multiple CORS proxies in case one is down
+            var proxies = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+            
+            // Try direct first (some browsers/extensions handle CORS)
+            return fetch(url)
+                .then(function(response) {
+                    if (response.ok) return response;
+                    throw new Error('Direct access failed');
+                })
+                .catch(function() {
+                    // Try proxies one by one
+                    return tryProxy(0);
+                });
+            
+            function tryProxy(index) {
+                if (index >= proxies.length) {
+                    throw new Error('All connection methods failed');
+                }
+                return fetch(proxies[index] + encodeURIComponent(url))
+                    .then(function(response) {
+                        if (response.ok) return response;
+                        return tryProxy(index + 1);
+                    })
+                    .catch(function() {
+                        return tryProxy(index + 1);
+                    });
+            }
+        }
+        
         async function handleSearch(e) {
             e.preventDefault();
             var street = document.getElementById('street').value.trim();
             var city = document.getElementById('city').value.trim();
             var stateFips = document.getElementById('state').value;
+            var searchBtn = document.getElementById('searchBtn');
             
             if (!street || !city || !stateFips) {
                 showError('Please fill in all address fields.');
@@ -299,13 +358,15 @@
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('error').classList.remove('show');
             document.getElementById('loading').classList.add('show');
+            searchBtn.disabled = true;
             
             try {
                 var geoUrl = 'https://geocoding.geo.census.gov/geocoder/locations/address?street=' + 
                     encodeURIComponent(street) + '&city=' + encodeURIComponent(city) + 
                     '&state=' + stateFips + '&benchmark=Public_AR_Current&format=json';
                 
-                var geoResp = await fetch(geoUrl);
+                console.log('Fetching geocoding data...');
+                var geoResp = await fetchWithProxy(geoUrl);
                 var geoData = await geoResp.json();
                 
                 if (!geoData.result || !geoData.result.addressMatches || geoData.result.addressMatches.length === 0) {
@@ -338,7 +399,7 @@
                 }
                 
                 if (!tractData.tractCode || !tractData.countyFips) {
-                    throw new Error('Census tract not found for this address.');
+                    throw new Error('Census tract not found. Try a different address.');
                 }
                 
                 var vars = 'B01003_001E,B02001_002E,B02001_003E,B02001_005E,B03002_012E,B19013_001E,B19019_001E,B19301_001E,B25001_001E,B25003_002E,B25003_003E,B25077_001E,B25064_001E,B17001_002E,B23025_005E,B23025_003E';
@@ -347,11 +408,12 @@
                     '&for=tract:' + tractData.tractCode + 
                     '&in=state:' + stateFips + '%20county:' + tractData.countyFips;
                 
-                var acsResp = await fetch(acsUrl);
+                console.log('Fetching ACS data...');
+                var acsResp = await fetchWithProxy(acsUrl);
                 var acsData = await acsResp.json();
                 
                 if (!acsData || acsData.length < 2) {
-                    throw new Error('No demographic data available for this census tract.');
+                    throw new Error('No demographic data available.');
                 }
                 
                 var headers = acsData[0];
@@ -361,11 +423,14 @@
                 
                 displayResults(tractData, result, match.coordinates);
                 document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
                 
             } catch (error) {
-                showError(error.message || 'An error occurred. Please try again.');
+                console.error('Error:', error);
+                showError('Unable to fetch data. Please try again. If the problem persists, the Census API may be temporarily unavailable.');
             } finally {
                 document.getElementById('loading').classList.remove('show');
+                searchBtn.disabled = false;
             }
         }
         
@@ -374,18 +439,19 @@
             function curr(n) { return n && !isNaN(n) ? '$' + parseInt(n).toLocaleString() : 'N/A'; }
             
             document.getElementById('overviewData').innerHTML = 
-                '<div class="data-card"><h3>Census Tract</h3><div class="value">' + (td.tractCode || 'N/A') + '</div></div>' +
-                '<div class="data-card"><h3>County</h3><div class="value" style="font-size:20px;">' + td.countyName + '</div></div>' +
-                '<div class="data-card"><h3>MSA Code</h3><div class="value">' + (td.msaCode || 'N/A') + '</div></div>' +
+                '<div class="data-card"><h3>Census Tract</h3><div class="value">' + (td.tractCode || 'N/A') + '</div><div class="subtitle">2020 Census Tract</div></div>' +
+                '<div class="data-card"><h3>County</h3><div class="value" style="font-size:20px;">' + td.countyName + '</div><div class="subtitle">FIPS: ' + (td.countyFips || 'N/A') + '</div></div>' +
+                '<div class="data-card"><h3>MSA Code</h3><div class="value">' + (td.msaCode || 'N/A') + '</div><div class="subtitle">Metropolitan Statistical Area</div></div>' +
                 '<div class="data-card"><h3>MSA Name</h3><div class="value" style="font-size:16px;">' + td.msaName + '</div></div>';
             
             document.getElementById('tractInfo').innerHTML = 
                 '<h3>📍 Location Information</h3>' +
-                '<p><strong>State:</strong> ' + td.stateName + ' (' + td.stateAbbr + ')</p>' +
-                '<p><strong>State FIPS:</strong> ' + td.stateFips + '</p>' +
-                '<p><strong>Coordinates:</strong> ' + coords.x.toFixed(4) + ', ' + coords.y.toFixed(4) + '</p>' +
-                '<p><strong>Total Population:</strong> ' + fmt(d['B01003_001E']) + '</p>' +
-                '<p><strong>Data Year:</strong> 2022 ACS 5-Year Estimates</p>';
+                '<div class="info-grid">' +
+                '<div class="info-item"><label>State</label><span>' + td.stateName + ' (' + td.stateAbbr + ')</span></div>' +
+                '<div class="info-item"><label>Coordinates</label><span>' + coords.x.toFixed(4) + ', ' + coords.y.toFixed(4) + '</span></div>' +
+                '<div class="info-item"><label>Data Year</label><span>2022 ACS 5-Year</span></div>' +
+                '<div class="info-item"><label>Population</label><span>' + fmt(d['B01003_001E']) + '</span></div>' +
+                '</div>';
             
             var mhi = parseInt(d['B19013_001E']) || 0;
             var level = 'Low';
@@ -402,14 +468,16 @@
             
             var tp = parseInt(d['B01003_001E']) || 0;
             var wp = parseInt(d['B02001_002E']) || 0;
+            var hp = parseInt(d['B03002_012E']) || 0;
+            var ap = parseInt(d['B02001_005E']) || 0;
             var mp = tp - wp;
             var mpct = tp > 0 ? ((mp / tp) * 100).toFixed(1) : 0;
             
             document.getElementById('populationData').innerHTML = 
-                '<div class="data-card"><h3>Total Population</h3><div class="value">' + fmt(d['B01003_001E']) + '</div></div>' +
+                '<div class="data-card"><h3>Total Population</h3><div class="value">' + fmt(tp) + '</div></div>' +
                 '<div class="data-card"><h3>Minority Population</h3><div class="value">' + mpct + '%</div></div>' +
-                '<div class="data-card"><h3>Hispanic or Latino</h3><div class="value">' + fmt(d['B03002_012E']) + '</div></div>' +
-                '<div class="data-card"><h3>Asian Population</h3><div class="value">' + fmt(d['B02001_005E']) + '</div></div>';
+                '<div class="data-card"><h3>Hispanic or Latino</h3><div class="value">' + fmt(hp) + '</div></div>' +
+                '<div class="data-card"><h3>Asian Population</h3><div class="value">' + fmt(ap) + '</div></div>';
             
             var tu = parseInt(d['B25001_001E']) || 0;
             var oo = parseInt(d['B25003_002E']) || 0;
@@ -417,8 +485,8 @@
             
             document.getElementById('housingData').innerHTML = 
                 '<div class="data-card"><h3>Total Housing Units</h3><div class="value">' + fmt(tu) + '</div></div>' +
-                '<div class="data-card"><h3>Owner Occupied</h3><div class="value">' + (tu > 0 ? ((oo/tu)*100).toFixed(1) : 0) + '%</div></div>' +
-                '<div class="data-card"><h3>Renter Occupied</h3><div class="value">' + (tu > 0 ? ((ro/tu)*100).toFixed(1) : 0) + '%</div></div>' +
+                '<div class="data-card"><h3>Owner Occupied</h3><div class="value">' + (tu>0?((oo/tu)*100).toFixed(1):0) + '%</div></div>' +
+                '<div class="data-card"><h3>Renter Occupied</h3><div class="value">' + (tu>0?((ro/tu)*100).toFixed(1):0) + '%</div></div>' +
                 '<div class="data-card"><h3>Median Home Value</h3><div class="value">' + curr(d['B25077_001E']) + '</div></div>' +
                 '<div class="data-card"><h3>Median Gross Rent</h3><div class="value">' + curr(d['B25064_001E']) + '/mo</div></div>';
         }
@@ -427,6 +495,7 @@
             var errorEl = document.getElementById('error');
             errorEl.textContent = '❌ ' + message;
             errorEl.classList.add('show');
+            errorEl.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
