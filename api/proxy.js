@@ -1,7 +1,8 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -13,26 +14,45 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Use curl-like headers that Census accepts
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-
-    const text = await response.text();
+    const https = require('https');
+    const http = require('http');
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    try {
-      const data = JSON.parse(text);
-      return res.status(200).json(data);
-    } catch (e) {
-      throw new Error('Invalid JSON response from Census');
-    }
+    const data = await new Promise((resolve, reject) => {
+      const parsedUrl = new URL(url);
+      const client = parsedUrl.protocol === 'https:' ? https : http;
+      
+      const options = {
+        hostname: parsedUrl.hostname,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; CensusDemo/1.0)',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      };
+      
+      const request = client.request(options, (response) => {
+        let body = '';
+        response.on('data', (chunk) => body += chunk);
+        response.on('end', () => {
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            reject(new Error('Invalid JSON response'));
+          }
+        });
+      });
+      
+      request.on('error', reject);
+      request.on('timeout', () => {
+        request.destroy();
+        reject(new Error('Request timeout'));
+      });
+      request.end();
+    });
+    
+    return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
