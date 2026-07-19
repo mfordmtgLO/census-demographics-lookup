@@ -51,7 +51,7 @@
         .ffiec-banner-icon { font-size: 28px; }
         .ffiec-banner-text p { color: #92400e; font-size: 14px; font-weight: 500; line-height: 1.5; }
         .ffiec-banner-text strong { color: #78350f; }
-        .ffiec-banner-btn { background: #f59e0b; color: #1a1a1a; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; transition: all 0.3s; display: inline-block; }
+        .ffiec-banner-btn { background: #f59e0b; color: #1a1a1a; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; transition: all 0.3s; display: inline-block; border: none; cursor: pointer; }
         .ffiec-banner-btn:hover { background: #d97706; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
         .note { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 20px; margin: 15px 30px; font-size: 13px; color: #166534; }
         .disclaimer { background: #f8f9fa; padding: 15px 30px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #718096; text-align: center; line-height: 1.6; }
@@ -88,15 +88,7 @@
         <div class="error" id="error"></div>
         <div class="note" id="note" style="display:none;"></div>
         
-        <div class="ffiec-banner" id="ffiecBanner" style="display:none;">
-            <div class="ffiec-banner-content">
-                <span class="ffiec-banner-icon">🏛️</span>
-                <div class="ffiec-banner-text">
-                    <p><strong>For official FFIEC data</strong> — View this exact address on the official FFIEC Geocoding System for verified census tract, MSA, and income data</p>
-                </div>
-            </div>
-            <a href="#" id="ffiecLink" target="_blank" rel="noopener noreferrer" class="ffiec-banner-btn">🔍 Search on FFIEC →</a>
-        </div>
+        <div class="ffiec-banner" id="ffiecBanner" style="display:none;"></div>
         
         <div id="resultsSection" style="display:none;">
             <div class="tabs">
@@ -119,7 +111,6 @@
     <script>
         var stateFipsMap = {};
         
-        // Actual 2022 ACS MSA Median Household Incomes by state
         var msaIncomes = {
             "11": 129000, "06": 92000, "36": 85000, "25": 98000, "48": 72000,
             "12": 65000, "17": 78000, "42": 75000, "39": 68000, "26": 70000,
@@ -133,7 +124,6 @@
             "23": 71000, "50": 74000, "44": 80000, "10": 79000, "15": 93000, "02": 82000
         };
         
-        // Known city income profiles (ratio to MSA median)
         var cityIncomeProfiles = {
             "washington": {base: 0.95}, "san francisco": {base: 1.25}, "oakland": {base: 0.85},
             "san jose": {base: 1.30}, "los angeles": {base: 0.75}, "beverly hills": {base: 1.80},
@@ -216,9 +206,51 @@
             return Math.max(0.32, Math.min(1.60, baseRatio));
         }
         
-        function buildFFIECUrl(street, city, stateAbbr) {
-            var fullAddress = encodeURIComponent(street + ', ' + city + ', ' + stateAbbr);
-            return 'https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx?address=' + fullAddress;
+        function copyAddress(address) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address).then(function() {
+                    var btn = document.querySelector('.ffiec-banner-btn');
+                    if (btn) {
+                        var originalText = btn.textContent;
+                        btn.textContent = '✅ Copied!';
+                        btn.style.background = '#166534';
+                        btn.style.color = 'white';
+                        setTimeout(function() {
+                            btn.textContent = originalText;
+                            btn.style.background = '#1a3a5c';
+                        }, 2000);
+                    }
+                }).catch(function() {
+                    fallbackCopy(address);
+                });
+            } else {
+                fallbackCopy(address);
+            }
+        }
+        
+        function fallbackCopy(address) {
+            var textarea = document.createElement('textarea');
+            textarea.value = address;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                var btn = document.querySelector('.ffiec-banner-btn');
+                if (btn) {
+                    btn.textContent = '✅ Copied!';
+                    btn.style.background = '#166534';
+                    btn.style.color = 'white';
+                    setTimeout(function() {
+                        btn.textContent = '📋 Copy Address';
+                        btn.style.background = '#1a3a5c';
+                    }, 2000);
+                }
+            } catch (err) {
+                alert('Address: ' + address + '\n\nPlease manually copy this address and paste into FFIEC.');
+            }
+            document.body.removeChild(textarea);
         }
         
         async function handleSearch(e) {
@@ -316,19 +348,27 @@
             document.getElementById('loading').classList.remove('show');
             searchBtn.disabled = false;
             
-            // Update FFIEC link
-            var ffiecUrl = buildFFIECUrl(street, city, stateInfo.abbr);
-            var ffiecLink = document.getElementById('ffiecLink');
-            ffiecLink.href = ffiecUrl;
-            
-            // Show the note with FFIEC classification
             document.getElementById('note').innerHTML = '✅ <strong>FFIEC Income Classification:</strong> <strong>' + ffiecLevel + 
                 '</strong> — Tract Median Household Income: $' + tractMedianIncome.toLocaleString() + 
                 ' / MSA Median: $' + stateMSAIncome.toLocaleString() + 
                 ' = <strong>' + (incomeRatio*100).toFixed(0) + '%</strong> of MSA median';
             document.getElementById('note').style.display = 'block';
             
-            // Show the FFIEC banner
+            var fullAddressDisplay = street + ', ' + city + ', ' + stateInfo.abbr;
+            var ffiecUrl = 'https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx';
+            
+            document.getElementById('ffiecBanner').innerHTML = 
+                '<div class="ffiec-banner-content">' +
+                '<span class="ffiec-banner-icon">🏛️</span>' +
+                '<div class="ffiec-banner-text">' +
+                '<p><strong>For official FFIEC data</strong> — Copy your address and paste it into the FFIEC system</p>' +
+                '<p style="font-size:13px;margin-top:5px;color:#78350f;"><strong>Address:</strong> ' + fullAddressDisplay + '</p>' +
+                '</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+                '<button onclick="copyAddress(\'' + fullAddressDisplay.replace(/'/g, "\\'") + '\')" class="ffiec-banner-btn" style="background:#1a3a5c;color:white;">📋 Copy Address</button>' +
+                '<a href="' + ffiecUrl + '" target="_blank" rel="noopener noreferrer" class="ffiec-banner-btn">🔍 Open FFIEC →</a>' +
+                '</div>';
             document.getElementById('ffiecBanner').style.display = 'flex';
         }
         
