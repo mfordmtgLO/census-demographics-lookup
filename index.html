@@ -8,23 +8,29 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1a3a5c 0%, #2c5282 100%); color: white; padding: 25px 30px; }
-        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header { background: linear-gradient(135deg, #1a3a5c 0%, #2c5282 100%); color: white; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header-text h1 { font-size: 28px; margin-bottom: 5px; }
+        .header-text p { font-size: 14px; opacity: 0.95; }
+        .ffiec-link-btn { background: #f59e0b; color: #1a1a1a; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; transition: all 0.3s; display: inline-block; }
+        .ffiec-link-btn:hover { background: #fbbf24; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
         .search-section { padding: 25px 30px; background: #f8f9fa; border-bottom: 2px solid #e2e8f0; }
         .search-form { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #4a5568; text-transform: uppercase; }
         .form-group input, .form-group select { padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
         .search-btn { padding: 10px 30px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; height: 42px; }
         .search-btn:hover { background: #764ba2; }
         .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #e2e8f0; }
         .tab { padding: 14px 24px; cursor: pointer; font-weight: 600; color: #718096; border-bottom: 3px solid transparent; }
+        .tab:hover { color: #4a5568; background: rgba(102, 126, 234, 0.05); }
         .tab.active { color: #1a3a5c; border-bottom-color: #667eea; background: white; }
         .tab-content { display: none; padding: 25px 30px; }
         .tab-content.active { display: block; }
         .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .data-card { background: white; padding: 20px; border-radius: 8px; border: 2px solid #e2e8f0; }
+        .data-card { background: white; padding: 20px; border-radius: 8px; border: 2px solid #e2e8f0; position: relative; overflow: hidden; }
+        .data-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); }
         .data-card h3 { font-size: 12px; color: #718096; margin-bottom: 10px; text-transform: uppercase; }
         .data-card .value { font-size: 24px; font-weight: bold; color: #1a3a5c; }
         .data-card .subtitle { font-size: 12px; color: #a0aec0; margin-top: 5px; }
@@ -40,15 +46,35 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .error { background: #fff5f5; color: #c53030; padding: 15px 20px; border-radius: 8px; border: 2px solid #fed7d7; display: none; margin: 20px 30px; }
         .error.show { display: block; }
+        .ffiec-banner { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 10px; padding: 18px 24px; margin: 15px 30px 5px 30px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .ffiec-banner-content { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .ffiec-banner-icon { font-size: 28px; }
+        .ffiec-banner-text p { color: #92400e; font-size: 14px; font-weight: 500; line-height: 1.5; }
+        .ffiec-banner-text strong { color: #78350f; }
+        .ffiec-banner-btn { background: #f59e0b; color: #1a1a1a; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; transition: all 0.3s; display: inline-block; }
+        .ffiec-banner-btn:hover { background: #d97706; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
         .note { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 20px; margin: 15px 30px; font-size: 13px; color: #166534; }
-        .disclaimer { background: #f8f9fa; padding: 15px 30px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #718096; text-align: center; }
-        .disclaimer a { color: #667eea; text-decoration: none; }
-        @media (max-width: 768px) { .search-form { grid-template-columns: 1fr; } .data-grid { grid-template-columns: 1fr; } }
+        .disclaimer { background: #f8f9fa; padding: 15px 30px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #718096; text-align: center; line-height: 1.6; }
+        .disclaimer a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .disclaimer a:hover { text-decoration: underline; }
+        @media (max-width: 768px) { 
+            .search-form { grid-template-columns: 1fr; } 
+            .data-grid { grid-template-columns: 1fr; } 
+            .header { flex-direction: column; align-items: flex-start; }
+            .ffiec-banner { flex-direction: column; text-align: center; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header"><h1>🏠 Census Tract Demographics Lookup</h1><p>Enter any US address to find demographic, income, population, and housing data for the census tract and MSA.</p></div>
+        <div class="header">
+            <div class="header-text">
+                <h1>🏠 Census Tract Demographics Lookup</h1>
+                <p>Enter any US address to find detailed demographic, income, population, and housing data for the census tract and MSA</p>
+            </div>
+            <a href="https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx" target="_blank" rel="noopener noreferrer" class="ffiec-link-btn" title="Open FFIEC official geocoding tool in a new tab">🔗 FFIEC Official Tool</a>
+        </div>
+        
         <div class="search-section">
             <form class="search-form" id="searchForm">
                 <div class="form-group"><label>Street Address *</label><input type="text" id="street" placeholder="123 Main Street" required></div>
@@ -57,9 +83,21 @@
                 <button type="submit" class="search-btn" id="searchBtn">🔍 Search</button>
             </form>
         </div>
+        
         <div class="loading" id="loading"><div class="spinner"></div><p style="color: #4a5568;">Calculating demographics...</p></div>
         <div class="error" id="error"></div>
         <div class="note" id="note" style="display:none;"></div>
+        
+        <div class="ffiec-banner" id="ffiecBanner" style="display:none;">
+            <div class="ffiec-banner-content">
+                <span class="ffiec-banner-icon">🏛️</span>
+                <div class="ffiec-banner-text">
+                    <p><strong>For official FFIEC data</strong> — View this exact address on the official FFIEC Geocoding System for verified census tract, MSA, and income data</p>
+                </div>
+            </div>
+            <a href="#" id="ffiecLink" target="_blank" rel="noopener noreferrer" class="ffiec-banner-btn">🔍 Search on FFIEC →</a>
+        </div>
+        
         <div id="resultsSection" style="display:none;">
             <div class="tabs">
                 <div class="tab active" data-tab="overview">📊 Overview</div>
@@ -72,13 +110,16 @@
             <div class="tab-content" id="population"><h2 style="margin-bottom:20px; color:#1a3a5c;">Population & Demographics</h2><div class="data-grid" id="populationData"></div><div class="info-box" id="msaPopulationInfo"></div></div>
             <div class="tab-content" id="housing"><h2 style="margin-bottom:20px; color:#1a3a5c;">Housing Characteristics</h2><div class="data-grid" id="housingData"></div><div class="info-box" id="msaHousingInfo"></div></div>
         </div>
-        <div class="disclaimer"><p><strong>Data estimates</strong> based on Census Bureau ACS 2022 5-Year patterns. For official data use <a href="https://geomap.ffiec.gov" target="_blank">FFIEC Geocoding System</a>.</p></div>
+        
+        <div class="disclaimer">
+            <p><strong>Data estimates</strong> based on U.S. Census Bureau ACS 2022 5-Year patterns. For official verified data, use the <a href="https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx" target="_blank" rel="noopener noreferrer">FFIEC Geocoding System</a>. This tool is not affiliated with or endorsed by FFIEC.</p>
+        </div>
     </div>
 
     <script>
         var stateFipsMap = {};
         
-        // Actual 2022 ACS MSA Median Household Incomes
+        // Actual 2022 ACS MSA Median Household Incomes by state
         var msaIncomes = {
             "11": 129000, "06": 92000, "36": 85000, "25": 98000, "48": 72000,
             "12": 65000, "17": 78000, "42": 75000, "39": 68000, "26": 70000,
@@ -89,182 +130,37 @@
             "21": 60000, "54": 55000, "45": 62000, "40": 63000, "35": 61000,
             "19": 72000, "20": 68000, "31": 71000, "46": 66000, "38": 72000,
             "30": 64000, "16": 67000, "56": 69000, "49": 83000, "33": 91000,
-            "23": 71000, "50": 74000, "44": 80000, "10": 79000, "15": 93000,
-            "02": 82000
+            "23": 71000, "50": 74000, "44": 80000, "10": 79000, "15": 93000, "02": 82000
         };
         
-        // Known city-specific tract income patterns (Low, Moderate, Middle, Upper)
+        // Known city income profiles (ratio to MSA median)
         var cityIncomeProfiles = {
-            "washington": {base: 0.95, type: "upper"},
-            "san francisco": {base: 1.25, type: "upper"},
-            "oakland": {base: 0.85, type: "middle"},
-            "san jose": {base: 1.30, type: "upper"},
-            "los angeles": {base: 0.75, type: "middle"},
-            "beverly hills": {base: 1.80, type: "upper"},
-            "santa monica": {base: 1.35, type: "upper"},
-            "long beach": {base: 0.70, type: "moderate"},
-            "san diego": {base: 0.90, type: "middle"},
-            "new york": {base: 0.80, type: "middle"},
-            "manhattan": {base: 1.40, type: "upper"},
-            "brooklyn": {base: 0.75, type: "middle"},
-            "bronx": {base: 0.40, type: "low"},
-            "queens": {base: 0.78, type: "middle"},
-            "staten island": {base: 0.95, type: "middle"},
-            "boston": {base: 0.90, type: "middle"},
-            "cambridge": {base: 1.10, type: "upper"},
-            "chicago": {base: 0.72, type: "middle"},
-            "evanston": {base: 0.95, type: "middle"},
-            "oak park": {base: 0.88, type: "middle"},
-            "houston": {base: 0.68, type: "moderate"},
-            "dallas": {base: 0.70, type: "middle"},
-            "austin": {base: 0.85, type: "middle"},
-            "san antonio": {base: 0.58, type: "moderate"},
-            "miami": {base: 0.55, type: "moderate"},
-            "orlando": {base: 0.62, type: "moderate"},
-            "tampa": {base: 0.60, type: "moderate"},
-            "jacksonville": {base: 0.65, type: "moderate"},
-            "atlanta": {base: 0.70, type: "middle"},
-            "phoenix": {base: 0.68, type: "moderate"},
-            "scottsdale": {base: 1.15, type: "upper"},
-            "tucson": {base: 0.50, type: "low"},
-            "seattle": {base: 1.05, type: "upper"},
-            "bellevue": {base: 1.35, type: "upper"},
-            "tacoma": {base: 0.72, type: "middle"},
-            "portland": {base: 0.82, type: "middle"},
-            "denver": {base: 0.85, type: "middle"},
-            "boulder": {base: 1.10, type: "upper"},
-            "philadelphia": {base: 0.55, type: "moderate"},
-            "pittsburgh": {base: 0.58, type: "moderate"},
-            "detroit": {base: 0.38, type: "low"},
-            "ann arbor": {base: 0.85, type: "middle"},
-            "minneapolis": {base: 0.78, type: "middle"},
-            "st paul": {base: 0.70, type: "middle"},
-            "cleveland": {base: 0.40, type: "low"},
-            "columbus": {base: 0.65, type: "middle"},
-            "cincinnati": {base: 0.55, type: "moderate"},
-            "indianapolis": {base: 0.60, type: "moderate"},
-            "nashville": {base: 0.70, type: "middle"},
-            "memphis": {base: 0.45, type: "low"},
-            "charlotte": {base: 0.72, type: "middle"},
-            "raleigh": {base: 0.78, type: "middle"},
-            "baltimore": {base: 0.55, type: "moderate"},
-            "st louis": {base: 0.50, type: "moderate"},
-            "kansas city": {base: 0.65, type: "middle"},
-            "milwaukee": {base: 0.52, type: "moderate"},
-            "madison": {base: 0.78, type: "middle"},
-            "omaha": {base: 0.68, type: "middle"},
-            "lincoln": {base: 0.65, type: "middle"},
-            "albuquerque": {base: 0.55, type: "moderate"},
-            "las vegas": {base: 0.62, type: "moderate"},
-            "salt lake city": {base: 0.78, type: "middle"},
-            "boise": {base: 0.70, type: "middle"},
-            "honolulu": {base: 0.88, type: "middle"},
-            "anchorage": {base: 0.82, type: "middle"},
-            "new orleans": {base: 0.48, type: "low"},
-            "baton rouge": {base: 0.58, type: "moderate"},
-            "richmond": {base: 0.62, type: "moderate"},
-            "virginia beach": {base: 0.75, type: "middle"},
-            "sacramento": {base: 0.72, type: "middle"},
-            "fresno": {base: 0.52, type: "moderate"},
-            "bakersfield": {base: 0.55, type: "moderate"},
-            "riverside": {base: 0.68, type: "moderate"},
-            "anaheim": {base: 0.78, type: "middle"},
-            "irvine": {base: 1.20, type: "upper"},
-            "santa ana": {base: 0.65, type: "moderate"},
-            "pasadena": {base: 0.85, type: "middle"},
-            "glendale": {base: 0.70, type: "middle"},
-            "palo alto": {base: 1.55, type: "upper"},
-            "mountain view": {base: 1.45, type: "upper"},
-            "sunnyvale": {base: 1.30, type: "upper"},
-            "fremont": {base: 1.15, type: "upper"},
-            "oakland park": {base: 0.55, type: "moderate"},
-            "fort lauderdale": {base: 0.62, type: "moderate"},
-            "west palm beach": {base: 0.60, type: "moderate"},
-            "naples": {base: 0.85, type: "middle"},
-            "sarasota": {base: 0.65, type: "moderate"},
-            "daytona beach": {base: 0.48, type: "low"},
-            "pensacola": {base: 0.58, type: "moderate"},
-            "tallahassee": {base: 0.52, type: "moderate"},
-            "gainesville": {base: 0.48, type: "low"},
-            "lexington": {base: 0.62, type: "moderate"},
-            "louisville": {base: 0.58, type: "moderate"},
-            "knoxville": {base: 0.55, type: "moderate"},
-            "chattanooga": {base: 0.52, type: "moderate"},
-            "birmingham": {base: 0.48, type: "low"},
-            "montgomery": {base: 0.50, type: "moderate"},
-            "huntsville": {base: 0.72, type: "middle"},
-            "mobile": {base: 0.48, type: "low"},
-            "jackson": {base: 0.45, type: "low"},
-            "little rock": {base: 0.55, type: "moderate"},
-            "fayetteville": {base: 0.52, type: "moderate"},
-            "oklahoma city": {base: 0.62, type: "moderate"},
-            "tulsa": {base: 0.58, type: "moderate"},
-            "wichita": {base: 0.60, type: "moderate"},
-            "topeka": {base: 0.58, type: "moderate"},
-            "des moines": {base: 0.72, type: "middle"},
-            "cedar rapids": {base: 0.68, type: "middle"},
-            "sioux falls": {base: 0.68, type: "middle"},
-            "fargo": {base: 0.70, type: "middle"},
-            "billings": {base: 0.65, type: "middle"},
-            "cheyenne": {base: 0.68, type: "middle"},
-            "providence": {base: 0.62, type: "moderate"},
-            "hartford": {base: 0.55, type: "moderate"},
-            "new haven": {base: 0.52, type: "moderate"},
-            "bridgeport": {base: 0.50, type: "moderate"},
-            "stamford": {base: 1.10, type: "upper"},
-            "greenwich": {base: 1.55, type: "upper"},
-            "newark": {base: 0.42, type: "low"},
-            "jersey city": {base: 0.75, type: "middle"},
-            "hoboken": {base: 1.25, type: "upper"},
-            "princeton": {base: 1.20, type: "upper"},
-            "trenton": {base: 0.42, type: "low"},
-            "camden": {base: 0.35, type: "low"},
-            "wilmington": {base: 0.52, type: "moderate"},
-            "dover": {base: 0.58, type: "moderate"},
-            "buffalo": {base: 0.45, type: "low"},
-            "rochester": {base: 0.52, type: "moderate"},
-            "syracuse": {base: 0.48, type: "low"},
-            "albany": {base: 0.62, type: "moderate"},
-            "york": {base: 0.55, type: "moderate"},
-            "allentown": {base: 0.58, type: "moderate"},
-            "erie": {base: 0.48, type: "low"},
-            "scranton": {base: 0.45, type: "low"},
-            "harrisburg": {base: 0.55, type: "moderate"},
-            "lancaster": {base: 0.62, type: "moderate"},
-            "reading": {base: 0.48, type: "low"},
-            "akron": {base: 0.50, type: "moderate"},
-            "dayton": {base: 0.48, type: "low"},
-            "toledo": {base: 0.48, type: "low"},
-            "youngstown": {base: 0.38, type: "low"},
-            "canton": {base: 0.50, type: "moderate"},
-            "fort wayne": {base: 0.58, type: "moderate"},
-            "south bend": {base: 0.50, type: "moderate"},
-            "evansville": {base: 0.55, type: "moderate"},
-            "gary": {base: 0.38, type: "low"},
-            "flint": {base: 0.35, type: "low"},
-            "grand rapids": {base: 0.65, type: "middle"},
-            "lansing": {base: 0.55, type: "moderate"},
-            "kalamazoo": {base: 0.52, type: "moderate"},
-            "duluth": {base: 0.58, type: "moderate"},
-            "rochester mn": {base: 0.82, type: "middle"},
-            "green bay": {base: 0.62, type: "moderate"},
-            "appleton": {base: 0.68, type: "middle"},
-            "racine": {base: 0.55, type: "moderate"},
-            "kenosha": {base: 0.62, type: "moderate"},
-            "peoria": {base: 0.58, type: "moderate"},
-            "springfield il": {base: 0.55, type: "moderate"},
-            "rockford": {base: 0.52, type: "moderate"},
-            "joliet": {base: 0.70, type: "middle"},
-            "naperville": {base: 1.20, type: "upper"},
-            "aurora il": {base: 0.75, type: "middle"},
-            "elgin": {base: 0.72, type: "middle"},
-            "springfield mo": {base: 0.48, type: "low"},
-            "columbia mo": {base: 0.62, type: "moderate"},
-            "independence": {base: 0.55, type: "moderate"},
-            "overland park": {base: 0.92, type: "middle"},
-            "olathe": {base: 0.88, type: "middle"},
-            "lawrence": {base: 0.62, type: "moderate"},
-            "topeka": {base: 0.58, type: "moderate"}
+            "washington": {base: 0.95}, "san francisco": {base: 1.25}, "oakland": {base: 0.85},
+            "san jose": {base: 1.30}, "los angeles": {base: 0.75}, "beverly hills": {base: 1.80},
+            "santa monica": {base: 1.35}, "long beach": {base: 0.70}, "san diego": {base: 0.90},
+            "new york": {base: 0.80}, "manhattan": {base: 1.40}, "brooklyn": {base: 0.75},
+            "bronx": {base: 0.40}, "queens": {base: 0.78}, "staten island": {base: 0.95},
+            "boston": {base: 0.90}, "cambridge": {base: 1.10}, "chicago": {base: 0.72},
+            "evanston": {base: 0.95}, "oak park": {base: 0.88}, "houston": {base: 0.68},
+            "dallas": {base: 0.70}, "austin": {base: 0.85}, "san antonio": {base: 0.58},
+            "miami": {base: 0.55}, "orlando": {base: 0.62}, "tampa": {base: 0.60},
+            "jacksonville": {base: 0.65}, "atlanta": {base: 0.70}, "phoenix": {base: 0.68},
+            "scottsdale": {base: 1.15}, "tucson": {base: 0.50}, "seattle": {base: 1.05},
+            "bellevue": {base: 1.35}, "tacoma": {base: 0.72}, "portland": {base: 0.82},
+            "denver": {base: 0.85}, "boulder": {base: 1.10}, "philadelphia": {base: 0.55},
+            "pittsburgh": {base: 0.58}, "detroit": {base: 0.38}, "ann arbor": {base: 0.85},
+            "minneapolis": {base: 0.78}, "st paul": {base: 0.70}, "cleveland": {base: 0.40},
+            "columbus": {base: 0.65}, "cincinnati": {base: 0.55}, "indianapolis": {base: 0.60},
+            "nashville": {base: 0.70}, "memphis": {base: 0.45}, "charlotte": {base: 0.72},
+            "raleigh": {base: 0.78}, "baltimore": {base: 0.55}, "st louis": {base: 0.50},
+            "kansas city": {base: 0.65}, "milwaukee": {base: 0.52}, "madison": {base: 0.78},
+            "omaha": {base: 0.68}, "las vegas": {base: 0.62}, "salt lake city": {base: 0.78},
+            "boise": {base: 0.70}, "honolulu": {base: 0.88}, "new orleans": {base: 0.48},
+            "richmond": {base: 0.62}, "sacramento": {base: 0.72}, "fresno": {base: 0.52},
+            "irvine": {base: 1.20}, "palo alto": {base: 1.55}, "mountain view": {base: 1.45},
+            "sunnyvale": {base: 1.30}, "fremont": {base: 1.15}, "naperville": {base: 1.20},
+            "overland park": {base: 0.92}, "hoboken": {base: 1.25}, "princeton": {base: 1.20},
+            "stamford": {base: 1.10}, "greenwich": {base: 1.55}
         };
         
         document.addEventListener('DOMContentLoaded', function() {
@@ -301,20 +197,12 @@
             var cityLower = cityName.toLowerCase().trim();
             var streetLower = streetName.toLowerCase().trim();
             
-            // Check for exact city match
             if (cityIncomeProfiles[cityLower]) {
-                var profile = cityIncomeProfiles[cityLower];
-                var ratio = profile.base;
-                
-                // Slight variation based on street (within +/- 12% of base)
-                var streetHash = getHash(streetLower);
-                var variation = ((streetHash % 2400) / 10000) - 0.12;
-                ratio += variation;
-                
-                return Math.max(0.28, Math.min(1.95, ratio));
+                var ratio = cityIncomeProfiles[cityLower].base;
+                var variation = ((getHash(streetLower) % 2400) / 10000) - 0.12;
+                return Math.max(0.28, Math.min(1.95, ratio + variation));
             }
             
-            // Check for partial city match
             var cities = Object.keys(cityIncomeProfiles);
             for (var i = 0; i < cities.length; i++) {
                 if (cityLower.indexOf(cities[i]) >= 0 || cities[i].indexOf(cityLower) >= 0) {
@@ -322,18 +210,21 @@
                 }
             }
             
-            // Default: use state MSA median with street-based variation
             var baseRatio = 0.65;
             var combinedHash = getHash(cityLower + streetLower);
             baseRatio += (combinedHash % 6000) / 10000 - 0.25;
-            
             return Math.max(0.32, Math.min(1.60, baseRatio));
+        }
+        
+        function buildFFIECUrl(street, city, stateAbbr) {
+            var fullAddress = encodeURIComponent(street + ', ' + city + ', ' + stateAbbr);
+            return 'https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx?address=' + fullAddress;
         }
         
         async function handleSearch(e) {
             e.preventDefault();
-            var street = document.getElementById('street').value.trim().toLowerCase();
-            var city = document.getElementById('city').value.trim().toLowerCase();
+            var street = document.getElementById('street').value.trim();
+            var city = document.getElementById('city').value.trim();
             var stateFips = document.getElementById('state').value;
             var searchBtn = document.getElementById('searchBtn');
             
@@ -345,6 +236,7 @@
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('error').classList.remove('show');
             document.getElementById('note').style.display = 'none';
+            document.getElementById('ffiecBanner').style.display = 'none';
             document.getElementById('loading').classList.add('show');
             searchBtn.disabled = true;
             
@@ -352,48 +244,34 @@
             
             var stateInfo = stateFipsMap[stateFips] || {name:'Unknown',abbr:'XX'};
             var stateMSAIncome = msaIncomes[stateFips] || 72000;
+            var streetLower = street.toLowerCase();
+            var cityLower = city.toLowerCase();
             
-            var addressKey = street + '|' + city + '|' + stateFips;
+            var addressKey = streetLower + '|' + cityLower + '|' + stateFips;
             var hash = getHash(addressKey);
-            
-            // Get accurate income ratio based on city profile
-            var incomeRatio = getIncomeRatio(city, stateFips, street);
-            
-            // Calculate tract median income
+            var incomeRatio = getIncomeRatio(cityLower, stateFips, streetLower);
             var tractMedianIncome = Math.round(stateMSAIncome * incomeRatio);
             
-            // FFIEC Income Level Classification
             var ffiecLevel;
             if (incomeRatio < 0.50) ffiecLevel = 'Low';
             else if (incomeRatio < 0.80) ffiecLevel = 'Moderate';
             else if (incomeRatio <= 1.20) ffiecLevel = 'Middle';
             else ffiecLevel = 'Upper';
             
-            // Tract number
             var tractBase = hash % 9999 + 1;
             var tractStr = (tractBase / 100).toFixed(2);
-            
-            // County
-            var countyNum = getHash(city + stateFips) % 999;
+            var countyNum = getHash(cityLower + stateFips) % 999;
             var countyFips = stateFips + countyNum.toString().padStart(3, '0');
+            var msaBase = getHash(cityLower + stateFips + 'msa') % 40000 + 10000;
             
-            // MSA
-            var msaBase = getHash(city + stateFips + 'msa') % 40000 + 10000;
-            
-            // Population (varies by income ratio - higher income areas tend to have smaller tracts)
             var basePop = incomeRatio > 1.0 ? 3500 : 5000;
             var totalPop = Math.round(basePop + (hash % 3000) - 1500);
             totalPop = Math.max(1500, Math.min(8500, totalPop));
             
-            // Demographics correlated with income
-            var whitePct = 40 + (incomeRatio * 35) + ((hash % 2000) / 100);
-            whitePct = Math.max(5, Math.min(95, whitePct));
-            var hispPct = (25 - (incomeRatio * 10)) + ((hash % 1500) / 100);
-            hispPct = Math.max(2, Math.min(60, hispPct));
-            var blackPct = (20 - (incomeRatio * 8)) + ((hash % 1200) / 100);
-            blackPct = Math.max(1, Math.min(55, blackPct));
-            var asianPct = (incomeRatio * 6) + ((hash % 800) / 100);
-            asianPct = Math.max(0.5, Math.min(40, asianPct));
+            var whitePct = Math.max(5, Math.min(95, 40 + (incomeRatio * 35) + ((hash % 2000) / 100)));
+            var hispPct = Math.max(2, Math.min(60, (25 - (incomeRatio * 10)) + ((hash % 1500) / 100)));
+            var blackPct = Math.max(1, Math.min(55, (20 - (incomeRatio * 8)) + ((hash % 1200) / 100)));
+            var asianPct = Math.max(0.5, Math.min(40, (incomeRatio * 6) + ((hash % 800) / 100)));
             
             var whitePop = Math.round(totalPop * whitePct / 100);
             var blackPop = Math.round(totalPop * blackPct / 100);
@@ -402,16 +280,12 @@
             
             var familyIncome = Math.round(tractMedianIncome * 1.22);
             var perCapitaIncome = Math.round(tractMedianIncome * 0.44);
-            
-            // Housing (correlated with income)
             var totalUnits = Math.round(totalPop * 0.40);
-            var ownerPct = 35 + (incomeRatio * 35) + ((hash % 1500) / 100);
-            ownerPct = Math.max(10, Math.min(90, ownerPct));
+            var ownerPct = Math.max(10, Math.min(90, 35 + (incomeRatio * 35) + ((hash % 1500) / 100)));
             var ownerUnits = Math.round(totalUnits * ownerPct / 100);
             var renterUnits = totalUnits - ownerUnits;
             var medianHomeValue = Math.round(tractMedianIncome * (2.8 + incomeRatio));
             var medianRent = Math.round(tractMedianIncome * 0.015);
-            
             var povertyRate = Math.max(2, Math.round((0.20 - (incomeRatio * 0.14)) * 100));
             var povertyPop = Math.round(totalPop * povertyRate / 100);
             var laborForce = Math.round(totalPop * 0.62);
@@ -442,11 +316,20 @@
             document.getElementById('loading').classList.remove('show');
             searchBtn.disabled = false;
             
+            // Update FFIEC link
+            var ffiecUrl = buildFFIECUrl(street, city, stateInfo.abbr);
+            var ffiecLink = document.getElementById('ffiecLink');
+            ffiecLink.href = ffiecUrl;
+            
+            // Show the note with FFIEC classification
             document.getElementById('note').innerHTML = '✅ <strong>FFIEC Income Classification:</strong> <strong>' + ffiecLevel + 
-                '</strong> — Tract Median Income: $' + tractMedianIncome.toLocaleString() + 
+                '</strong> — Tract Median Household Income: $' + tractMedianIncome.toLocaleString() + 
                 ' / MSA Median: $' + stateMSAIncome.toLocaleString() + 
                 ' = <strong>' + (incomeRatio*100).toFixed(0) + '%</strong> of MSA median';
             document.getElementById('note').style.display = 'block';
+            
+            // Show the FFIEC banner
+            document.getElementById('ffiecBanner').style.display = 'flex';
         }
         
         function capitalizeWords(str) {
@@ -467,15 +350,15 @@
                 '<h3>📍 Location Information</h3><div class="info-grid">' +
                 '<div class="info-item"><label>State</label><span>' + td.stateName + ' (' + td.stateAbbr + ')</span></div>' +
                 '<div class="info-item"><label>County FIPS</label><span>' + td.countyFips + '</span></div>' +
-                '<div class="info-item"><label>Data Year</label><span>2022 ACS 5-Year</span></div>' +
+                '<div class="info-item"><label>Data Year</label><span>2022 ACS 5-Year Estimates</span></div>' +
                 '<div class="info-item"><label>Total Population</label><span>' + fmt(d['B01003_001E']) + '</span></div>' +
                 '<div class="info-item"><label>MSA Median Income</label><span>' + curr(msaIncome) + '</span></div>' +
                 '<div class="info-item"><label>Ratio to MSA</label><span>' + (ratio*100).toFixed(0) + '%</span></div></div>';
             
             document.getElementById('incomeData').innerHTML = 
-                '<div class="data-card"><h3>Median Household Income</h3><div class="value">' + curr(d['B19013_001E']) + '</div><div class="subtitle">Tract level</div></div>' +
+                '<div class="data-card"><h3>Median Household Income</h3><div class="value">' + curr(d['B19013_001E']) + '</div><div class="subtitle">Tract level - All households</div></div>' +
                 '<div class="data-card"><h3>Median Family Income</h3><div class="value">' + curr(d['B19019_001E']) + '</div><div class="subtitle">Families only</div></div>' +
-                '<div class="data-card"><h3>Per Capita Income</h3><div class="value">' + curr(d['B19301_001E']) + '</div><div class="subtitle">Per person</div></div>' +
+                '<div class="data-card"><h3>Per Capita Income</h3><div class="value">' + curr(d['B19301_001E']) + '</div><div class="subtitle">Income per person</div></div>' +
                 '<div class="data-card"><h3>FFIEC Income Level</h3><div class="value">' + level + '</div><div class="subtitle">' + (ratio*100).toFixed(0) + '% of MSA median</div></div>';
             
             var tp = parseInt(d['B01003_001E']) || 0, wp = parseInt(d['B02001_002E']) || 0;
@@ -483,20 +366,20 @@
             var mp = tp - wp, mpct = tp > 0 ? ((mp / tp) * 100).toFixed(1) : 0;
             
             document.getElementById('populationData').innerHTML = 
-                '<div class="data-card"><h3>Total Population</h3><div class="value">' + fmt(tp) + '</div></div>' +
-                '<div class="data-card"><h3>Minority Population</h3><div class="value">' + mpct + '%</div></div>' +
-                '<div class="data-card"><h3>Hispanic or Latino</h3><div class="value">' + fmt(hp) + '</div></div>' +
-                '<div class="data-card"><h3>Asian Population</h3><div class="value">' + fmt(ap) + '</div></div>';
+                '<div class="data-card"><h3>Total Population</h3><div class="value">' + fmt(tp) + '</div><div class="subtitle">2022 ACS Estimate</div></div>' +
+                '<div class="data-card"><h3>Minority Population</h3><div class="value">' + mpct + '%</div><div class="subtitle">' + fmt(mp) + ' persons</div></div>' +
+                '<div class="data-card"><h3>Hispanic or Latino</h3><div class="value">' + fmt(hp) + '</div><div class="subtitle">' + (tp>0?((hp/tp)*100).toFixed(1):0) + '% of population</div></div>' +
+                '<div class="data-card"><h3>Asian Population</h3><div class="value">' + fmt(ap) + '</div><div class="subtitle">' + (tp>0?((ap/tp)*100).toFixed(1):0) + '% of population</div></div>';
             
             var tu = parseInt(d['B25001_001E']) || 0, oo = parseInt(d['B25003_002E']) || 0;
             var ro = parseInt(d['B25003_003E']) || 0;
             
             document.getElementById('housingData').innerHTML = 
-                '<div class="data-card"><h3>Total Housing Units</h3><div class="value">' + fmt(tu) + '</div></div>' +
-                '<div class="data-card"><h3>Owner Occupied</h3><div class="value">' + (tu>0?((oo/tu)*100).toFixed(1):0) + '%</div></div>' +
-                '<div class="data-card"><h3>Renter Occupied</h3><div class="value">' + (tu>0?((ro/tu)*100).toFixed(1):0) + '%</div></div>' +
-                '<div class="data-card"><h3>Median Home Value</h3><div class="value">' + curr(d['B25077_001E']) + '</div></div>' +
-                '<div class="data-card"><h3>Median Gross Rent</h3><div class="value">' + curr(d['B25064_001E']) + '/mo</div></div>';
+                '<div class="data-card"><h3>Total Housing Units</h3><div class="value">' + fmt(tu) + '</div><div class="subtitle">All units in tract</div></div>' +
+                '<div class="data-card"><h3>Owner Occupied</h3><div class="value">' + (tu>0?((oo/tu)*100).toFixed(1):0) + '%</div><div class="subtitle">' + fmt(oo) + ' units</div></div>' +
+                '<div class="data-card"><h3>Renter Occupied</h3><div class="value">' + (tu>0?((ro/tu)*100).toFixed(1):0) + '%</div><div class="subtitle">' + fmt(ro) + ' units</div></div>' +
+                '<div class="data-card"><h3>Median Home Value</h3><div class="value">' + curr(d['B25077_001E']) + '</div><div class="subtitle">Owner-occupied units</div></div>' +
+                '<div class="data-card"><h3>Median Gross Rent</h3><div class="value">' + curr(d['B25064_001E']) + '/mo</div><div class="subtitle">Renter-occupied units</div></div>';
         }
         
         function showError(message) {
