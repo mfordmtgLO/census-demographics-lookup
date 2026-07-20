@@ -3,70 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oregon Income Map + Real Zillow Listings Split Screen</title>
+    <title>Oregon Income Map + Zillow Listings</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; overflow: hidden; height: 100vh; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; overflow: hidden; }
         
-        .header { background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 100%); padding: 10px 20px; border-bottom: 3px solid #f59e0b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .header { background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 100%); padding: 10px 18px; border-bottom: 3px solid #f59e0b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .header h1 { font-size: 18px; color: #f59e0b; }
-        .header p { font-size: 10px; color: #a0c4ff; }
         
         .controls-bar { background: #16213e; padding: 8px 15px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #0d2137; }
-        .controls-bar select { padding: 8px 12px; border-radius: 5px; border: 1px solid #3a5a8c; background: #0d2137; color: white; font-size: 12px; min-width: 150px; }
-        .controls-bar input { padding: 8px 12px; border-radius: 5px; border: 1px solid #3a5a8c; background: #0d2137; color: white; font-size: 12px; width: 130px; }
+        .controls-bar select { padding: 8px 12px; border-radius: 5px; border: 1px solid #3a5a8c; background: #0d2137; color: white; font-size: 12px; min-width: 140px; }
+        .controls-bar input { padding: 8px 12px; border-radius: 5px; border: 1px solid #3a5a8c; background: #0d2137; color: white; font-size: 12px; width: 110px; }
         .controls-bar input::placeholder { color: #8899aa; }
-        .controls-bar button { padding: 8px 16px; border-radius: 5px; border: none; font-weight: 700; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .btn { padding: 8px 16px; border-radius: 5px; border: none; font-weight: 700; cursor: pointer; font-size: 12px; transition: all 0.2s; text-decoration: none; display: inline-block; text-align: center; white-space: nowrap; }
         .btn-search { background: #f59e0b; color: #1a1a1a; }
         .btn-search:hover { background: #fbbf24; }
         .btn-zillow { background: #006aff; color: white; }
-        .btn-zillow:hover { background: #0052cc; }
+        .btn-zillow:hover { background: #0052cc; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,106,255,0.4); }
         .btn-redfin { background: #c41e3a; color: white; }
-        .btn-redfin:hover { background: #a01830; }
+        .btn-redfin:hover { background: #a01830; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(196,30,58,0.4); }
+        .btn-realtor { background: #10b981; color: white; }
+        .btn-realtor:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.4); }
         
         .income-toggles { display: flex; gap: 5px; margin-left: auto; }
-        .income-toggle { padding: 5px 10px; border-radius: 12px; font-size: 10px; cursor: pointer; border: 2px solid transparent; font-weight: 600; transition: all 0.2s; background: #0d2137; color: #8899aa; }
+        .income-toggle { padding: 5px 10px; border-radius: 12px; font-size: 10px; cursor: pointer; border: 2px solid transparent; font-weight: 600; transition: all 0.2s; background: #0d2137; }
         .income-toggle.low { color: #ef4444; }
         .income-toggle.moderate { color: #f59e0b; }
         .income-toggle.middle { color: #3b82f6; }
-        .income-toggle.active { border-color: currentColor; background: #1a2d4a; }
+        .income-toggle.active { background: #1a2d4a; border-color: currentColor; }
         
         .main-container { display: flex; height: calc(100vh - 95px); }
         
-        .map-panel { flex: 1; position: relative; border-right: 2px solid #f59e0b; }
-        .zillow-panel { flex: 1; position: relative; background: #0d2137; }
+        .map-panel { flex: 1; position: relative; }
+        .sidebar { width: 360px; background: #16213e; overflow-y: auto; padding: 12px; border-left: 2px solid #0d2137; }
         #map { width: 100%; height: 100%; }
-        #zillowFrame { width: 100%; height: 100%; border: none; }
         
-        .panel-label { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: rgba(13,33,55,0.9); padding: 5px 15px; border-radius: 15px; z-index: 1000; font-size: 11px; font-weight: 600; pointer-events: none; }
-        .panel-label.left { color: #f59e0b; border: 1px solid #f59e0b; }
-        .panel-label.right { color: #006aff; border: 1px solid #006aff; }
+        .sidebar h3 { font-size: 14px; color: #f59e0b; margin-bottom: 10px; }
+        .sidebar .info-text { font-size: 10px; color: #8899aa; margin-bottom: 10px; line-height: 1.4; }
         
-        .legend-mini { position: absolute; bottom: 10px; left: 10px; background: rgba(13,33,55,0.9); padding: 8px; border-radius: 6px; z-index: 1000; font-size: 9px; }
-        .legend-mini span { margin-right: 8px; }
+        .listing-links { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .listing-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 6px; text-decoration: none; color: white; font-size: 12px; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; }
+        .listing-link:hover { transform: translateX(3px); }
+        .listing-link.zillow { background: #0a1e3d; border-color: #006aff; }
+        .listing-link.zillow:hover { background: #0d2a54; }
+        .listing-link.redfin { background: #1a0a0e; border-color: #c41e3a; }
+        .listing-link.redfin:hover { background: #2a0d14; }
+        .listing-link.realtor { background: #0a1a12; border-color: #10b981; }
+        .listing-link.realtor:hover { background: #0d2418; }
+        .link-icon { font-size: 18px; }
         
-        .zillow-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; background: #0d2137; z-index: 500; }
-        .zillow-placeholder { text-align: center; color: #8899aa; }
-        .zillow-placeholder h3 { color: #006aff; margin-bottom: 10px; }
+        .quick-cities { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+        .quick-city { padding: 4px 9px; background: #0d2137; border: 1px solid #3a5a8c; border-radius: 10px; font-size: 10px; cursor: pointer; color: #a0c4ff; transition: all 0.2s; }
+        .quick-city:hover { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
         
-        @media (max-width: 900px) {
+        .legend-mini { position: absolute; bottom: 10px; left: 10px; background: rgba(13,33,55,0.9); padding: 8px 12px; border-radius: 6px; z-index: 1000; font-size: 10px; }
+        .legend-mini span { margin-right: 10px; }
+        
+        .price-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+        .price-tag { padding: 4px 8px; background: #0d2137; border-radius: 8px; font-size: 10px; cursor: pointer; color: #8899aa; border: 1px solid #3a5a8c; transition: all 0.2s; }
+        .price-tag:hover { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
+        .price-tag.active { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
+        
+        @media (max-width: 850px) {
             .main-container { flex-direction: column; }
-            .map-panel { height: 50%; border-right: none; border-bottom: 2px solid #f59e0b; }
-            .zillow-panel { height: 50%; }
+            .sidebar { width: 100%; max-height: 250px; border-left: none; border-top: 2px solid #0d2137; }
+            .map-panel { height: calc(100vh - 350px); }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div>
-            <h1>🏠 Oregon Income Map ↔ Real Zillow Listings</h1>
-            <p>Left: Income Areas Map | Right: Actual Zillow Homes For Sale</p>
+            <h1>🏠 Oregon Income Map → Real Home Listings</h1>
+            <p style="font-size:10px;color:#a0c4ff;">Select city & price → Click to open real listings on Zillow, Redfin, or Realtor.com</p>
         </div>
     </div>
     
     <div class="controls-bar">
-        <select id="citySelect" onchange="updateCity()">
+        <select id="citySelect" onchange="updateMap()">
             <option value="">-- Select Oregon City --</option>
             <option value="Portland">Portland</option>
             <option value="Salem">Salem</option>
@@ -94,10 +109,7 @@
             <option value="Redmond">Redmond</option>
             <option value="Oregon-City">Oregon City</option>
         </select>
-        <input type="number" id="maxPrice" placeholder="Max Price $" value="500000">
-        <button class="btn-search" onclick="updateCity()">🔍 Update Map</button>
-        <button class="btn-zillow" onclick="openZillow()">🏘️ Zillow Listings →</button>
-        <button class="btn-redfin" onclick="openRedfin()">🏡 Redfin Listings →</button>
+        <input type="number" id="maxPrice" placeholder="Max Price $" value="500000" onchange="updateLinks()">
         
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleIncome('Low', this)">🔴 Low</span>
@@ -108,25 +120,73 @@
     
     <div class="main-container">
         <div class="map-panel">
-            <div class="panel-label left">🗺️ Oregon Income Areas Map</div>
             <div id="map"></div>
             <div class="legend-mini">
-                <span style="color:#ef4444;">● Low</span>
+                <span style="color:#ef4444;">● Low Income</span>
                 <span style="color:#f59e0b;">● Moderate</span>
                 <span style="color:#3b82f6;">● Middle</span>
             </div>
         </div>
         
-        <div class="zillow-panel">
-            <div class="panel-label right">🏘️ Real Zillow Listings</div>
-            <div class="zillow-overlay" id="zillowOverlay">
-                <div class="zillow-placeholder">
-                    <h3>🏘️ Real Zillow Homes For Sale</h3>
-                    <p>Select a city above and click <strong>"Zillow Listings"</strong> to see<br>actual active homes for sale in that area</p>
-                    <p style="font-size:11px;margin-top:10px;color:#666;">💡 Properties shown are real listings from Zillow.com</p>
+        <div class="sidebar">
+            <h3>🏘️ View Real Listings For:</h3>
+            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:16px;margin-bottom:5px;">Select a city above</p>
+            
+            <p class="info-text">Click any button below to open <strong>real active home listings</strong> in a new tab. All listings are actual properties currently for sale.</p>
+            
+            <div style="margin-bottom:8px;">
+                <small style="color:#8899aa;">Quick price filters:</small>
+                <div class="price-tags">
+                    <span class="price-tag active" onclick="setPrice(500000, this)">Under $500K</span>
+                    <span class="price-tag" onclick="setPrice(350000, this)">Under $350K</span>
+                    <span class="price-tag" onclick="setPrice(250000, this)">Under $250K</span>
+                    <span class="price-tag" onclick="setPrice(0, this)">All Prices</span>
                 </div>
             </div>
-            <iframe id="zillowFrame" style="display:none;"></iframe>
+            
+            <div class="listing-links">
+                <a href="#" class="listing-link zillow" id="zillowLink" target="_blank" rel="noopener noreferrer" onclick="return openListing('zillow')">
+                    <span class="link-icon">🏘️</span>
+                    <div>
+                        <strong>Zillow.com</strong><br>
+                        <small style="opacity:0.8;">Homes for sale • Photos • Prices</small>
+                    </div>
+                </a>
+                
+                <a href="#" class="listing-link redfin" id="redfinLink" target="_blank" rel="noopener noreferrer" onclick="return openListing('redfin')">
+                    <span class="link-icon">🏡</span>
+                    <div>
+                        <strong>Redfin.com</strong><br>
+                        <small style="opacity:0.8;">Real estate listings • Map view</small>
+                    </div>
+                </a>
+                
+                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank" rel="noopener noreferrer" onclick="return openListing('realtor')">
+                    <span class="link-icon">🏠</span>
+                    <div>
+                        <strong>Realtor.com</strong><br>
+                        <small style="opacity:0.8;">MLS listings • Property details</small>
+                    </div>
+                </a>
+            </div>
+            
+            <div style="margin-top:10px;">
+                <small style="color:#8899aa;">Quick city select:</small>
+                <div class="quick-cities">
+                    <span class="quick-city" onclick="quickSelect('Portland')">Portland</span>
+                    <span class="quick-city" onclick="quickSelect('Salem')">Salem</span>
+                    <span class="quick-city" onclick="quickSelect('Eugene')">Eugene</span>
+                    <span class="quick-city" onclick="quickSelect('Medford')">Medford</span>
+                    <span class="quick-city" onclick="quickSelect('Bend')">Bend</span>
+                    <span class="quick-city" onclick="quickSelect('Corvallis')">Corvallis</span>
+                    <span class="quick-city" onclick="quickSelect('Hillsboro')">Hillsboro</span>
+                    <span class="quick-city" onclick="quickSelect('Grants-Pass')">Grants Pass</span>
+                    <span class="quick-city" onclick="quickSelect('Ashland')">Ashland</span>
+                    <span class="quick-city" onclick="quickSelect('Klamath-Falls')">Klamath Falls</span>
+                    <span class="quick-city" onclick="quickSelect('Astoria')">Astoria</span>
+                    <span class="quick-city" onclick="quickSelect('Hood-River')">Hood River</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -149,7 +209,6 @@
             {tract:"010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate", lat:45.5230, lng:-122.9900},
             {tract:"010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate", lat:45.5150, lng:-122.9700},
             {tract:"020100", county:"Clackamas", city:"Oregon City", income:70000, msaIncome:96500, ratio:0.73, level:"Moderate", lat:45.3570, lng:-122.6000},
-            {tract:"020300", county:"Clackamas", city:"Milwaukie", income:64000, msaIncome:96500, ratio:0.66, level:"Moderate", lat:45.4460, lng:-122.6400},
             {tract:"S01010", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate", lat:44.9400, lng:-123.0300},
             {tract:"S01030", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate", lat:44.9350, lng:-123.0100},
             {tract:"S01050", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low", lat:44.9300, lng:-122.9900},
@@ -190,10 +249,8 @@
         ];
         
         var map = L.map('map').setView([44.0, -120.5], 7);
-        var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19});
-        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19});
-        streetLayer.addTo(map);
-        L.control.layers({"Street Map": streetLayer, "Satellite View": satelliteLayer}).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19});
         
         var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6"};
         var levelOpacity = {"Low":0.55,"Moderate":0.45,"Middle":0.30};
@@ -201,7 +258,6 @@
         var visibleLevels = {"Low":true,"Moderate":true,"Middle":true};
         var currentCity = null;
         
-        // Draw all tract circles
         oregonTracts.forEach(function(tract) {
             var circle = L.circle([tract.lat, tract.lng], {
                 color: levelColors[tract.level],
@@ -210,50 +266,33 @@
                 radius: Math.max(700, Math.min(2200, tract.income / 14)),
                 weight: 1.5
             });
-            
-            circle.bindPopup(
-                '<strong>Tract ' + tract.tract + '</strong><br>' +
-                tract.city + ', ' + tract.county + ' Co.<br>' +
-                'Income: $' + tract.income.toLocaleString() + '<br>' +
-                'Ratio: ' + (tract.ratio*100).toFixed(0) + '% of MSA<br>' +
-                '<strong style="color:'+levelColors[tract.level]+';">' + tract.level + ' Income</strong>'
-            );
+            circle.bindPopup('<strong>Tract ' + tract.tract + '</strong><br>' + tract.city + ', ' + tract.county + ' Co.<br>Income: $' + tract.income.toLocaleString() + '<br><strong style="color:'+levelColors[tract.level]+';">' + tract.level + ' Income</strong>');
             circle.addTo(map);
             allCircles.push({circle:circle, tract:tract});
         });
         
         function toggleIncome(level, el) {
             visibleLevels[level] = !visibleLevels[level];
-            if (visibleLevels[level]) {
-                el.classList.add('active');
-            } else {
-                el.classList.remove('active');
-            }
-            
+            el.classList.toggle('active', visibleLevels[level]);
             allCircles.forEach(function(item) {
                 if (item.tract.level === level) {
-                    if (visibleLevels[level]) {
-                        item.circle.setStyle({fillOpacity: levelOpacity[level], weight: 1.5});
-                        if (currentCity && item.tract.city === currentCity) {
-                            item.circle.setStyle({fillOpacity: 0.85, weight: 3});
-                        }
-                    } else {
-                        item.circle.setStyle({fillOpacity: 0, weight: 0});
-                    }
+                    item.circle.setStyle({
+                        fillOpacity: visibleLevels[level] ? levelOpacity[level] : 0,
+                        weight: visibleLevels[level] ? 1.5 : 0
+                    });
                 }
             });
         }
         
-        function updateCity() {
-            var citySelect = document.getElementById('citySelect');
-            var city = citySelect.value;
+        function updateMap() {
+            var city = document.getElementById('citySelect').value;
             currentCity = city.replace(/-/g, ' ');
+            document.getElementById('selectedCityDisplay').textContent = currentCity || 'Select a city above';
+            updateLinks();
             
             if (!city) {
                 map.setView([44.0, -120.5], 7);
-                allCircles.forEach(function(item) {
-                    item.circle.setStyle({fillOpacity: levelOpacity[item.tract.level], weight: 1.5});
-                });
+                resetCircles();
                 return;
             }
             
@@ -261,7 +300,6 @@
             var matchingTracts = oregonTracts.filter(function(t) {
                 return t.city.toLowerCase() === cityFormatted.toLowerCase();
             });
-            
             if (matchingTracts.length === 0) {
                 matchingTracts = oregonTracts.filter(function(t) {
                     return t.city.toLowerCase().indexOf(cityFormatted.toLowerCase()) >= 0;
@@ -270,10 +308,8 @@
             
             if (matchingTracts.length > 0) {
                 map.setView([matchingTracts[0].lat, matchingTracts[0].lng], 12);
-                
-                // Highlight matching tracts
                 allCircles.forEach(function(item) {
-                    var isMatch = matchingTracts.some(function(mt) { return mt.tract === item.tract.tract && mt.city === item.tract.city; });
+                    var isMatch = matchingTracts.some(function(mt) { return mt.tract === item.tract.tract; });
                     if (isMatch && visibleLevels[item.tract.level]) {
                         item.circle.setStyle({fillOpacity: 0.85, weight: 3, color: '#fff'});
                         item.circle.bringToFront();
@@ -284,60 +320,67 @@
             }
         }
         
-        function openZillow() {
-            var city = document.getElementById('citySelect').value;
-            if (!city) { alert('Please select a city first.'); return; }
-            
-            var maxPrice = document.getElementById('maxPrice').value || '';
-            var cityFormatted = city.replace(/-/g, ' ');
-            
-            // Zillow URL with search parameters
-            var zillowUrl = 'https://www.zillow.com/' + city.toLowerCase() + '-or/houses/';
-            if (maxPrice) {
-                zillowUrl += '?searchQueryState={"pagination":{},"usersSearchTerm":"' + cityFormatted + ', OR","mapBounds":null,"regionSelection":[{"regionId":0}],"isMapVisible":true,"filterState":{"price":{"max":' + maxPrice + '},"sort":{"value":"globalrelevanceex"},"ah":{"value":true}},"isListVisible":true}';
-            }
-            
-            // Show Zillow in the iframe
-            document.getElementById('zillowOverlay').style.display = 'none';
-            var frame = document.getElementById('zillowFrame');
-            frame.style.display = 'block';
-            frame.src = 'about:blank';
-            setTimeout(function() {
-                frame.src = zillowUrl;
-            }, 100);
-            
-            updateCity();
+        function resetCircles() {
+            allCircles.forEach(function(item) {
+                if (visibleLevels[item.tract.level]) {
+                    item.circle.setStyle({fillOpacity: levelOpacity[item.tract.level], weight: 1.5, color: levelColors[item.tract.level]});
+                }
+            });
         }
         
-        function openRedfin() {
-            var city = document.getElementById('citySelect').value;
-            if (!city) { alert('Please select a city first.'); return; }
+        function updateLinks() {
+            var city = document.getElementById('citySelect').value || currentCity || '';
+            var cityFormatted = city.replace(/-/g, ' ').trim();
+            if (!cityFormatted) return;
             
-            var cityFormatted = city.replace(/-/g, '-').toLowerCase();
             var maxPrice = document.getElementById('maxPrice').value || '';
+            var citySlug = city.toLowerCase().replace(/\s+/g, '-');
+            
+            // Zillow URL
+            var zillowUrl = 'https://www.zillow.com/' + citySlug + '-or/houses/';
+            if (maxPrice) zillowUrl += '?price-max=' + maxPrice;
+            document.getElementById('zillowLink').href = zillowUrl;
             
             // Redfin URL
-            var redfinUrl = 'https://www.redfin.com/city/0/OR/' + cityFormatted;
-            if (maxPrice) {
-                redfinUrl += '/max-price-' + maxPrice;
-            }
+            var redfinUrl = 'https://www.redfin.com/city/0/OR/' + citySlug;
+            if (maxPrice) redfinUrl += '/max-price-' + maxPrice;
+            document.getElementById('redfinLink').href = redfinUrl;
             
-            // Show in iframe
-            document.getElementById('zillowOverlay').style.display = 'none';
-            var frame = document.getElementById('zillowFrame');
-            frame.style.display = 'block';
-            frame.src = 'about:blank';
-            setTimeout(function() {
-                frame.src = redfinUrl;
-            }, 100);
-            
-            updateCity();
+            // Realtor.com URL
+            var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR';
+            if (maxPrice) realtorUrl += '/price-' + maxPrice + '-na';
+            document.getElementById('realtorLink').href = realtorUrl;
         }
         
-        window.updateCity = updateCity;
-        window.openZillow = openZillow;
-        window.openRedfin = openRedfin;
+        function setPrice(price, el) {
+            document.getElementById('maxPrice').value = price || '';
+            document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
+            el.classList.add('active');
+            updateLinks();
+        }
+        
+        function quickSelect(city) {
+            document.getElementById('citySelect').value = city;
+            updateMap();
+        }
+        
+        function openListing(site) {
+            var city = document.getElementById('citySelect').value;
+            if (!city && !currentCity) {
+                alert('Please select a city first.');
+                return false;
+            }
+            if (!city) document.getElementById('citySelect').value = currentCity.replace(/\s+/g, '-');
+            updateLinks();
+            return true;
+        }
+        
+        window.updateMap = updateMap;
         window.toggleIncome = toggleIncome;
+        window.setPrice = setPrice;
+        window.quickSelect = quickSelect;
+        window.openListing = openListing;
+        window.updateLinks = updateLinks;
     </script>
 </body>
 </html>
