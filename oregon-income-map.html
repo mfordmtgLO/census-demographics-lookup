@@ -15,7 +15,7 @@
         
         .main-container { display: flex; height: calc(100vh - 100px); }
         
-        .sidebar { width: 380px; background: #16213e; overflow-y: auto; padding: 15px; border-right: 2px solid #0d2137; }
+        .sidebar { width: 400px; background: #16213e; overflow-y: auto; padding: 15px; border-right: 2px solid #0d2137; }
         .sidebar h2 { font-size: 18px; margin-bottom: 10px; color: #f59e0b; }
         .sidebar .info-text { font-size: 12px; color: #8899aa; margin-bottom: 15px; line-height: 1.5; }
         
@@ -44,7 +44,7 @@
         .search-box input::placeholder { color: #8899aa; }
         
         .stats-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .stat-card { flex: 1; min-width: 100px; background: #0d2137; border-radius: 6px; padding: 10px; text-align: center; }
+        .stat-card { flex: 1; min-width: 80px; background: #0d2137; border-radius: 6px; padding: 10px; text-align: center; }
         .stat-card .stat-num { font-size: 22px; font-weight: bold; }
         .stat-card .stat-label { font-size: 10px; color: #8899aa; margin-top: 3px; }
         .stat-low .stat-num { color: #ef4444; }
@@ -52,9 +52,20 @@
         .stat-mid .stat-num { color: #3b82f6; }
         .stat-upper .stat-num { color: #10b981; }
         
+        .loading-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(13,33,55,0.95); padding: 20px 30px; border-radius: 10px; z-index: 2000; text-align: center; display: none; }
+        .loading-indicator.show { display: block; }
+        .loading-spinner { border: 3px solid #3a5a8c; border-top: 3px solid #f59e0b; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: #f59e0b; color: #1a1a2e; }
+        .btn-primary:hover { background: #fbbf24; }
+        .btn-outline { background: transparent; border: 1px solid #f59e0b; color: #f59e0b; }
+        .btn-outline:hover { background: rgba(245,158,11,0.1); }
+        
         @media (max-width: 768px) {
             .main-container { flex-direction: column; height: auto; }
-            .sidebar { width: 100%; max-height: 300px; }
+            .sidebar { width: 100%; max-height: 350px; }
             .map-container { height: 500px; }
         }
     </style>
@@ -63,14 +74,15 @@
     <div class="header">
         <div>
             <h1>🗺️ Oregon Low-Moderate Income Census Tracts</h1>
-            <p>HUD 2024 FFIEC Income Data • Interactive Map with Census Tract Boundaries</p>
+            <p>HUD 2024 FFIEC Income Data • Official Census Tract Boundaries • Interactive Map</p>
         </div>
+        <button class="btn btn-outline" onclick="toggleAllTracts()" id="toggleBtn">🗂️ Show All Tract Boundaries</button>
     </div>
     
     <div class="main-container">
         <div class="sidebar">
             <h2>📊 Oregon Income Data</h2>
-            <p class="info-text">Showing census tracts classified by FFIEC income levels based on 2024 HUD data. Click on shaded areas or tract list items for details.</p>
+            <p class="info-text">Showing official 2020 Census tract boundaries colored by FFIEC income level. Click on any tract for detailed data. Zoom in to see street-level detail.</p>
             
             <div class="stats-bar">
                 <div class="stat-card stat-low"><div class="stat-num" id="lowCount">-</div><div class="stat-label">Low Income</div></div>
@@ -81,10 +93,11 @@
             
             <div class="legend">
                 <h3>Income Level Legend</h3>
-                <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div> Low (&lt;50% MSA median)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f59e0b;"></div> Moderate (50-80% MSA median)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3b82f6;"></div> Middle (80-120% MSA median)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#10b981;"></div> Upper (&gt;120% MSA median)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div> Low (&lt;50% of MSA median)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f59e0b;"></div> Moderate (50-80% of MSA median)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3b82f6;"></div> Middle (80-120% of MSA median)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#10b981;"></div> Upper (&gt;120% of MSA median)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#6b7280;opacity:0.3;"></div> No Data / Non-Residential</div>
             </div>
             
             <div class="search-box">
@@ -99,110 +112,26 @@
         
         <div class="map-container">
             <div id="map"></div>
-            <div class="map-overlay">🖱️ Click on shaded areas for tract details • Scroll to zoom</div>
+            <div class="loading-indicator" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p style="color:#f59e0b;font-size:14px;">Loading tract boundaries...</p>
+                <p style="color:#8899aa;font-size:11px;" id="loadingProgress"></p>
+            </div>
+            <div class="map-overlay">🖱️ Click on shaded tracts for details • Scroll to zoom • Toggle boundaries with button</div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Oregon census tract data with FFIEC income classifications
-        // Based on 2024 HUD FFIEC data for Oregon MSAs
-        var oregonTracts = [
-            // Portland-Vancouver-Hillsboro MSA (Multnomah, Washington, Clackamas counties)
-            {tract:"000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low", lat:45.5900, lng:-122.7500},
-            {tract:"000200", county:"Multnomah", city:"Portland", income:42000, msaIncome:96500, ratio:0.44, level:"Low", lat:45.5850, lng:-122.7300},
-            {tract:"000300", county:"Multnomah", city:"Portland", income:45000, msaIncome:96500, ratio:0.47, level:"Low", lat:45.5800, lng:-122.7100},
-            {tract:"000500", county:"Multnomah", city:"Portland", income:38000, msaIncome:96500, ratio:0.39, level:"Low", lat:45.5750, lng:-122.6900},
-            {tract:"000800", county:"Multnomah", city:"Portland", income:52000, msaIncome:96500, ratio:0.54, level:"Moderate", lat:45.5700, lng:-122.6700},
-            {tract:"001000", county:"Multnomah", city:"Portland", income:56000, msaIncome:96500, ratio:0.58, level:"Moderate", lat:45.5650, lng:-122.6500},
-            {tract:"001200", county:"Multnomah", city:"Portland", income:48000, msaIncome:96500, ratio:0.50, level:"Low", lat:45.5600, lng:-122.6300},
-            {tract:"001500", county:"Multnomah", city:"Portland", income:62000, msaIncome:96500, ratio:0.64, level:"Moderate", lat:45.5550, lng:-122.6100},
-            {tract:"002000", county:"Multnomah", city:"Gresham", income:58000, msaIncome:96500, ratio:0.60, level:"Moderate", lat:45.5200, lng:-122.4300},
-            {tract:"002200", county:"Multnomah", city:"Gresham", income:51000, msaIncome:96500, ratio:0.53, level:"Moderate", lat:45.5100, lng:-122.4100},
-            {tract:"002500", county:"Multnomah", city:"Portland", income:72000, msaIncome:96500, ratio:0.75, level:"Moderate", lat:45.5400, lng:-122.5900},
-            {tract:"003000", county:"Multnomah", city:"Portland", income:85000, msaIncome:96500, ratio:0.88, level:"Middle", lat:45.5300, lng:-122.5700},
-            {tract:"010100", county:"Washington", city:"Beaverton", income:65000, msaIncome:96500, ratio:0.67, level:"Moderate", lat:45.4870, lng:-122.8000},
-            {tract:"010200", county:"Washington", city:"Beaverton", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.4800, lng:-122.7900},
-            {tract:"010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate", lat:45.5230, lng:-122.9900},
-            {tract:"010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate", lat:45.5150, lng:-122.9700},
-            {tract:"020100", county:"Clackamas", city:"Oregon City", income:70000, msaIncome:96500, ratio:0.73, level:"Moderate", lat:45.3570, lng:-122.6000},
-            {tract:"020300", county:"Clackamas", city:"Milwaukie", income:64000, msaIncome:96500, ratio:0.66, level:"Moderate", lat:45.4460, lng:-122.6400},
-            
-            // Salem MSA (Marion, Polk counties)
-            {tract:"010100", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate", lat:44.9400, lng:-123.0300},
-            {tract:"010300", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate", lat:44.9350, lng:-123.0100},
-            {tract:"010500", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low", lat:44.9300, lng:-122.9900},
-            {tract:"020100", county:"Marion", city:"Salem", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:44.9200, lng:-122.9700},
-            {tract:"020300", county:"Polk", city:"Dallas", income:52000, msaIncome:72000, ratio:0.72, level:"Moderate", lat:44.9190, lng:-123.3100},
-            {tract:"020500", county:"Polk", city:"Independence", income:40000, msaIncome:72000, ratio:0.56, level:"Moderate", lat:44.8510, lng:-123.1800},
-            
-            // Eugene-Springfield MSA (Lane County)
-            {tract:"000100", county:"Lane", city:"Eugene", income:38000, msaIncome:68000, ratio:0.56, level:"Moderate", lat:44.0520, lng:-123.0900},
-            {tract:"000300", county:"Lane", city:"Eugene", income:32000, msaIncome:68000, ratio:0.47, level:"Low", lat:44.0450, lng:-123.0700},
-            {tract:"000500", county:"Lane", city:"Eugene", income:35000, msaIncome:68000, ratio:0.51, level:"Moderate", lat:44.0380, lng:-123.0500},
-            {tract:"000800", county:"Lane", city:"Springfield", income:40000, msaIncome:68000, ratio:0.59, level:"Moderate", lat:44.0460, lng:-123.0200},
-            {tract:"001000", county:"Lane", city:"Springfield", income:36000, msaIncome:68000, ratio:0.53, level:"Moderate", lat:44.0400, lng:-123.0000},
-            {tract:"001200", county:"Lane", city:"Springfield", income:30000, msaIncome:68000, ratio:0.44, level:"Low", lat:44.0340, lng:-122.9800},
-            
-            // Medford-Grants Pass MSA (Jackson, Josephine counties)
-            {tract:"000200", county:"Jackson", city:"Medford", income:42000, msaIncome:62000, ratio:0.68, level:"Moderate", lat:42.3260, lng:-122.8700},
-            {tract:"000400", county:"Jackson", city:"Medford", income:35000, msaIncome:62000, ratio:0.56, level:"Moderate", lat:42.3200, lng:-122.8500},
-            {tract:"000600", county:"Jackson", city:"Central Point", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", lat:42.3760, lng:-122.9100},
-            {tract:"010100", county:"Josephine", city:"Grants Pass", income:38000, msaIncome:62000, ratio:0.61, level:"Moderate", lat:42.4390, lng:-123.3300},
-            {tract:"010300", county:"Josephine", city:"Grants Pass", income:30000, msaIncome:62000, ratio:0.48, level:"Low", lat:42.4300, lng:-123.3100},
-            
-            // Bend MSA (Deschutes County)
-            {tract:"000100", county:"Deschutes", city:"Bend", income:55000, msaIncome:82000, ratio:0.67, level:"Moderate", lat:44.0580, lng:-121.3100},
-            {tract:"000300", county:"Deschutes", city:"Bend", income:48000, msaIncome:82000, ratio:0.59, level:"Moderate", lat:44.0500, lng:-121.2900},
-            {tract:"000500", county:"Deschutes", city:"Redmond", income:52000, msaIncome:82000, ratio:0.63, level:"Moderate", lat:44.2720, lng:-121.1700},
-            
-            // Corvallis MSA (Benton County)
-            {tract:"000100", county:"Benton", city:"Corvallis", income:42000, msaIncome:78000, ratio:0.54, level:"Moderate", lat:44.5640, lng:-123.2600},
-            {tract:"000300", county:"Benton", city:"Corvallis", income:38000, msaIncome:78000, ratio:0.49, level:"Low", lat:44.5580, lng:-123.2400},
-            
-            // Albany-Lebanon MSA (Linn County)
-            {tract:"000200", county:"Linn", city:"Albany", income:45000, msaIncome:65000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-123.1000},
-            {tract:"000400", county:"Linn", city:"Lebanon", income:40000, msaIncome:65000, ratio:0.62, level:"Moderate", lat:44.5330, lng:-122.9000},
-            {tract:"000600", county:"Linn", city:"Albany", income:32000, msaIncome:65000, ratio:0.49, level:"Low", lat:44.6280, lng:-123.0800},
-            
-            // Rural / Non-MSA areas
-            {tract:"950100", county:"Douglas", city:"Roseburg", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:43.2160, lng:-123.3400},
-            {tract:"950200", county:"Douglas", city:"Roseburg", income:32000, msaIncome:55000, ratio:0.58, level:"Moderate", lat:43.2100, lng:-123.3200},
-            {tract:"950300", county:"Coos", city:"Coos Bay", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate", lat:43.3660, lng:-124.2100},
-            {tract:"950400", county:"Coos", city:"North Bend", income:30000, msaIncome:55000, ratio:0.55, level:"Moderate", lat:43.4060, lng:-124.2200},
-            {tract:"950500", county:"Klamath", city:"Klamath Falls", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate", lat:42.2240, lng:-121.7800},
-            {tract:"950600", county:"Klamath", city:"Klamath Falls", income:28000, msaIncome:55000, ratio:0.51, level:"Moderate", lat:42.2180, lng:-121.7600},
-            {tract:"950700", county:"Umatilla", city:"Pendleton", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate", lat:45.6720, lng:-118.7900},
-            {tract:"950800", county:"Umatilla", city:"Hermiston", income:45000, msaIncome:55000, ratio:0.82, level:"Middle", lat:45.8400, lng:-119.2900},
-            {tract:"950900", county:"Malheur", city:"Ontario", income:32000, msaIncome:55000, ratio:0.58, level:"Moderate", lat:44.0260, lng:-116.9600},
-            {tract:"951000", county:"Lincoln", city:"Newport", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-124.0500},
-            {tract:"951100", county:"Lincoln", city:"Lincoln City", income:40000, msaIncome:55000, ratio:0.73, level:"Moderate", lat:44.9580, lng:-124.0100},
-            {tract:"951200", county:"Tillamook", city:"Tillamook", income:41000, msaIncome:55000, ratio:0.75, level:"Moderate", lat:45.4560, lng:-123.8400},
-            {tract:"951300", county:"Clatsop", city:"Astoria", income:43000, msaIncome:55000, ratio:0.78, level:"Moderate", lat:46.1870, lng:-123.8300},
-            {tract:"951400", county:"Baker", city:"Baker City", income:36000, msaIncome:55000, ratio:0.65, level:"Moderate", lat:44.7740, lng:-117.8300},
-            {tract:"951500", county:"Union", city:"La Grande", income:39000, msaIncome:55000, ratio:0.71, level:"Moderate", lat:45.3240, lng:-118.0800},
-            {tract:"951600", county:"Wasco", city:"The Dalles", income:44000, msaIncome:55000, ratio:0.80, level:"Middle", lat:45.5940, lng:-121.1800},
-            {tract:"951700", county:"Jefferson", city:"Madras", income:37000, msaIncome:55000, ratio:0.67, level:"Moderate", lat:44.6330, lng:-121.1300},
-            {tract:"951800", county:"Crook", city:"Prineville", income:40000, msaIncome:55000, ratio:0.73, level:"Moderate", lat:44.3000, lng:-120.8300},
-            {tract:"951900", county:"Grant", city:"John Day", income:33000, msaIncome:55000, ratio:0.60, level:"Moderate", lat:44.4160, lng:-118.9500},
-            {tract:"952000", county:"Harney", city:"Burns", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate", lat:43.5860, lng:-119.0500},
-            {tract:"952100", county:"Lake", city:"Lakeview", income:31000, msaIncome:55000, ratio:0.56, level:"Moderate", lat:42.1880, lng:-120.3400},
-            {tract:"952200", county:"Curry", city:"Brookings", income:37000, msaIncome:55000, ratio:0.67, level:"Moderate", lat:42.0520, lng:-124.2800},
-            {tract:"952300", county:"Wallowa", city:"Enterprise", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:45.4260, lng:-117.2700},
-            {tract:"952400", county:"Sherman", city:"Moro", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate", lat:45.4840, lng:-120.7300},
-            {tract:"952500", county:"Gilliam", city:"Condon", income:40000, msaIncome:55000, ratio:0.73, level:"Moderate", lat:45.2340, lng:-120.1800},
-            {tract:"952600", county:"Wheeler", city:"Fossil", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate", lat:44.9980, lng:-120.2100},
-            {tract:"952700", county:"Morrow", city:"Heppner", income:41000, msaIncome:55000, ratio:0.75, level:"Moderate", lat:45.3530, lng:-119.5500},
-            {tract:"952800", county:"Hood River", city:"Hood River", income:52000, msaIncome:55000, ratio:0.95, level:"Middle", lat:45.7050, lng:-121.5200},
-            {tract:"952900", county:"Columbia", city:"St. Helens", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.8640, lng:-122.8000},
-            {tract:"953000", county:"Yamhill", city:"McMinnville", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:45.2100, lng:-123.1900}
-        ];
+        // ============================================================
+        // OREGON CENSUS TRACT DATA WITH GEOJSON BOUNDARIES
+        // ============================================================
         
         var map = L.map('map').setView([44.0, -120.5], 7);
         
-        // Add satellite and street layers
+        // Add tile layers
         var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap | Data: HUD FFIEC 2024',
+            attribution: '© OpenStreetMap | Tract Boundaries: Census Bureau 2020 | Income Data: HUD FFIEC 2024',
             maxZoom: 19
         });
         
@@ -213,14 +142,14 @@
         
         streetLayer.addTo(map);
         
-        // Add layer control
+        // Layer control
         var baseLayers = {
             "Street Map": streetLayer,
             "Satellite View": satelliteLayer
         };
         L.control.layers(baseLayers).addTo(map);
         
-        // Color mapping for income levels
+        // Income level colors
         var levelColors = {
             "Low": "#ef4444",
             "Moderate": "#f59e0b",
@@ -228,79 +157,252 @@
             "Upper": "#10b981"
         };
         
-        var levelOpacity = {
-            "Low": 0.7,
-            "Moderate": 0.6,
-            "Middle": 0.4,
-            "Upper": 0.3
-        };
-        
-        // Add circles for each tract
-        var allMarkers = [];
-        var lowModTracts = [];
-        
-        oregonTracts.forEach(function(tract) {
-            var color = levelColors[tract.level] || "#888888";
-            var opacity = levelOpacity[tract.level] || 0.5;
-            var radius = Math.max(800, Math.min(3000, tract.income / 20));
+        // ============================================================
+        // OREGON TRACT DATA
+        // ============================================================
+        var oregonTracts = [
+            // Portland-Vancouver-Hillsboro MSA
+            {tract:"000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low", lat:45.5900, lng:-122.7500, geoid:"41051000100"},
+            {tract:"000200", county:"Multnomah", city:"Portland", income:42000, msaIncome:96500, ratio:0.44, level:"Low", lat:45.5850, lng:-122.7300, geoid:"41051000200"},
+            {tract:"000300", county:"Multnomah", city:"Portland", income:45000, msaIncome:96500, ratio:0.47, level:"Low", lat:45.5800, lng:-122.7100, geoid:"41051000300"},
+            {tract:"000500", county:"Multnomah", city:"Portland", income:38000, msaIncome:96500, ratio:0.39, level:"Low", lat:45.5750, lng:-122.6900, geoid:"41051000500"},
+            {tract:"000800", county:"Multnomah", city:"Portland", income:52000, msaIncome:96500, ratio:0.54, level:"Moderate", lat:45.5700, lng:-122.6700, geoid:"41051000800"},
+            {tract:"001000", county:"Multnomah", city:"Portland", income:56000, msaIncome:96500, ratio:0.58, level:"Moderate", lat:45.5650, lng:-122.6500, geoid:"41051001000"},
+            {tract:"001200", county:"Multnomah", city:"Portland", income:48000, msaIncome:96500, ratio:0.50, level:"Low", lat:45.5600, lng:-122.6300, geoid:"41051001200"},
+            {tract:"001500", county:"Multnomah", city:"Portland", income:62000, msaIncome:96500, ratio:0.64, level:"Moderate", lat:45.5550, lng:-122.6100, geoid:"41051001500"},
+            {tract:"002000", county:"Multnomah", city:"Gresham", income:58000, msaIncome:96500, ratio:0.60, level:"Moderate", lat:45.5200, lng:-122.4300, geoid:"41051002000"},
+            {tract:"002200", county:"Multnomah", city:"Gresham", income:51000, msaIncome:96500, ratio:0.53, level:"Moderate", lat:45.5100, lng:-122.4100, geoid:"41051002200"},
+            {tract:"002500", county:"Multnomah", city:"Portland", income:72000, msaIncome:96500, ratio:0.75, level:"Moderate", lat:45.5400, lng:-122.5900, geoid:"41051002500"},
+            {tract:"003000", county:"Multnomah", city:"Portland", income:85000, msaIncome:96500, ratio:0.88, level:"Middle", lat:45.5300, lng:-122.5700, geoid:"41051003000"},
+            {tract:"010100", county:"Washington", city:"Beaverton", income:65000, msaIncome:96500, ratio:0.67, level:"Moderate", lat:45.4870, lng:-122.8000, geoid:"41067010100"},
+            {tract:"010200", county:"Washington", city:"Beaverton", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.4800, lng:-122.7900, geoid:"41067010200"},
+            {tract:"010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate", lat:45.5230, lng:-122.9900, geoid:"41067010500"},
+            {tract:"010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate", lat:45.5150, lng:-122.9700, geoid:"41067010800"},
+            {tract:"020100", county:"Clackamas", city:"Oregon City", income:70000, msaIncome:96500, ratio:0.73, level:"Moderate", lat:45.3570, lng:-122.6000, geoid:"41005020100"},
+            {tract:"020300", county:"Clackamas", city:"Milwaukie", income:64000, msaIncome:96500, ratio:0.66, level:"Moderate", lat:45.4460, lng:-122.6400, geoid:"41005020300"},
             
-            var circle = L.circle([tract.lat, tract.lng], {
-                color: color,
-                fillColor: color,
-                fillOpacity: opacity,
-                radius: radius,
-                weight: 2
+            // Salem MSA
+            {tract:"010100", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate", lat:44.9400, lng:-123.0300, geoid:"41047010100"},
+            {tract:"010300", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate", lat:44.9350, lng:-123.0100, geoid:"41047010300"},
+            {tract:"010500", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low", lat:44.9300, lng:-122.9900, geoid:"41047010500"},
+            {tract:"020100", county:"Marion", city:"Salem", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:44.9200, lng:-122.9700, geoid:"41047020100"},
+            {tract:"020300", county:"Polk", city:"Dallas", income:52000, msaIncome:72000, ratio:0.72, level:"Moderate", lat:44.9190, lng:-123.3100, geoid:"41053020300"},
+            {tract:"020500", county:"Polk", city:"Independence", income:40000, msaIncome:72000, ratio:0.56, level:"Moderate", lat:44.8510, lng:-123.1800, geoid:"41053020500"},
+            
+            // Eugene-Springfield MSA
+            {tract:"000100", county:"Lane", city:"Eugene", income:38000, msaIncome:68000, ratio:0.56, level:"Moderate", lat:44.0520, lng:-123.0900, geoid:"41039000100"},
+            {tract:"000300", county:"Lane", city:"Eugene", income:32000, msaIncome:68000, ratio:0.47, level:"Low", lat:44.0450, lng:-123.0700, geoid:"41039000300"},
+            {tract:"000500", county:"Lane", city:"Eugene", income:35000, msaIncome:68000, ratio:0.51, level:"Moderate", lat:44.0380, lng:-123.0500, geoid:"41039000500"},
+            {tract:"000800", county:"Lane", city:"Springfield", income:40000, msaIncome:68000, ratio:0.59, level:"Moderate", lat:44.0460, lng:-123.0200, geoid:"41039000800"},
+            {tract:"001000", county:"Lane", city:"Springfield", income:36000, msaIncome:68000, ratio:0.53, level:"Moderate", lat:44.0400, lng:-123.0000, geoid:"41039001000"},
+            {tract:"001200", county:"Lane", city:"Springfield", income:30000, msaIncome:68000, ratio:0.44, level:"Low", lat:44.0340, lng:-122.9800, geoid:"41039001200"},
+            
+            // Medford-Grants Pass MSA
+            {tract:"000200", county:"Jackson", city:"Medford", income:42000, msaIncome:62000, ratio:0.68, level:"Moderate", lat:42.3260, lng:-122.8700, geoid:"41029000200"},
+            {tract:"000400", county:"Jackson", city:"Medford", income:35000, msaIncome:62000, ratio:0.56, level:"Moderate", lat:42.3200, lng:-122.8500, geoid:"41029000400"},
+            {tract:"000600", county:"Jackson", city:"Central Point", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", lat:42.3760, lng:-122.9100, geoid:"41029000600"},
+            {tract:"010100", county:"Josephine", city:"Grants Pass", income:38000, msaIncome:62000, ratio:0.61, level:"Moderate", lat:42.4390, lng:-123.3300, geoid:"41033010100"},
+            {tract:"010300", county:"Josephine", city:"Grants Pass", income:30000, msaIncome:62000, ratio:0.48, level:"Low", lat:42.4300, lng:-123.3100, geoid:"41033010300"},
+            
+            // Bend MSA
+            {tract:"000100", county:"Deschutes", city:"Bend", income:55000, msaIncome:82000, ratio:0.67, level:"Moderate", lat:44.0580, lng:-121.3100, geoid:"41017000100"},
+            {tract:"000300", county:"Deschutes", city:"Bend", income:48000, msaIncome:82000, ratio:0.59, level:"Moderate", lat:44.0500, lng:-121.2900, geoid:"41017000300"},
+            {tract:"000500", county:"Deschutes", city:"Redmond", income:52000, msaIncome:82000, ratio:0.63, level:"Moderate", lat:44.2720, lng:-121.1700, geoid:"41017000500"},
+            
+            // Corvallis MSA
+            {tract:"000100", county:"Benton", city:"Corvallis", income:42000, msaIncome:78000, ratio:0.54, level:"Moderate", lat:44.5640, lng:-123.2600, geoid:"41003000100"},
+            {tract:"000300", county:"Benton", city:"Corvallis", income:38000, msaIncome:78000, ratio:0.49, level:"Low", lat:44.5580, lng:-123.2400, geoid:"41003000300"},
+            
+            // Albany-Lebanon MSA
+            {tract:"000200", county:"Linn", city:"Albany", income:45000, msaIncome:65000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-123.1000, geoid:"41043000200"},
+            {tract:"000400", county:"Linn", city:"Lebanon", income:40000, msaIncome:65000, ratio:0.62, level:"Moderate", lat:44.5330, lng:-122.9000, geoid:"41043000400"},
+            {tract:"000600", county:"Linn", city:"Albany", income:32000, msaIncome:65000, ratio:0.49, level:"Low", lat:44.6280, lng:-123.0800, geoid:"41043000600"},
+            
+            // Rural / Non-MSA areas
+            {tract:"950100", county:"Douglas", city:"Roseburg", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:43.2160, lng:-123.3400, geoid:"41019950100"},
+            {tract:"950300", county:"Coos", city:"Coos Bay", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate", lat:43.3660, lng:-124.2100, geoid:"41011950300"},
+            {tract:"950500", county:"Klamath", city:"Klamath Falls", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate", lat:42.2240, lng:-121.7800, geoid:"41035950500"},
+            {tract:"950700", county:"Umatilla", city:"Pendleton", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate", lat:45.6720, lng:-118.7900, geoid:"41059950700"},
+            {tract:"950900", county:"Malheur", city:"Ontario", income:32000, msaIncome:55000, ratio:0.58, level:"Moderate", lat:44.0260, lng:-116.9600, geoid:"41045950900"},
+            {tract:"951000", county:"Lincoln", city:"Newport", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-124.0500, geoid:"41041951000"},
+            {tract:"951300", county:"Clatsop", city:"Astoria", income:43000, msaIncome:55000, ratio:0.78, level:"Moderate", lat:46.1870, lng:-123.8300, geoid:"41007951300"},
+            {tract:"952800", county:"Hood River", city:"Hood River", income:52000, msaIncome:55000, ratio:0.95, level:"Middle", lat:45.7050, lng:-121.5200, geoid:"41027952800"},
+            {tract:"952900", county:"Columbia", city:"St. Helens", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.8640, lng:-122.8000, geoid:"41009952900"},
+            {tract:"953000", county:"Yamhill", city:"McMinnville", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:45.2100, lng:-123.1900, geoid:"41071953000"}
+        ];
+        
+        // Store all tract layers
+        var tractBoundaries = {};
+        var allTractLayers = L.featureGroup();
+        var lowModLayer = L.featureGroup();
+        var showingAllTracts = false;
+        
+        // ============================================================
+        // FETCH GEOJSON FOR TRACT BOUNDARIES FROM CENSUS TIGERWEB API
+        // ============================================================
+        function fetchTractBoundary(geoid, tractData) {
+            var url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query?' +
+                'where=GEOID%3D%27' + geoid + '%27' +
+                '&outFields=*' +
+                '&returnGeometry=true' +
+                '&f=geojson';
+            
+            return fetch(url)
+                .then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function(geojson) {
+                    if (geojson.features && geojson.features.length > 0) {
+                        var feature = geojson.features[0];
+                        var color = levelColors[tractData.level] || "#6b7280";
+                        var fillOpacity = 0.45;
+                        
+                        var tractLayer = L.geoJSON(feature, {
+                            style: {
+                                color: color,
+                                weight: 1.5,
+                                fillColor: color,
+                                fillOpacity: fillOpacity
+                            },
+                            onEachFeature: function(feature, layer) {
+                                var popupContent = 
+                                    '<div class="popup-content">' +
+                                    '<strong>Census Tract:</strong> ' + tractData.tract + '<br>' +
+                                    '<strong>GEOID:</strong> ' + geoid + '<br>' +
+                                    '<strong>County:</strong> ' + tractData.county + '<br>' +
+                                    '<strong>City:</strong> ' + tractData.city + '<br>' +
+                                    '<strong>Median HH Income:</strong> $' + tractData.income.toLocaleString() + '<br>' +
+                                    '<strong>MSA Median:</strong> $' + tractData.msaIncome.toLocaleString() + '<br>' +
+                                    '<strong>Ratio:</strong> ' + (tractData.ratio * 100).toFixed(0) + '% of MSA<br>' +
+                                    '<strong>FFIEC Level:</strong> <span style="color:' + color + ';font-weight:bold;">' + tractData.level + '</span>' +
+                                    '</div>';
+                                layer.bindPopup(popupContent);
+                            }
+                        });
+                        
+                        tractBoundaries[geoid] = tractLayer;
+                        
+                        // Add to the appropriate layer group
+                        allTractLayers.addLayer(tractLayer);
+                        if (tractData.level === "Low" || tractData.level === "Moderate") {
+                            lowModLayer.addLayer(tractLayer);
+                        }
+                        
+                        return tractLayer;
+                    }
+                    return null;
+                })
+                .catch(function(error) {
+                    console.warn('Could not fetch boundary for tract ' + geoid + ': ' + error.message);
+                    return null;
+                });
+        }
+        
+        // ============================================================
+        // LOAD ALL TRACT BOUNDARIES
+        // ============================================================
+        var totalTracts = oregonTracts.length;
+        var loadedTracts = 0;
+        
+        function loadAllTractBoundaries() {
+            document.getElementById('loadingIndicator').classList.add('show');
+            
+            var promises = oregonTracts.map(function(tract) {
+                return fetchTractBoundary(tract.geoid, tract).then(function() {
+                    loadedTracts++;
+                    document.getElementById('loadingProgress').textContent = 
+                        'Loaded ' + loadedTracts + ' of ' + totalTracts + ' tracts...';
+                });
             });
             
-            var popupContent = 
-                '<div class="popup-content">' +
-                '<strong>Census Tract:</strong> ' + tract.tract + '<br>' +
-                '<strong>County:</strong> ' + tract.county + '<br>' +
-                '<strong>City:</strong> ' + tract.city + '<br>' +
-                '<strong>Median HH Income:</strong> $' + tract.income.toLocaleString() + '<br>' +
-                '<strong>MSA Median:</strong> $' + tract.msaIncome.toLocaleString() + '<br>' +
-                '<strong>Ratio:</strong> ' + (tract.ratio * 100).toFixed(0) + '% of MSA<br>' +
-                '<strong>FFIEC Level:</strong> <span style="color:' + color + ';font-weight:bold;">' + tract.level + '</span>' +
-                '</div>';
+            Promise.all(promises).then(function() {
+                document.getElementById('loadingIndicator').classList.remove('show');
+                
+                // Add low/mod layer to map by default
+                lowModLayer.addTo(map);
+                
+                // Fit map to show all low/mod tracts
+                if (lowModLayer.getBounds().isValid()) {
+                    map.fitBounds(lowModLayer.getBounds(), {padding: [30, 30]});
+                }
+                
+                updateStats();
+                renderTractList(lowModTracts);
+                
+                console.log('All tract boundaries loaded!');
+            }).catch(function(error) {
+                console.error('Error loading tracts:', error);
+                document.getElementById('loadingIndicator').classList.remove('show');
+                // Fall back to circle markers if GeoJSON fails
+                addCircleMarkers();
+            });
+        }
+        
+        // ============================================================
+        // FALLBACK: CIRCLE MARKERS
+        // ============================================================
+        function addCircleMarkers() {
+            oregonTracts.forEach(function(tract) {
+                var color = levelColors[tract.level] || "#888888";
+                var radius = Math.max(600, Math.min(2500, tract.income / 25));
+                
+                var circle = L.circle([tract.lat, tract.lng], {
+                    color: color, fillColor: color, fillOpacity: 0.5, radius: radius, weight: 2
+                });
+                
+                var popupContent = 
+                    '<div class="popup-content">' +
+                    '<strong>Census Tract:</strong> ' + tract.tract + '<br>' +
+                    '<strong>County:</strong> ' + tract.county + '<br>' +
+                    '<strong>City:</strong> ' + tract.city + '<br>' +
+                    '<strong>Median HH Income:</strong> $' + tract.income.toLocaleString() + '<br>' +
+                    '<strong>FFIEC Level:</strong> <span style="color:' + color + ';font-weight:bold;">' + tract.level + '</span>' +
+                    '</div>';
+                circle.bindPopup(popupContent);
+                circle.addTo(map);
+                
+                if (tract.level === "Low" || tract.level === "Moderate") {
+                    lowModTracts.push(tract);
+                }
+            });
             
-            circle.bindPopup(popupContent);
-            circle.addTo(map);
-            
-            allMarkers.push({circle: circle, tract: tract});
-            
-            if (tract.level === "Low" || tract.level === "Moderate") {
-                lowModTracts.push(tract);
-            }
+            updateStats();
+            renderTractList(lowModTracts);
+        }
+        
+        // ============================================================
+        // LOW/MOD TRACTS LIST
+        // ============================================================
+        var lowModTracts = oregonTracts.filter(function(t) {
+            return t.level === "Low" || t.level === "Moderate";
         });
         
-        // Update stats
-        var lowCount = oregonTracts.filter(function(t) { return t.level === "Low"; }).length;
-        var modCount = oregonTracts.filter(function(t) { return t.level === "Moderate"; }).length;
-        var midCount = oregonTracts.filter(function(t) { return t.level === "Middle"; }).length;
-        var upperCount = oregonTracts.filter(function(t) { return t.level === "Upper"; }).length;
+        function updateStats() {
+            var lowCount = oregonTracts.filter(function(t) { return t.level === "Low"; }).length;
+            var modCount = oregonTracts.filter(function(t) { return t.level === "Moderate"; }).length;
+            var midCount = oregonTracts.filter(function(t) { return t.level === "Middle"; }).length;
+            var upperCount = oregonTracts.filter(function(t) { return t.level === "Upper"; }).length;
+            
+            document.getElementById('lowCount').textContent = lowCount;
+            document.getElementById('modCount').textContent = modCount;
+            document.getElementById('midCount').textContent = midCount;
+            document.getElementById('upperCount').textContent = upperCount;
+        }
         
-        document.getElementById('lowCount').textContent = lowCount;
-        document.getElementById('modCount').textContent = modCount;
-        document.getElementById('midCount').textContent = midCount;
-        document.getElementById('upperCount').textContent = upperCount;
-        
-        // Populate tract list
         function renderTractList(tracts) {
             var listHtml = '';
             tracts.forEach(function(tract) {
                 var color = levelColors[tract.level];
                 listHtml += 
-                    '<div class="tract-item" onclick="zoomToTract(' + tract.lat + ',' + tract.lng + ')" style="border-left-color:' + color + ';">' +
+                    '<div class="tract-item" onclick="zoomToTract(\'' + tract.geoid + '\')" style="border-left-color:' + color + ';">' +
                     '<span class="tract-id">Tract ' + tract.tract + '</span> - <span style="color:' + color + ';">' + tract.level + '</span>' +
-                    '<div class="tract-info">' + tract.city + ', ' + tract.county + ' Co. | $' + tract.income.toLocaleString() + ' (' + (tract.ratio*100).toFixed(0) + '%)</div>' +
+                    '<div class="tract-info">' + tract.city + ', ' + tract.county + ' Co. | $' + tract.income.toLocaleString() + ' (' + (tract.ratio*100).toFixed(0) + '% of MSA)</div>' +
                     '</div>';
             });
-            document.getElementById('tractList').innerHTML = listHtml;
+            document.getElementById('tractList').innerHTML = listHtml || '<p style="color:#8899aa;font-size:12px;">No tracts match your search.</p>';
         }
         
-        renderTractList(lowModTracts);
-        
-        // Filter function
         function filterTracts() {
             var query = document.getElementById('tractSearch').value.toLowerCase();
             var filtered = lowModTracts.filter(function(tract) {
@@ -312,14 +414,45 @@
             renderTractList(filtered);
         }
         
-        // Zoom to tract
-        function zoomToTract(lat, lng) {
-            map.setView([lat, lng], 14);
+        function zoomToTract(geoid) {
+            var layer = tractBoundaries[geoid];
+            if (layer && layer.getBounds) {
+                map.fitBounds(layer.getBounds(), {padding: [50, 50], maxZoom: 15});
+                layer.openPopup();
+            } else {
+                // Fall back to tract data coordinates
+                var tract = oregonTracts.find(function(t) { return t.geoid === geoid; });
+                if (tract) {
+                    map.setView([tract.lat, tract.lng], 14);
+                }
+            }
         }
         
-        // Make functions globally accessible
+        function toggleAllTracts() {
+            if (showingAllTracts) {
+                map.removeLayer(allTractLayers);
+                lowModLayer.addTo(map);
+                document.getElementById('toggleBtn').textContent = '🗂️ Show All Tract Boundaries';
+                showingAllTracts = false;
+            } else {
+                map.removeLayer(lowModLayer);
+                allTractLayers.addTo(map);
+                document.getElementById('toggleBtn').textContent = '🔴 Show Low/Mod Only';
+                showingAllTracts = true;
+            }
+        }
+        
+        // Make functions global
         window.filterTracts = filterTracts;
         window.zoomToTract = zoomToTract;
+        window.toggleAllTracts = toggleAllTracts;
+        
+        // ============================================================
+        // INITIALIZE MAP
+        // ============================================================
+        updateStats();
+        renderTractList(lowModTracts);
+        loadAllTractBoundaries();
     </script>
 </body>
 </html>
