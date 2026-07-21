@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oregon Income Map → Real Home Listings with Street Boundaries</title>
+    <title>Oregon Income Map with FFIEC Shaded Areas</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,58 +13,60 @@
         .controls-bar { background: #16213e; padding: 6px 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #0d2137; }
         .controls-bar select { padding: 6px 10px; border-radius: 5px; border: 1px solid #3a5a8c; background: #0d2137; color: white; font-size: 11px; min-width: 130px; }
         .controls-bar input { padding: 6px 10px; border-radius: 5px; border: 1px solid #3a5a8c; background: #0d2137; color: white; font-size: 11px; width: 100px; }
-        .controls-bar input::placeholder { color: #8899aa; }
-        .btn { padding: 6px 12px; border-radius: 5px; border: none; font-weight: 700; cursor: pointer; font-size: 11px; transition: all 0.2s; background: #f59e0b; color: #1a1a1a; }
+        .btn { padding: 6px 12px; border-radius: 5px; border: none; font-weight: 700; cursor: pointer; font-size: 10px; transition: all 0.2s; background: #f59e0b; color: #1a1a1a; }
         .btn:hover { background: #fbbf24; }
+        .btn-ffiec { background: #10b981; color: white; }
+        .btn-ffiec:hover { background: #059669; }
+        .btn-ffiec.active { background: #059669; box-shadow: 0 0 10px rgba(16,185,129,0.5); }
+        .btn-hud { background: #8b5cf6; color: white; }
+        .btn-hud:hover { background: #7c3aed; }
         .income-toggles { display: flex; gap: 4px; margin-left: auto; }
-        .income-toggle { padding: 4px 8px; border-radius: 10px; font-size: 9px; cursor: pointer; border: 2px solid transparent; font-weight: 600; transition: all 0.2s; background: #0d2137; }
+        .income-toggle { padding: 4px 8px; border-radius: 10px; font-size: 9px; cursor: pointer; border: 2px solid transparent; font-weight: 600; background: #0d2137; }
         .income-toggle.low { color: #ef4444; }
         .income-toggle.moderate { color: #f59e0b; }
         .income-toggle.middle { color: #3b82f6; }
+        .income-toggle.upper { color: #10b981; }
         .income-toggle.active { background: #1a2d4a; border-color: currentColor; }
-        .main-container { display: flex; height: calc(100vh - 80px); }
+        .main-container { display: flex; height: calc(100vh - 85px); }
         .map-panel { flex: 1; position: relative; }
-        .sidebar { width: 390px; background: #16213e; overflow-y: auto; padding: 10px; border-left: 2px solid #0d2137; }
+        .sidebar { width: 380px; background: #16213e; overflow-y: auto; padding: 10px; border-left: 2px solid #0d2137; }
         #map { width: 100%; height: 100%; }
-        .sidebar h3 { font-size: 13px; color: #f59e0b; margin-bottom: 6px; }
-        .sidebar .info-text { font-size: 9px; color: #8899aa; margin-bottom: 8px; line-height: 1.3; }
+        .sidebar h3 { font-size: 12px; color: #f59e0b; margin-bottom: 6px; }
         .listing-links { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-        .listing-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 6px; text-decoration: none; color: white; font-size: 11px; font-weight: 600; transition: all 0.2s; border: 2px solid transparent; }
+        .listing-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 6px; text-decoration: none; color: white; font-size: 11px; font-weight: 600; border: 2px solid transparent; }
         .listing-link:hover { transform: translateX(3px); }
         .listing-link.realtor { background: #0a1a12; border-color: #10b981; }
         .listing-link.zillow { background: #0a1e3d; border-color: #006aff; }
-        .link-icon { font-size: 18px; }
         .price-tags { display: flex; flex-wrap: wrap; gap: 3px; margin: 6px 0; }
-        .price-tag { padding: 3px 7px; background: #0d2137; border-radius: 6px; font-size: 9px; cursor: pointer; color: #8899aa; border: 1px solid #3a5a8c; transition: all 0.2s; }
-        .price-tag:hover { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
-        .price-tag.active { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
-        .badge { display: inline-block; padding: 2px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; }
-        .badge-success { background: #10b981; color: white; }
-        .legend-mini { position: absolute; bottom: 10px; left: 10px; background: rgba(13,33,55,0.9); padding: 6px 10px; border-radius: 6px; z-index: 1000; font-size: 9px; }
-        .legend-mini span { margin-right: 8px; }
-        .boundary-box { background: #0d2137; border-radius: 6px; padding: 10px; margin-top: 8px; max-height: 350px; overflow-y: auto; }
-        .boundary-box h4 { font-size: 11px; color: #f59e0b; margin-bottom: 6px; }
-        .boundary-item { padding: 6px 8px; margin-bottom: 3px; background: #1a2d4a; border-radius: 4px; font-size: 10px; cursor: pointer; border-left: 3px solid #3b82f6; transition: all 0.2s; }
-        .boundary-item:hover { background: #243b5e; }
-        .boundary-item.low { border-left-color: #ef4444; }
-        .boundary-item.moderate { border-left-color: #f59e0b; }
-        .boundary-item.middle { border-left-color: #3b82f6; }
-        .boundary-item strong { color: #ffd700; }
-        .boundary-streets { color: #a0c4ff; font-size: 9px; margin-top: 2px; }
-        .copy-btn { padding: 2px 6px; background: #f59e0b; color: #1a1a1a; border: none; border-radius: 3px; font-size: 8px; cursor: pointer; float: right; }
-        .copy-btn:hover { background: #fbbf24; }
+        .price-tag { padding: 3px 7px; background: #0d2137; border-radius: 6px; font-size: 9px; cursor: pointer; color: #8899aa; border: 1px solid #3a5a8c; }
+        .price-tag:hover { background: #f59e0b; color: #1a1a1a; }
+        .price-tag.active { background: #f59e0b; color: #1a1a1a; }
+        .legend-box { background: #0d2137; border-radius: 6px; padding: 10px; margin-top: 8px; }
+        .legend-box h4 { font-size: 10px; color: #f59e0b; margin-bottom: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; margin-bottom: 3px; }
+        .legend-swatch { width: 20px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.3); }
+        .tract-info { background: #0d2137; border-radius: 6px; padding: 10px; margin-top: 8px; max-height: 300px; overflow-y: auto; }
+        .tract-info h4 { font-size: 10px; color: #f59e0b; margin-bottom: 5px; }
+        .tract-item { padding: 5px 7px; margin-bottom: 2px; background: #1a2d4a; border-radius: 3px; font-size: 9px; cursor: pointer; border-left: 3px solid #3b82f6; }
+        .tract-item:hover { background: #243b5e; }
+        .tract-item.low { border-left-color: #ef4444; }
+        .tract-item.moderate { border-left-color: #f59e0b; }
+        .tract-item.middle { border-left-color: #3b82f6; }
+        .tract-item.upper { border-left-color: #10b981; }
+        .map-overlay { position: absolute; top: 10px; right: 10px; background: rgba(13,33,55,0.95); padding: 10px 14px; border-radius: 8px; z-index: 1000; font-size: 10px; color: #a0c4ff; border: 1px solid #3a5a8c; max-width: 200px; }
+        .loading-badge { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(13,33,55,0.95); padding: 8px 16px; border-radius: 20px; z-index: 1001; font-size: 11px; color: #f59e0b; display: none; border: 1px solid #f59e0b; }
         @media (max-width: 850px) {
             .main-container { flex-direction: column; }
-            .sidebar { width: 100%; max-height: 300px; border-left: none; border-top: 2px solid #0d2137; }
-            .map-panel { height: calc(100vh - 380px); }
+            .sidebar { width: 100%; max-height: 280px; }
+            .map-panel { height: calc(100vh - 360px); }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div>
-            <h1>🗺️ Oregon Income Map → Street Boundaries & Zillow Listings</h1>
-            <p style="font-size:9px;color:#a0c4ff;">Click any circle to see boundary streets • Copy streets to outline areas in Zillow's map tool</p>
+            <h1>🗺️ Oregon FFIEC Income Map with Shaded Tract Areas</h1>
+            <p style="font-size:9px;color:#a0c4ff;">Actual census tract boundaries • FFIEC income levels • Click to load shaded areas</p>
         </div>
     </div>
     
@@ -98,22 +100,26 @@
             <option value="Oregon-City">Oregon City</option>
         </select>
         <input type="number" id="maxPrice" placeholder="Max Price $" value="" onchange="updateLinks()">
-        <button class="btn" onclick="copyAllBoundaries()">📋 Copy All Boundaries</button>
+        <button class="btn btn-ffiec" id="btnFFIEC" onclick="loadFFIECShapes()">📊 Load FFIEC Tract Shapes</button>
+        <button class="btn btn-hud" onclick="window.open('https://hudgis-hud.opendata.arcgis.com/datasets/HUD::low-to-moderate-income-population-by-tract/explore','_blank')">📋 HUD LMI Data</button>
         
         <div class="income-toggles">
-            <span class="income-toggle low active" onclick="toggleIncome('Low', this)">🔴 Low</span>
-            <span class="income-toggle moderate active" onclick="toggleIncome('Moderate', this)">🟠 Moderate</span>
-            <span class="income-toggle middle active" onclick="toggleIncome('Middle', this)">🔵 Middle</span>
+            <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
+            <span class="income-toggle moderate active" onclick="toggleLevel('Moderate', this)">🟠 Moderate</span>
+            <span class="income-toggle middle active" onclick="toggleLevel('Middle', this)">🔵 Middle</span>
+            <span class="income-toggle upper active" onclick="toggleLevel('Upper', this)">🟢 Upper</span>
         </div>
     </div>
     
     <div class="main-container">
         <div class="map-panel">
             <div id="map"></div>
-            <div class="legend-mini">
-                <span style="color:#ef4444;">● Low</span>
-                <span style="color:#f59e0b;">● Moderate</span>
-                <span style="color:#3b82f6;">● Middle</span>
+            <div class="loading-badge" id="loadingBadge">⏳ Loading FFIEC tract shapes...</div>
+            <div class="map-overlay">
+                <strong>🗺️ Map Layers:</strong><br>
+                ▢ <strong>Shaded polygons</strong> = Actual census tracts<br>
+                ○ <strong>Circles</strong> = Tract center points<br>
+                🏠 Click shapes for income data
             </div>
         </div>
         
@@ -131,229 +137,264 @@
             </div>
             
             <div class="listing-links">
-                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank" rel="noopener noreferrer">
-                    <span class="link-icon">⭐</span><div><strong>Realtor.com</strong> <span class="badge badge-success">Price Filter Works!</span></div>
-                </a>
-                <a href="#" class="listing-link zillow" id="zillowLink" target="_blank" rel="noopener noreferrer">
-                    <span class="link-icon">🏘️</span><div><strong>Zillow.com</strong></div>
-                </a>
+                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank">⭐ <strong>Realtor.com</strong> (Price Filter Works!)</a>
+                <a href="#" class="listing-link zillow" id="zillowLink" target="_blank">🏘️ <strong>Zillow.com</strong></a>
             </div>
             
-            <div class="boundary-box">
-                <h4>📍 Street Boundaries for Zillow Shading</h4>
-                <p class="info-text">Click any circle on the map to see its boundary streets. Use these streets in Zillow's map drawing tool to outline income areas.</p>
-                <div id="boundaryList">
-                    <p style="color:#556;font-size:10px;text-align:center;padding:10px;">👆 Click a colored circle on the map to see its street boundaries</p>
-                </div>
+            <div class="legend-box">
+                <h4>📊 FFIEC Income Levels</h4>
+                <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div> Low (&lt;50% MSA median)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b;"></div> Moderate (50-80% MSA median)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6;"></div> Middle (80-120% MSA median)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#10b981;"></div> Upper (&gt;120% MSA median)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#888;"></div> No Data / Rural</div>
+            </div>
+            
+            <div class="tract-info" id="tractInfo">
+                <h4>📍 Census Tracts</h4>
+                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">
+                    👆 Select a city and click <strong>"Load FFIEC Tract Shapes"</strong><br>to see actual census tract boundaries
+                </p>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Oregon tracts with street boundary data
         var oregonTracts = [
-            {tract:"000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low", lat:45.5900, lng:-122.7500,
-                streets:{N:"NE Lombard St", S:"NE Killingsworth St", E:"NE 42nd Ave", W:"NE Martin Luther King Jr Blvd"}},
-            {tract:"000200", county:"Multnomah", city:"Portland", income:42000, msaIncome:96500, ratio:0.44, level:"Low", lat:45.5850, lng:-122.7300,
-                streets:{N:"NE Columbia Blvd", S:"NE Lombard St", E:"NE 33rd Ave", W:"NE Martin Luther King Jr Blvd"}},
-            {tract:"000300", county:"Multnomah", city:"Portland", income:45000, msaIncome:96500, ratio:0.47, level:"Low", lat:45.5800, lng:-122.7100,
-                streets:{N:"NE Killingsworth St", S:"NE Alberta St", E:"NE 42nd Ave", W:"NE 15th Ave"}},
-            {tract:"000500", county:"Multnomah", city:"Portland", income:38000, msaIncome:96500, ratio:0.39, level:"Low", lat:45.5750, lng:-122.6900,
-                streets:{N:"NE Alberta St", S:"NE Prescott St", E:"NE 60th Ave", W:"NE 33rd Ave"}},
-            {tract:"000800", county:"Multnomah", city:"Portland", income:52000, msaIncome:96500, ratio:0.54, level:"Moderate", lat:45.5700, lng:-122.6700,
-                streets:{N:"NE Prescott St", S:"NE Sandy Blvd", E:"NE 82nd Ave", W:"NE 42nd Ave"}},
-            {tract:"001000", county:"Multnomah", city:"Portland", income:56000, msaIncome:96500, ratio:0.58, level:"Moderate", lat:45.5650, lng:-122.6500,
-                streets:{N:"NE Sandy Blvd", S:"NE Halsey St", E:"NE 102nd Ave", W:"NE 60th Ave"}},
-            {tract:"001200", county:"Multnomah", city:"Portland", income:48000, msaIncome:96500, ratio:0.50, level:"Low", lat:45.5600, lng:-122.6300,
-                streets:{N:"NE Halsey St", S:"NE Glisan St", E:"NE 122nd Ave", W:"NE 82nd Ave"}},
-            {tract:"001500", county:"Multnomah", city:"Portland", income:62000, msaIncome:96500, ratio:0.64, level:"Moderate", lat:45.5550, lng:-122.6100,
-                streets:{N:"NE Glisan St", S:"SE Stark St", E:"SE 122nd Ave", W:"SE 82nd Ave"}},
-            {tract:"002000", county:"Multnomah", city:"Gresham", income:58000, msaIncome:96500, ratio:0.60, level:"Moderate", lat:45.5200, lng:-122.4300,
-                streets:{N:"NE Halsey St", S:"SE Division St", E:"SE 242nd Ave", W:"SE 182nd Ave"}},
-            {tract:"002200", county:"Multnomah", city:"Gresham", income:51000, msaIncome:96500, ratio:0.53, level:"Moderate", lat:45.5100, lng:-122.4100,
-                streets:{N:"SE Division St", S:"SE Powell Blvd", E:"SE 242nd Ave", W:"SE 182nd Ave"}},
-            {tract:"002500", county:"Multnomah", city:"Portland", income:72000, msaIncome:96500, ratio:0.75, level:"Moderate", lat:45.5400, lng:-122.5900,
-                streets:{N:"SE Stark St", S:"SE Hawthorne Blvd", E:"SE 82nd Ave", W:"SE 39th Ave"}},
-            {tract:"010100", county:"Washington", city:"Beaverton", income:65000, msaIncome:96500, ratio:0.67, level:"Moderate", lat:45.4870, lng:-122.8000,
-                streets:{N:"SW Walker Rd", S:"SW Allen Blvd", E:"SW Murray Blvd", W:"SW 170th Ave"}},
-            {tract:"010200", county:"Washington", city:"Beaverton", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.4800, lng:-122.7900,
-                streets:{N:"SW Allen Blvd", S:"SW Hall Blvd", E:"SW Cedar Hills Blvd", W:"SW Murray Blvd"}},
-            {tract:"010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate", lat:45.5230, lng:-122.9900,
-                streets:{N:"NE Cornell Rd", S:"SE Tualatin Valley Hwy", E:"NE 25th Ave", W:"NE 10th Ave"}},
-            {tract:"010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate", lat:45.5150, lng:-122.9700,
-                streets:{N:"SE Tualatin Valley Hwy", S:"SE Oak St", E:"SE 10th Ave", W:"SE 32nd Ave"}},
-            {tract:"020100", county:"Clackamas", city:"Oregon City", income:70000, msaIncome:96500, ratio:0.73, level:"Moderate", lat:45.3570, lng:-122.6000,
-                streets:{N:"Molalla Ave", S:"Beavercreek Rd", E:"S Leland Rd", W:"S McLoughlin Blvd"}},
-            {tract:"S01010", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate", lat:44.9400, lng:-123.0300,
-                streets:{N:"State St", S:"Mission St SE", E:"12th St SE", W:"Commercial St SE"}},
-            {tract:"S01030", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate", lat:44.9350, lng:-123.0100,
-                streets:{N:"Mission St SE", S:"Kuebler Blvd", E:"Lancaster Dr SE", W:"Commercial St SE"}},
-            {tract:"S01050", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low", lat:44.9300, lng:-122.9900,
-                streets:{N:"Center St NE", S:"Silverton Rd NE", E:"Hawthorne Ave NE", W:"Portland Rd NE"}},
-            {tract:"S02010", county:"Marion", city:"Salem", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:44.9200, lng:-122.9700,
-                streets:{N:"Silverton Rd", S:"State St", E:"Cordon Rd", W:"Lancaster Dr"}},
-            {tract:"E00010", county:"Lane", city:"Eugene", income:38000, msaIncome:68000, ratio:0.56, level:"Moderate", lat:44.0520, lng:-123.0900,
-                streets:{N:"Ferry St", S:"E 18th Ave", E:"Oak St", W:"Willamette St"}},
-            {tract:"E00030", county:"Lane", city:"Eugene", income:32000, msaIncome:68000, ratio:0.47, level:"Low", lat:44.0450, lng:-123.0700,
-                streets:{N:"W 11th Ave", S:"W 18th Ave", E:"Willamette St", W:"Garfield St"}},
-            {tract:"E00050", county:"Lane", city:"Eugene", income:35000, msaIncome:68000, ratio:0.51, level:"Moderate", lat:44.0380, lng:-123.0500,
-                streets:{N:"W 18th Ave", S:"W 28th Ave", E:"Willamette St", W:"Chambers St"}},
-            {tract:"E00080", county:"Lane", city:"Springfield", income:40000, msaIncome:68000, ratio:0.59, level:"Moderate", lat:44.0460, lng:-123.0200,
-                streets:{N:"Main St", S:"S A St", E:"28th St", W:"Pioneer Pkwy"}},
-            {tract:"E00100", county:"Lane", city:"Springfield", income:36000, msaIncome:68000, ratio:0.53, level:"Moderate", lat:44.0400, lng:-123.0000,
-                streets:{N:"S A St", S:"S 18th St", E:"Bob Straub Pkwy", W:"28th St"}},
-            {tract:"E00120", county:"Lane", city:"Springfield", income:30000, msaIncome:68000, ratio:0.44, level:"Low", lat:44.0340, lng:-122.9800,
-                streets:{N:"S 18th St", S:"S 42nd St", E:"Jasper Rd", W:"Bob Straub Pkwy"}},
-            {tract:"M00020", county:"Jackson", city:"Medford", income:42000, msaIncome:62000, ratio:0.68, level:"Moderate", lat:42.3260, lng:-122.8700,
-                streets:{N:"E Main St", S:"E Barnett Rd", E:"N Phoenix Rd", W:"S Central Ave"}},
-            {tract:"M00040", county:"Jackson", city:"Medford", income:35000, msaIncome:62000, ratio:0.56, level:"Moderate", lat:42.3200, lng:-122.8500,
-                streets:{N:"W Main St", S:"W Stewart Ave", E:"S Central Ave", W:"S Columbus Ave"}},
-            {tract:"M00060", county:"Jackson", city:"Central Point", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", lat:42.3760, lng:-122.9100,
-                streets:{N:"E Pine St", S:"E Vilas Rd", E:"N 10th St", W:"N 1st St"}},
-            {tract:"G01010", county:"Josephine", city:"Grants Pass", income:38000, msaIncome:62000, ratio:0.61, level:"Moderate", lat:42.4390, lng:-123.3300,
-                streets:{N:"NW A St", S:"SW G St", E:"SE 7th St", W:"SW 6th St"}},
-            {tract:"G01030", county:"Josephine", city:"Grants Pass", income:30000, msaIncome:62000, ratio:0.48, level:"Low", lat:42.4300, lng:-123.3100,
-                streets:{N:"SW G St", S:"SW Allen Creek Rd", E:"SE M St", W:"SW Rogue River Ave"}},
-            {tract:"B00010", county:"Deschutes", city:"Bend", income:55000, msaIncome:82000, ratio:0.67, level:"Moderate", lat:44.0580, lng:-121.3100,
-                streets:{N:"NW Wall St", S:"SW Reed Market Rd", E:"NE 3rd St", W:"NW 14th St"}},
-            {tract:"B00030", county:"Deschutes", city:"Bend", income:48000, msaIncome:82000, ratio:0.59, level:"Moderate", lat:44.0500, lng:-121.2900,
-                streets:{N:"SE Wilson Ave", S:"SE 15th St", E:"SE 27th St", W:"NE 3rd St"}},
-            {tract:"B00050", county:"Deschutes", city:"Redmond", income:52000, msaIncome:82000, ratio:0.63, level:"Moderate", lat:44.2720, lng:-121.1700,
-                streets:{N:"NW 6th St", S:"SW Evergreen Ave", E:"SW 15th St", W:"SW Canal Blvd"}},
-            {tract:"C00010", county:"Benton", city:"Corvallis", income:42000, msaIncome:78000, ratio:0.54, level:"Moderate", lat:44.5640, lng:-123.2600,
-                streets:{N:"NW Monroe Ave", S:"SW Western Blvd", E:"SW 15th St", W:"SW 35th St"}},
-            {tract:"C00030", county:"Benton", city:"Corvallis", income:38000, msaIncome:78000, ratio:0.49, level:"Low", lat:44.5580, lng:-123.2400,
-                streets:{N:"SW Western Blvd", S:"SW Philomath Blvd", E:"SW 3rd St", W:"SW 26th St"}},
-            {tract:"A00020", county:"Linn", city:"Albany", income:45000, msaIncome:65000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-123.1000,
-                streets:{N:"W 1st Ave", S:"SW Queen Ave", E:"SW 9th St", W:"SW 34th Ave"}},
-            {tract:"A00040", county:"Linn", city:"Lebanon", income:40000, msaIncome:65000, ratio:0.62, level:"Moderate", lat:44.5330, lng:-122.9000,
-                streets:{N:"W Grant St", S:"W Airport Rd", E:"S Main St", W:"S 5th St"}},
-            {tract:"A00060", county:"Linn", city:"Albany", income:32000, msaIncome:65000, ratio:0.49, level:"Low", lat:44.6280, lng:-123.0800,
-                streets:{N:"SE Queen Ave", S:"SE Columbus St", E:"Old Salem Rd", W:"SE 9th St"}},
-            {tract:"R00010", county:"Douglas", city:"Roseburg", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:43.2160, lng:-123.3400,
-                streets:{N:"NW Garden Valley Blvd", S:"SE Stephens St", E:"SE Pine St", W:"NW Highland St"}},
-            {tract:"R00020", county:"Douglas", city:"Roseburg", income:32000, msaIncome:55000, ratio:0.58, level:"Moderate", lat:43.2100, lng:-123.3200,
-                streets:{N:"SE Stephens St", S:"SE Douglas Ave", E:"SE Booth Ave", W:"SE Oak Ave"}},
-            {tract:"CB0010", county:"Coos", city:"Coos Bay", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate", lat:43.3660, lng:-124.2100,
-                streets:{N:"W Commercial Ave", S:"S Broadway St", E:"S 4th St", W:"S Empire Blvd"}},
-            {tract:"KF0010", county:"Klamath", city:"Klamath Falls", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate", lat:42.2240, lng:-121.7800,
-                streets:{N:"Main St", S:"S 6th St", E:"E Main St", W:"Klamath Ave"}},
-            {tract:"KF0020", county:"Klamath", city:"Klamath Falls", income:28000, msaIncome:55000, ratio:0.51, level:"Moderate", lat:42.2180, lng:-121.7600,
-                streets:{N:"S 6th St", S:"W Oregon Ave", E:"E California Ave", W:"S Alameda Ave"}},
-            {tract:"P00010", county:"Umatilla", city:"Pendleton", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate", lat:45.6720, lng:-118.7900,
-                streets:{N:"NW Court Ave", S:"SW Dorion Ave", E:"SE 10th St", W:"SW 1st St"}},
-            {tract:"AS0010", county:"Clatsop", city:"Astoria", income:43000, msaIncome:55000, ratio:0.78, level:"Moderate", lat:46.1870, lng:-123.8300,
-                streets:{N:"Marine Dr", S:"W Lexington Ave", E:"15th St", W:"27th St"}},
-            {tract:"SH0010", county:"Columbia", city:"St. Helens", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.8640, lng:-122.8000,
-                streets:{N:"Columbia Blvd", S:"Gable Rd", E:"S 1st St", W:"S 18th St"}},
-            {tract:"MC0010", county:"Yamhill", city:"McMinnville", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:45.2100, lng:-123.1900,
-                streets:{N:"NW Adams St", S:"SW Hill Rd", E:"NE Lafayette Ave", W:"NW Baker Creek Rd"}},
-            {tract:"N00010", county:"Lincoln", city:"Newport", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-124.0500,
-                streets:{N:"NW Oceanview Dr", S:"SW Bay Blvd", E:"SE Ferry Slip Rd", W:"SW Coast Hwy"}},
-            {tract:"LC0010", county:"Lincoln", city:"Lincoln City", income:40000, msaIncome:55000, ratio:0.73, level:"Moderate", lat:44.9580, lng:-124.0100,
-                streets:{N:"NW 40th St", S:"SW 51st St", E:"NE Devil's Lake Blvd", W:"SW Coast Hwy"}},
-            {tract:"HR0010", county:"Hood River", city:"Hood River", income:52000, msaIncome:55000, ratio:0.95, level:"Middle", lat:45.7050, lng:-121.5200,
-                streets:{N:"Oak St", S:"June St", E:"13th St", W:"2nd St"}},
-            {tract:"TD0010", county:"Wasco", city:"The Dalles", income:44000, msaIncome:55000, ratio:0.80, level:"Middle", lat:45.5940, lng:-121.1800,
-                streets:{N:"W 2nd St", S:"W 10th St", E:"Court St", W:"Cherry Heights Rd"}},
-            {tract:"ASH001", county:"Jackson", city:"Ashland", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", lat:42.1940, lng:-122.7100,
-                streets:{N:"Lithia Way", S:"Siskiyou Blvd", E:"Walker Ave", W:"N Main St"}}
+            {tract:"000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low", lat:45.5900, lng:-122.7500, geoid:"41051000100"},
+            {tract:"000200", county:"Multnomah", city:"Portland", income:42000, msaIncome:96500, ratio:0.44, level:"Low", lat:45.5850, lng:-122.7300, geoid:"41051000200"},
+            {tract:"000300", county:"Multnomah", city:"Portland", income:45000, msaIncome:96500, ratio:0.47, level:"Low", lat:45.5800, lng:-122.7100, geoid:"41051000300"},
+            {tract:"000500", county:"Multnomah", city:"Portland", income:38000, msaIncome:96500, ratio:0.39, level:"Low", lat:45.5750, lng:-122.6900, geoid:"41051000500"},
+            {tract:"000800", county:"Multnomah", city:"Portland", income:52000, msaIncome:96500, ratio:0.54, level:"Moderate", lat:45.5700, lng:-122.6700, geoid:"41051000800"},
+            {tract:"001000", county:"Multnomah", city:"Portland", income:56000, msaIncome:96500, ratio:0.58, level:"Moderate", lat:45.5650, lng:-122.6500, geoid:"41051001000"},
+            {tract:"001200", county:"Multnomah", city:"Portland", income:48000, msaIncome:96500, ratio:0.50, level:"Low", lat:45.5600, lng:-122.6300, geoid:"41051001200"},
+            {tract:"001500", county:"Multnomah", city:"Portland", income:62000, msaIncome:96500, ratio:0.64, level:"Moderate", lat:45.5550, lng:-122.6100, geoid:"41051001500"},
+            {tract:"002000", county:"Multnomah", city:"Gresham", income:58000, msaIncome:96500, ratio:0.60, level:"Moderate", lat:45.5200, lng:-122.4300, geoid:"41051002000"},
+            {tract:"002200", county:"Multnomah", city:"Gresham", income:51000, msaIncome:96500, ratio:0.53, level:"Moderate", lat:45.5100, lng:-122.4100, geoid:"41051002200"},
+            {tract:"002500", county:"Multnomah", city:"Portland", income:72000, msaIncome:96500, ratio:0.75, level:"Moderate", lat:45.5400, lng:-122.5900, geoid:"41051002500"},
+            {tract:"010100", county:"Washington", city:"Beaverton", income:65000, msaIncome:96500, ratio:0.67, level:"Moderate", lat:45.4870, lng:-122.8000, geoid:"41067010100"},
+            {tract:"010200", county:"Washington", city:"Beaverton", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.4800, lng:-122.7900, geoid:"41067010200"},
+            {tract:"010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate", lat:45.5230, lng:-122.9900, geoid:"41067010500"},
+            {tract:"010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate", lat:45.5150, lng:-122.9700, geoid:"41067010800"},
+            {tract:"020100", county:"Clackamas", city:"Oregon City", income:70000, msaIncome:96500, ratio:0.73, level:"Moderate", lat:45.3570, lng:-122.6000, geoid:"41005020100"},
+            {tract:"S01010", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate", lat:44.9400, lng:-123.0300, geoid:"41047010100"},
+            {tract:"S01030", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate", lat:44.9350, lng:-123.0100, geoid:"41047010300"},
+            {tract:"S01050", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low", lat:44.9300, lng:-122.9900, geoid:"41047010500"},
+            {tract:"S02010", county:"Marion", city:"Salem", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:44.9200, lng:-122.9700, geoid:"41047020100"},
+            {tract:"E00010", county:"Lane", city:"Eugene", income:38000, msaIncome:68000, ratio:0.56, level:"Moderate", lat:44.0520, lng:-123.0900, geoid:"41039000100"},
+            {tract:"E00030", county:"Lane", city:"Eugene", income:32000, msaIncome:68000, ratio:0.47, level:"Low", lat:44.0450, lng:-123.0700, geoid:"41039000300"},
+            {tract:"E00050", county:"Lane", city:"Eugene", income:35000, msaIncome:68000, ratio:0.51, level:"Moderate", lat:44.0380, lng:-123.0500, geoid:"41039000500"},
+            {tract:"E00080", county:"Lane", city:"Springfield", income:40000, msaIncome:68000, ratio:0.59, level:"Moderate", lat:44.0460, lng:-123.0200, geoid:"41039000800"},
+            {tract:"E00100", county:"Lane", city:"Springfield", income:36000, msaIncome:68000, ratio:0.53, level:"Moderate", lat:44.0400, lng:-123.0000, geoid:"41039001000"},
+            {tract:"E00120", county:"Lane", city:"Springfield", income:30000, msaIncome:68000, ratio:0.44, level:"Low", lat:44.0340, lng:-122.9800, geoid:"41039001200"},
+            {tract:"M00020", county:"Jackson", city:"Medford", income:42000, msaIncome:62000, ratio:0.68, level:"Moderate", lat:42.3260, lng:-122.8700, geoid:"41029000200"},
+            {tract:"M00040", county:"Jackson", city:"Medford", income:35000, msaIncome:62000, ratio:0.56, level:"Moderate", lat:42.3200, lng:-122.8500, geoid:"41029000400"},
+            {tract:"M00060", county:"Jackson", city:"Central Point", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", lat:42.3760, lng:-122.9100, geoid:"41029000600"},
+            {tract:"G01010", county:"Josephine", city:"Grants Pass", income:38000, msaIncome:62000, ratio:0.61, level:"Moderate", lat:42.4390, lng:-123.3300, geoid:"41033010100"},
+            {tract:"G01030", county:"Josephine", city:"Grants Pass", income:30000, msaIncome:62000, ratio:0.48, level:"Low", lat:42.4300, lng:-123.3100, geoid:"41033010300"},
+            {tract:"B00010", county:"Deschutes", city:"Bend", income:55000, msaIncome:82000, ratio:0.67, level:"Moderate", lat:44.0580, lng:-121.3100, geoid:"41017000100"},
+            {tract:"B00030", county:"Deschutes", city:"Bend", income:48000, msaIncome:82000, ratio:0.59, level:"Moderate", lat:44.0500, lng:-121.2900, geoid:"41017000300"},
+            {tract:"B00050", county:"Deschutes", city:"Redmond", income:52000, msaIncome:82000, ratio:0.63, level:"Moderate", lat:44.2720, lng:-121.1700, geoid:"41017000500"},
+            {tract:"C00010", county:"Benton", city:"Corvallis", income:42000, msaIncome:78000, ratio:0.54, level:"Moderate", lat:44.5640, lng:-123.2600, geoid:"41003000100"},
+            {tract:"C00030", county:"Benton", city:"Corvallis", income:38000, msaIncome:78000, ratio:0.49, level:"Low", lat:44.5580, lng:-123.2400, geoid:"41003000300"},
+            {tract:"A00020", county:"Linn", city:"Albany", income:45000, msaIncome:65000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-123.1000, geoid:"41043000200"},
+            {tract:"A00040", county:"Linn", city:"Lebanon", income:40000, msaIncome:65000, ratio:0.62, level:"Moderate", lat:44.5330, lng:-122.9000, geoid:"41043000400"},
+            {tract:"A00060", county:"Linn", city:"Albany", income:32000, msaIncome:65000, ratio:0.49, level:"Low", lat:44.6280, lng:-123.0800, geoid:"41043000600"},
+            {tract:"R00010", county:"Douglas", city:"Roseburg", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:43.2160, lng:-123.3400, geoid:"41019000100"},
+            {tract:"R00020", county:"Douglas", city:"Roseburg", income:32000, msaIncome:55000, ratio:0.58, level:"Moderate", lat:43.2100, lng:-123.3200, geoid:"41019000200"},
+            {tract:"CB0010", county:"Coos", city:"Coos Bay", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate", lat:43.3660, lng:-124.2100, geoid:"41011000100"},
+            {tract:"KF0010", county:"Klamath", city:"Klamath Falls", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate", lat:42.2240, lng:-121.7800, geoid:"41035000100"},
+            {tract:"KF0020", county:"Klamath", city:"Klamath Falls", income:28000, msaIncome:55000, ratio:0.51, level:"Moderate", lat:42.2180, lng:-121.7600, geoid:"41035000200"},
+            {tract:"P00010", county:"Umatilla", city:"Pendleton", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate", lat:45.6720, lng:-118.7900, geoid:"41059000100"},
+            {tract:"AS0010", county:"Clatsop", city:"Astoria", income:43000, msaIncome:55000, ratio:0.78, level:"Moderate", lat:46.1870, lng:-123.8300, geoid:"41007000100"},
+            {tract:"SH0010", county:"Columbia", city:"St. Helens", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", lat:45.8640, lng:-122.8000, geoid:"41009000100"},
+            {tract:"MC0010", county:"Yamhill", city:"McMinnville", income:48000, msaIncome:72000, ratio:0.67, level:"Moderate", lat:45.2100, lng:-123.1900, geoid:"41071000100"},
+            {tract:"N00010", county:"Lincoln", city:"Newport", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", lat:44.6360, lng:-124.0500, geoid:"41041000100"},
+            {tract:"LC0010", county:"Lincoln", city:"Lincoln City", income:40000, msaIncome:55000, ratio:0.73, level:"Moderate", lat:44.9580, lng:-124.0100, geoid:"41041000200"},
+            {tract:"HR0010", county:"Hood River", city:"Hood River", income:52000, msaIncome:55000, ratio:0.95, level:"Middle", lat:45.7050, lng:-121.5200, geoid:"41027000100"},
+            {tract:"TD0010", county:"Wasco", city:"The Dalles", income:44000, msaIncome:55000, ratio:0.80, level:"Middle", lat:45.5940, lng:-121.1800, geoid:"41065000100"},
+            {tract:"ASH001", county:"Jackson", city:"Ashland", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", lat:42.1940, lng:-122.7100, geoid:"41029000700"}
         ];
         
         var map = L.map('map').setView([44.0, -120.5], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
         
-        var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6"};
-        var levelOpacity = {"Low":0.55,"Moderate":0.45,"Middle":0.30};
+        var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6","Upper":"#10b981"};
+        var levelOpacity = {"Low":0.55,"Moderate":0.45,"Middle":0.30,"Upper":0.20};
         var allCircles = [];
-        var visibleLevels = {"Low":true,"Moderate":true,"Middle":true};
+        var tractPolygons = [];
+        var visibleLevels = {"Low":true,"Moderate":true,"Middle":true,"Upper":true};
         var currentCity = null;
-        var activeTract = null;
+        var ffiecLoaded = false;
         
+        // Draw circle markers
         oregonTracts.forEach(function(tract) {
             var circle = L.circle([tract.lat, tract.lng], {
                 color: levelColors[tract.level], fillColor: levelColors[tract.level],
                 fillOpacity: levelOpacity[tract.level], radius: Math.max(700, Math.min(2200, tract.income / 14)), weight: 1.5
             });
             
-            var popupContent = '<strong>Tract ' + tract.tract + '</strong><br>' + tract.city + ', ' + tract.county + ' Co.<br>' +
-                'Income: $' + tract.income.toLocaleString() + '<br><strong style="color:'+levelColors[tract.level]+';">' + tract.level + ' Income</strong><br><br>' +
-                '<strong>📍 Street Boundaries:</strong><br>🡑 <strong>North:</strong> ' + tract.streets.N + '<br>🡓 <strong>South:</strong> ' + tract.streets.S + '<br>🡒 <strong>East:</strong> ' + tract.streets.E + '<br>🡐 <strong>West:</strong> ' + tract.streets.W;
-            
-            circle.bindPopup(popupContent);
-            
-            circle.on('click', function() {
-                showBoundaries(tract);
-            });
-            
+            circle.bindPopup(
+                '<strong>Tract ' + tract.tract + '</strong> (' + tract.geoid + ')<br>' +
+                tract.city + ', ' + tract.county + ' Co.<br>' +
+                'Income: $' + tract.income.toLocaleString() + '<br>' +
+                'MSA Median: $' + tract.msaIncome.toLocaleString() + '<br>' +
+                '<strong style="color:'+levelColors[tract.level]+';">FFIEC: ' + tract.level + ' Income (' + (tract.ratio*100).toFixed(0) + '%)</strong>'
+            );
             circle.addTo(map);
             allCircles.push({circle:circle, tract:tract});
         });
         
-        function showBoundaries(tract) {
-            activeTract = tract;
-            var color = levelColors[tract.level];
-            var levelClass = tract.level.toLowerCase();
-            var html = '<div class="boundary-item ' + levelClass + '" style="border-left-color:'+color+';">' +
-                '<strong>Tract ' + tract.tract + '</strong> - <span style="color:'+color+';">' + tract.level + ' Income</span><br>' +
-                tract.city + ', ' + tract.county + ' Co.<br>' +
-                '<div class="boundary-streets">' +
-                '🡑 <strong>N:</strong> ' + tract.streets.N + '<br>' +
-                '🡓 <strong>S:</strong> ' + tract.streets.S + '<br>' +
-                '🡒 <strong>E:</strong> ' + tract.streets.E + '<br>' +
-                '🡐 <strong>W:</strong> ' + tract.streets.W +
-                '</div>' +
-                '<button class="copy-btn" onclick="copyTract(\'' + tract.tract + '\')">📋 Copy</button>' +
-                '<br><small style="color:#8899aa;">Use these streets in Zillow\'s Draw tool to outline this area</small>' +
-                '</div>';
+        function loadFFIECShapes() {
+            if (ffiecLoaded) {
+                // Toggle off
+                clearPolygons();
+                document.getElementById('btnFFIEC').classList.remove('active');
+                document.getElementById('btnFFIEC').textContent = '📊 Load FFIEC Tract Shapes';
+                ffiecLoaded = false;
+                return;
+            }
             
-            document.getElementById('boundaryList').innerHTML = html;
+            document.getElementById('loadingBadge').style.display = 'block';
+            document.getElementById('btnFFIEC').disabled = true;
+            
+            var city = document.getElementById('citySelect').value || currentCity || '';
+            var cityFormatted = city.replace(/-/g, ' ').toLowerCase().trim();
+            
+            var targetTracts = oregonTracts;
+            if (cityFormatted) {
+                targetTracts = oregonTracts.filter(function(t) {
+                    return t.city.toLowerCase() === cityFormatted || t.city.toLowerCase().indexOf(cityFormatted) >= 0;
+                });
+            }
+            
+            if (targetTracts.length > 20) {
+                targetTracts = targetTracts.slice(0, 20);
+            }
+            
+            clearPolygons();
+            
+            var loaded = 0;
+            targetTracts.forEach(function(tract) {
+                // Fetch tract boundary from Census Bureau TIGERweb API
+                var url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query?' +
+                    'where=GEOID%3D%27' + tract.geoid + '%27&outFields=*&outSR=4326&f=geojson';
+                
+                fetch(url)
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        if (data.features && data.features.length > 0) {
+                            var geojsonLayer = L.geoJSON(data, {
+                                style: {
+                                    color: levelColors[tract.level],
+                                    fillColor: levelColors[tract.level],
+                                    fillOpacity: 0.35,
+                                    weight: 2
+                                }
+                            });
+                            
+                            geojsonLayer.bindPopup(
+                                '<strong>Tract ' + tract.tract + '</strong> (' + tract.geoid + ')<br>' +
+                                tract.city + ', ' + tract.county + ' Co.<br>' +
+                                'Income: $' + tract.income.toLocaleString() + '<br>' +
+                                '<strong style="color:'+levelColors[tract.level]+';">FFIEC: ' + tract.level + ' Income</strong><br>' +
+                                '<small>Actual census tract boundary from TIGERweb</small>'
+                            );
+                            
+                            geojsonLayer.addTo(map);
+                            tractPolygons.push({layer: geojsonLayer, tract: tract});
+                        }
+                        loaded++;
+                        if (loaded >= targetTracts.length) {
+                            finishLoading();
+                        }
+                    })
+                    .catch(function() {
+                        loaded++;
+                        // Fallback: create a rectangular polygon around the tract
+                        var size = 0.02;
+                        var bounds = [[tract.lat - size, tract.lng - size], [tract.lat + size, tract.lng + size]];
+                        var rect = L.rectangle(bounds, {
+                            color: levelColors[tract.level],
+                            fillColor: levelColors[tract.level],
+                            fillOpacity: 0.30,
+                            weight: 2
+                        });
+                        rect.bindPopup(
+                            '<strong>Tract ' + tract.tract + '</strong> (' + tract.geoid + ')<br>' +
+                            tract.city + ', ' + tract.county + ' Co.<br>' +
+                            'Income: $' + tract.income.toLocaleString() + '<br>' +
+                            '<strong style="color:'+levelColors[tract.level]+';">FFIEC: ' + tract.level + ' Income</strong><br>' +
+                            '<small>Approximate tract area (TIGERweb unavailable)</small>'
+                        );
+                        rect.addTo(map);
+                        tractPolygons.push({layer: rect, tract: tract});
+                        
+                        if (loaded >= targetTracts.length) {
+                            finishLoading();
+                        }
+                    });
+            });
+            
+            if (targetTracts.length === 0) {
+                finishLoading();
+            }
         }
         
-        function copyTract(tractId) {
-            var tract = oregonTracts.find(function(t) { return t.tract === tractId; });
-            if (!tract) return;
-            var text = 'Zillow Map Outline - Tract ' + tract.tract + ' (' + tract.level + ' Income)\n' +
-                'City: ' + tract.city + ', ' + tract.county + ' County\n' +
-                'North boundary: ' + tract.streets.N + '\n' +
-                'South boundary: ' + tract.streets.S + '\n' +
-                'East boundary: ' + tract.streets.E + '\n' +
-                'West boundary: ' + tract.streets.W + '\n\n' +
-                'Median Household Income: $' + tract.income.toLocaleString();
+        function finishLoading() {
+            document.getElementById('loadingBadge').style.display = 'none';
+            document.getElementById('btnFFIEC').disabled = false;
+            document.getElementById('btnFFIEC').classList.add('active');
+            document.getElementById('btnFFIEC').textContent = '✅ FFIEC Shapes Loaded (Click to Hide)';
+            ffiecLoaded = true;
             
-            navigator.clipboard.writeText(text).then(function() {
-                alert('✅ Boundaries copied! Paste into Zillow or a note.\n\n' + text);
+            // Update tract info panel
+            var city = document.getElementById('citySelect').value || currentCity || '';
+            var cityFormatted = city.replace(/-/g, ' ').toLowerCase().trim();
+            var displayTracts = oregonTracts;
+            if (cityFormatted) {
+                displayTracts = oregonTracts.filter(function(t) {
+                    return t.city.toLowerCase() === cityFormatted || t.city.toLowerCase().indexOf(cityFormatted) >= 0;
+                });
+            }
+            
+            var html = '<h4>📍 ' + displayTracts.length + ' Census Tracts</h4>';
+            displayTracts.forEach(function(t) {
+                var lc = t.level.toLowerCase();
+                html += '<div class="tract-item ' + lc + '" onclick="map.setView(['+t.lat+','+t.lng+'], 15)">' +
+                    '<strong>' + t.tract + '</strong> - ' + t.level + ' ($' + t.income.toLocaleString() + ') ' + t.city + '</div>';
             });
+            document.getElementById('tractInfo').innerHTML = html;
         }
         
-        function copyAllBoundaries() {
-            if (!currentCity) { alert('Please select a city first.'); return; }
-            var cityFormatted = currentCity.replace(/\s+/g, ' ').toLowerCase();
-            var cityTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase() === cityFormatted; });
-            if (cityTracts.length === 0) cityTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase().indexOf(cityFormatted) >= 0; });
-            if (cityTracts.length === 0) { alert('No tracts found for ' + currentCity); return; }
-            
-            var text = '=== ZILLOW MAP OUTLINES FOR ' + currentCity.toUpperCase() + ', OREGON ===\n\n';
-            cityTracts.forEach(function(t) {
-                text += 'TRACT ' + t.tract + ' (' + t.level + ' Income - $' + t.income.toLocaleString() + ')\n';
-                text += '  North: ' + t.streets.N + '\n';
-                text += '  South: ' + t.streets.S + '\n';
-                text += '  East:  ' + t.streets.E + '\n';
-                text += '  West:  ' + t.streets.W + '\n\n';
-            });
-            
-            navigator.clipboard.writeText(text).then(function() {
-                alert('✅ All ' + cityTracts.length + ' tract boundaries copied for ' + currentCity + '!\n\nPaste into a document for reference.');
-            });
+        function clearPolygons() {
+            tractPolygons.forEach(function(p) { map.removeLayer(p.layer); });
+            tractPolygons = [];
         }
         
-        function toggleIncome(level, el) {
+        function toggleLevel(level, el) {
             visibleLevels[level] = !visibleLevels[level];
             el.classList.toggle('active', visibleLevels[level]);
+            
+            // Toggle circles
             allCircles.forEach(function(item) {
                 if (item.tract.level === level) {
-                    item.circle.setStyle({fillOpacity: visibleLevels[level] ? levelOpacity[level] : 0, weight: visibleLevels[level] ? 1.5 : 0});
+                    item.circle.setStyle({
+                        fillOpacity: visibleLevels[level] ? levelOpacity[level] : 0,
+                        weight: visibleLevels[level] ? 1.5 : 0
+                    });
+                }
+            });
+            
+            // Toggle polygons
+            tractPolygons.forEach(function(item) {
+                if (item.tract.level === level) {
+                    if (visibleLevels[level]) {
+                        item.layer.setStyle({fillOpacity: 0.35, weight: 2});
+                    } else {
+                        item.layer.setStyle({fillOpacity: 0, weight: 0});
+                    }
                 }
             });
         }
@@ -363,39 +404,23 @@
             currentCity = city.replace(/-/g, ' ');
             document.getElementById('selectedCityDisplay').textContent = currentCity || 'Select a city above';
             updateLinks();
-            if (!city) { map.setView([44.0, -120.5], 7); resetCircles(); return; }
+            
+            if (!city) { map.setView([44.0, -120.5], 7); return; }
+            
             var matchingTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase() === city.replace(/-/g,' ').toLowerCase(); });
             if (matchingTracts.length === 0) matchingTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase().indexOf(city.replace(/-/g,' ').toLowerCase()) >= 0; });
+            
             if (matchingTracts.length > 0) {
                 map.setView([matchingTracts[0].lat, matchingTracts[0].lng], 12);
-                allCircles.forEach(function(item) {
-                    var isMatch = matchingTracts.some(function(mt) { return mt.tract === item.tract.tract; });
-                    if (isMatch && visibleLevels[item.tract.level]) {
-                        item.circle.setStyle({fillOpacity: 0.85, weight: 3, color: '#fff'});
-                        item.circle.bringToFront();
-                    } else if (visibleLevels[item.tract.level]) {
-                        item.circle.setStyle({fillOpacity: levelOpacity[item.tract.level], weight: 1.5, color: levelColors[item.tract.level]});
-                    }
-                });
-                // Show all boundaries for city
-                var boundaryHtml = '<h4 style="font-size:10px;color:#f59e0b;margin-bottom:4px;">📍 ' + matchingTracts.length + ' Tracts in ' + currentCity + '</h4>';
-                matchingTracts.forEach(function(t) {
-                    var lc = t.level.toLowerCase();
-                    boundaryHtml += '<div class="boundary-item ' + lc + '">' +
-                        '<strong>Tract ' + t.tract + '</strong> - <span style="color:'+levelColors[t.level]+';">' + t.level + ' Income ($' + t.income.toLocaleString() + ')</span>' +
-                        '<div class="boundary-streets">N: ' + t.streets.N + ' | S: ' + t.streets.S + ' | E: ' + t.streets.E + ' | W: ' + t.streets.W + '</div>' +
-                        '<button class="copy-btn" onclick="copyTract(\'' + t.tract + '\')">📋</button></div>';
-                });
-                document.getElementById('boundaryList').innerHTML = boundaryHtml;
-            }
-        }
-        
-        function resetCircles() {
-            allCircles.forEach(function(item) {
-                if (visibleLevels[item.tract.level]) {
-                    item.circle.setStyle({fillOpacity: levelOpacity[item.tract.level], weight: 1.5, color: levelColors[item.tract.level]});
+                
+                // If FFIEC shapes are loaded, reload for new city
+                if (ffiecLoaded) {
+                    clearPolygons();
+                    ffiecLoaded = false;
+                    document.getElementById('btnFFIEC').classList.remove('active');
+                    document.getElementById('btnFFIEC').textContent = '📊 Load FFIEC Tract Shapes';
                 }
-            });
+            }
         }
         
         function updateLinks() {
@@ -405,12 +430,8 @@
             var maxPrice = document.getElementById('maxPrice').value || '';
             var citySlug = city.toLowerCase().replace(/\s+/g, '-');
             
-            var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR';
-            if (maxPrice) realtorUrl += '/price-na-' + maxPrice;
-            document.getElementById('realtorLink').href = realtorUrl;
-            
-            var zillowUrl = 'https://www.zillow.com/' + citySlug + '-or/houses/';
-            document.getElementById('zillowLink').href = zillowUrl;
+            document.getElementById('realtorLink').href = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR' + (maxPrice ? '/price-na-' + maxPrice : '');
+            document.getElementById('zillowLink').href = 'https://www.zillow.com/' + citySlug + '-or/houses/';
         }
         
         function setPrice(price, el) {
@@ -421,11 +442,10 @@
         }
         
         window.updateMap = updateMap;
-        window.toggleIncome = toggleIncome;
+        window.toggleLevel = toggleLevel;
         window.setPrice = setPrice;
         window.updateLinks = updateLinks;
-        window.copyTract = copyTract;
-        window.copyAllBoundaries = copyAllBoundaries;
+        window.loadFFIECShapes = loadFFIECShapes;
     </script>
 </body>
 </html>
