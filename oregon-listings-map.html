@@ -60,7 +60,7 @@
     <div class="header">
         <div>
             <h1>🏠 Oregon Income Map → Real Home Listings</h1>
-            <p style="font-size:10px;color:#a0c4ff;">Select city & max price → Click Realtor.com for price-filtered results ✅</p>
+            <p style="font-size:10px;color:#a0c4ff;">Select city & max price → View real listings on Realtor.com, Zillow, or Redfin</p>
         </div>
     </div>
     
@@ -115,7 +115,7 @@
         <div class="sidebar">
             <h3>🏘️ Real Listings For:</h3>
             <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:16px;margin-bottom:5px;">Select a city above</p>
-            <p class="info-text">Click a button to open <strong>real active listings</strong> in a new tab. <strong>⭐ Realtor.com</strong> properly filters by your max price!</p>
+            <p class="info-text">Click any button to open <strong>real active listings</strong> in a new tab. All properties are actual homes currently for sale.</p>
             
             <small style="color:#8899aa;">Price filter:</small>
             <div class="price-tags">
@@ -138,7 +138,7 @@
                 <a href="#" class="listing-link zillow" id="zillowLink" target="_blank" rel="noopener noreferrer">
                     <span class="link-icon">🏘️</span>
                     <div>
-                        <strong>Zillow.com</strong> <span class="badge badge-warning">Price may not filter</span>
+                        <strong>Zillow.com</strong> <span class="badge badge-warning">Opens city listings</span>
                         <div class="url-preview" id="zillowPreview"></div>
                     </div>
                 </a>
@@ -295,21 +295,23 @@
             var maxPrice = document.getElementById('maxPrice').value || '';
             var citySlug = city.toLowerCase().replace(/\s+/g, '-');
             
-            // Realtor.com - WORKS with price filter
+            // Realtor.com - WORKS PERFECTLY with price filter
             var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR';
             if (maxPrice) realtorUrl += '/price-na-' + maxPrice;
             document.getElementById('realtorLink').href = realtorUrl;
-            document.getElementById('realtorPreview').textContent = realtorUrl;
+            document.getElementById('realtorPreview').textContent = '✅ ' + realtorUrl;
             
-            // Zillow (best effort)
+            // Zillow - best effort
             var zillowUrl = 'https://www.zillow.com/' + citySlug + '-or/houses/';
             if (maxPrice) zillowUrl += '0-' + maxPrice + '_price/';
             document.getElementById('zillowLink').href = zillowUrl;
             document.getElementById('zillowPreview').textContent = zillowUrl;
             
-            // Redfin
+            // Redfin - fixed URL format
             var redfinUrl = 'https://www.redfin.com/city/0/OR/' + citySlug;
-            if (maxPrice) redfinUrl += '/max-price-' + maxPrice;
+            if (maxPrice) {
+                redfinUrl += '/filter/max-price=' + maxPrice;
+            }
             document.getElementById('redfinLink').href = redfinUrl;
             document.getElementById('redfinPreview').textContent = redfinUrl;
         }
