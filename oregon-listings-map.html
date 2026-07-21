@@ -26,29 +26,25 @@
         #map { width: 100%; height: 100%; }
         .sidebar h3 { font-size: 14px; color: #f59e0b; margin-bottom: 8px; }
         .sidebar .info-text { font-size: 10px; color: #8899aa; margin-bottom: 10px; line-height: 1.4; }
-        .listing-links { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .listing-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 6px; text-decoration: none; color: white; font-size: 12px; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; }
-        .listing-link:hover { transform: translateX(3px); }
-        .listing-link.zillow { background: #0a1e3d; border-color: #006aff; }
-        .listing-link.zillow:hover { background: #0d2a54; }
-        .listing-link.redfin { background: #1a0a0e; border-color: #c41e3a; }
-        .listing-link.redfin:hover { background: #2a0d14; }
+        .listing-links { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .listing-link { display: flex; align-items: center; gap: 10px; padding: 14px 14px; border-radius: 8px; text-decoration: none; color: white; font-size: 13px; font-weight: 600; transition: all 0.2s; border: 2px solid transparent; }
+        .listing-link:hover { transform: translateX(4px); }
         .listing-link.realtor { background: #0a1a12; border-color: #10b981; }
-        .listing-link.realtor:hover { background: #0d2418; }
-        .link-icon { font-size: 18px; }
+        .listing-link.realtor:hover { background: #0d2418; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+        .listing-link.zillow { background: #0a1e3d; border-color: #006aff; }
+        .listing-link.zillow:hover { background: #0d2a54; box-shadow: 0 4px 15px rgba(0,106,255,0.3); }
+        .link-icon { font-size: 22px; }
         .quick-cities { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-        .quick-city { padding: 4px 9px; background: #0d2137; border: 1px solid #3a5a8c; border-radius: 10px; font-size: 10px; cursor: pointer; color: #a0c4ff; transition: all 0.2s; }
+        .quick-city { padding: 5px 10px; background: #0d2137; border: 1px solid #3a5a8c; border-radius: 10px; font-size: 10px; cursor: pointer; color: #a0c4ff; transition: all 0.2s; }
         .quick-city:hover { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
         .legend-mini { position: absolute; bottom: 10px; left: 10px; background: rgba(13,33,55,0.9); padding: 8px 12px; border-radius: 6px; z-index: 1000; font-size: 10px; }
         .legend-mini span { margin-right: 10px; }
         .price-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
-        .price-tag { padding: 4px 8px; background: #0d2137; border-radius: 8px; font-size: 10px; cursor: pointer; color: #8899aa; border: 1px solid #3a5a8c; transition: all 0.2s; }
+        .price-tag { padding: 5px 10px; background: #0d2137; border-radius: 8px; font-size: 10px; cursor: pointer; color: #8899aa; border: 1px solid #3a5a8c; transition: all 0.2s; }
         .price-tag:hover { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
         .price-tag.active { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
-        .url-preview { font-size: 8px; color: #556677; margin-top: 3px; word-break: break-all; font-family: monospace; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: 700; }
+        .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 9px; font-weight: 700; }
         .badge-success { background: #10b981; color: white; }
-        .badge-warning { background: #f59e0b; color: #1a1a1a; }
         @media (max-width: 850px) {
             .main-container { flex-direction: column; }
             .sidebar { width: 100%; max-height: 280px; border-left: none; border-top: 2px solid #0d2137; }
@@ -60,7 +56,7 @@
     <div class="header">
         <div>
             <h1>🏠 Oregon Income Map → Real Home Listings</h1>
-            <p style="font-size:10px;color:#a0c4ff;">Select city & max price → View real listings on Realtor.com, Zillow, or Redfin</p>
+            <p style="font-size:10px;color:#a0c4ff;">Select city & max price → View real listings with price filter applied ✅</p>
         </div>
     </div>
     
@@ -113,11 +109,11 @@
         </div>
         
         <div class="sidebar">
-            <h3>🏘️ Real Listings For:</h3>
-            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:16px;margin-bottom:5px;">Select a city above</p>
-            <p class="info-text">Click any button to open <strong>real active listings</strong> in a new tab. All properties are actual homes currently for sale.</p>
+            <h3>🏘️ Real Home Listings For:</h3>
+            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:18px;margin-bottom:5px;">Select a city above</p>
+            <p class="info-text">Click either button to open <strong>real active listings</strong> in a new tab. <strong>Realtor.com</strong> properly filters by your max price!</p>
             
-            <small style="color:#8899aa;">Price filter:</small>
+            <small style="color:#8899aa;">💰 Price filter:</small>
             <div class="price-tags">
                 <span class="price-tag active" onclick="setPrice('', this)">All Prices</span>
                 <span class="price-tag" onclick="setPrice(500000, this)">Under $500K</span>
@@ -127,27 +123,19 @@
             </div>
             
             <div class="listing-links">
-                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank" rel="noopener noreferrer" style="border-width:2px;">
-                    <span class="link-icon">🏠</span>
+                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank" rel="noopener noreferrer">
+                    <span class="link-icon">⭐</span>
                     <div>
-                        <strong>⭐ Realtor.com</strong> <span class="badge badge-success">Price Filter Works!</span>
-                        <div class="url-preview" id="realtorPreview"></div>
+                        <strong>Realtor.com</strong> <span class="badge badge-success">Price Filter Works!</span>
+                        <div style="font-size:10px;color:#8899aa;margin-top:2px;">Best option - filters by your max price</div>
                     </div>
                 </a>
                 
                 <a href="#" class="listing-link zillow" id="zillowLink" target="_blank" rel="noopener noreferrer">
                     <span class="link-icon">🏘️</span>
                     <div>
-                        <strong>Zillow.com</strong> <span class="badge badge-warning">Opens city listings</span>
-                        <div class="url-preview" id="zillowPreview"></div>
-                    </div>
-                </a>
-                
-                <a href="#" class="listing-link redfin" id="redfinLink" target="_blank" rel="noopener noreferrer">
-                    <span class="link-icon">🏡</span>
-                    <div>
-                        <strong>Redfin.com</strong>
-                        <div class="url-preview" id="redfinPreview"></div>
+                        <strong>Zillow.com</strong>
+                        <div style="font-size:10px;color:#8899aa;margin-top:2px;">Opens all city listings (price filter may not apply)</div>
                     </div>
                 </a>
             </div>
@@ -263,9 +251,8 @@
             document.getElementById('selectedCityDisplay').textContent = currentCity || 'Select a city above';
             updateLinks();
             if (!city) { map.setView([44.0, -120.5], 7); resetCircles(); return; }
-            var cityFormatted = city.replace(/-/g, ' ');
-            var matchingTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase() === cityFormatted.toLowerCase(); });
-            if (matchingTracts.length === 0) matchingTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase().indexOf(cityFormatted.toLowerCase()) >= 0; });
+            var matchingTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase() === city.replace(/-/g,' ').toLowerCase(); });
+            if (matchingTracts.length === 0) matchingTracts = oregonTracts.filter(function(t) { return t.city.toLowerCase().indexOf(city.replace(/-/g,' ').toLowerCase()) >= 0; });
             if (matchingTracts.length > 0) {
                 map.setView([matchingTracts[0].lat, matchingTracts[0].lng], 12);
                 allCircles.forEach(function(item) {
@@ -295,25 +282,14 @@
             var maxPrice = document.getElementById('maxPrice').value || '';
             var citySlug = city.toLowerCase().replace(/\s+/g, '-');
             
-            // Realtor.com - WORKS PERFECTLY with price filter
+            // Realtor.com - WORKS with price filter
             var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR';
             if (maxPrice) realtorUrl += '/price-na-' + maxPrice;
             document.getElementById('realtorLink').href = realtorUrl;
-            document.getElementById('realtorPreview').textContent = '✅ ' + realtorUrl;
             
-            // Zillow - best effort
+            // Zillow - opens city listings
             var zillowUrl = 'https://www.zillow.com/' + citySlug + '-or/houses/';
-            if (maxPrice) zillowUrl += '0-' + maxPrice + '_price/';
             document.getElementById('zillowLink').href = zillowUrl;
-            document.getElementById('zillowPreview').textContent = zillowUrl;
-            
-            // Redfin - fixed URL format
-            var redfinUrl = 'https://www.redfin.com/city/0/OR/' + citySlug;
-            if (maxPrice) {
-                redfinUrl += '/filter/max-price=' + maxPrice;
-            }
-            document.getElementById('redfinLink').href = redfinUrl;
-            document.getElementById('redfinPreview').textContent = redfinUrl;
         }
         
         function setPrice(price, el) {
