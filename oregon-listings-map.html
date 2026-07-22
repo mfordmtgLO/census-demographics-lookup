@@ -475,6 +475,10 @@
         var usdaVisible = false;
 
         function toggleUSDA() {
+                    var usdaLayer = null;
+        var usdaVisible = false;
+
+        function toggleUSDA() {
             var btn = document.getElementById('btnUSDAToggle');
             if (usdaVisible) {
                 if (usdaLayer) { map.removeLayer(usdaLayer); usdaLayer = null; }
@@ -485,32 +489,70 @@
             }
             if (!usdaLayer) {
                 document.getElementById('loadingBadge').style.display = 'block';
-                document.getElementById('loadingBadge').textContent = '⏳ Loading USDA eligibility data (1.8MB)...';
+                document.getElementById('loadingBadge').textContent = '⏳ Loading USDA Oregon eligibility data...';
                 btn.disabled = true;
                 fetch('usda-oregon.json')
                     .then(function(resp) { return resp.json(); })
                     .then(function(data) {
-                        usdaLayer = L.geoJSON(data, {
+                        // Filter for Oregon features only
+                        var oregonFeatures = [];
+                        if (data.features) {
+                            data.features.forEach(function(feature) {
+                                var props = feature.properties || {};
+                                var state = (props.STATE || props.state || props.ST || props.STATE_NAME || '').toUpperCase();
+                                var statefp = (props.STATEFP || props.STATE_FIPS || '');
+                                // Oregon FIPS code is 41, state abbreviation is OR
+                                if (state === 'OR' || state === 'OREGON' || statefp === '41') {
+                                    oregonFeatures.push(feature);
+                                }
+                            });
+                        }
+                        
+                        // If no Oregon filter worked, try to use all data but fit to Oregon bounds
+                        var geoData = oregonFeatures.length > 0 ? {type: "FeatureCollection", features: oregonFeatures} : data;
+                        
+                        usdaLayer = L.geoJSON(geoData, {
                             style: function(feature) {
-                                return { color: '#166534', fillColor: '#22c55e', fillOpacity: 0.3, weight: 2 };
+                                return { 
+                                    color: '#166534', 
+                                    fillColor: '#22c55e', 
+                                    fillOpacity: 0.35, 
+                                    weight: 2 
+                                };
                             },
                             onEachFeature: function(feature, layer) {
                                 var props = feature.properties || {};
-                                var name = props.NAME || props.name || props.DISTRICT || 'Eligible Area';
-                                layer.bindPopup('<strong>🏠 USDA RD Eligibility Zone</strong><br>' + name + '<br><small style="color:#166534;">Eligible for USDA Rural Development programs</small>');
+                                var name = props.NAME || props.name || props.DISTRICT || props.COUNTY || props.COUNTYNAME || 'Eligible Area';
+                                layer.bindPopup(
+                                    '<strong>🏠 USDA RD Eligibility Zone</strong><br>' + 
+                                    name + '<br>' +
+                                    '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>'
+                                );
                             }
                         }).addTo(map);
+                        
                         document.getElementById('loadingBadge').style.display = 'none';
                         btn.classList.add('active');
                         btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
                         btn.disabled = false;
                         usdaVisible = true;
-                        try { map.fitBounds(usdaLayer.getBounds().pad(0.1)); } catch(e) {}
+                        
+                        // Fit map to Oregon bounds
+                        try { 
+                            if (oregonFeatures.length > 0) {
+                                map.fitBounds(usdaLayer.getBounds().pad(0.1));
+                            } else {
+                                // Fallback: zoom to Oregon
+                                map.setView([44.0, -120.5], 7);
+                            }
+                        } catch(e) {
+                            map.setView([44.0, -120.5], 7);
+                        }
                     })
                     .catch(function() {
                         document.getElementById('loadingBadge').style.display = 'none';
                         btn.disabled = false;
-                        alert('Could not load USDA data. Make sure usda-oregon.json is uploaded.');
+                        alert('Could not load USDA data. Make sure usda-oregon.json is uploaded to the repository.');
                     });
             }
         }</script>
