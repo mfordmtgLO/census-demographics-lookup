@@ -33,6 +33,9 @@
         .btn-hud:hover { background: #7c3aed; }
         .btn-usda { background: #166534; color: white; }
 .btn-usda:hover { background: #14532d; }
+        .btn-usda-toggle { background: #166534; color: white; }
+.btn-usda-toggle:hover { background: #14532d; }
+.btn-usda-toggle.active { background: #22c55e; color: #1a1a1a; box-shadow: 0 0 12px rgba(34,197,94,0.5); }
         .btn-reset { background: #ef4444; color: white; }
         .btn-reset:hover { background: #dc2626; }
         .income-toggles { display: flex; gap: 3px; margin-left: auto; }
@@ -111,6 +114,7 @@
         
         <button class="btn btn-ffiec-search" onclick="window.open('https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx','_blank')">🔍 FFIEC Property Search</button>
         <button class="btn btn-usda" onclick="window.open('https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do','_blank')">🏠 USDA RD Eligibility</button>
+        <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDA()">🗺️ USDA Zones</button>
         <button class="btn btn-reset" onclick="resetMap()">🔄 Reset</button>
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -467,6 +471,48 @@
         function setPrice(price, el) { document.getElementById('maxPrice').value = price || ''; document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); }); el.classList.add('active'); updateLinks(); }
         function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
         document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
-    </script>
+            var usdaLayer = null;
+        var usdaVisible = false;
+
+        function toggleUSDA() {
+            var btn = document.getElementById('btnUSDAToggle');
+            if (usdaVisible) {
+                if (usdaLayer) { map.removeLayer(usdaLayer); usdaLayer = null; }
+                btn.classList.remove('active');
+                btn.textContent = '🗺️ USDA Zones';
+                usdaVisible = false;
+                return;
+            }
+            if (!usdaLayer) {
+                document.getElementById('loadingBadge').style.display = 'block';
+                document.getElementById('loadingBadge').textContent = '⏳ Loading USDA eligibility data (1.8MB)...';
+                btn.disabled = true;
+                fetch('usda-oregon.json')
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        usdaLayer = L.geoJSON(data, {
+                            style: function(feature) {
+                                return { color: '#166534', fillColor: '#22c55e', fillOpacity: 0.3, weight: 2 };
+                            },
+                            onEachFeature: function(feature, layer) {
+                                var props = feature.properties || {};
+                                var name = props.NAME || props.name || props.DISTRICT || 'Eligible Area';
+                                layer.bindPopup('<strong>🏠 USDA RD Eligibility Zone</strong><br>' + name + '<br><small style="color:#166534;">Eligible for USDA Rural Development programs</small>');
+                            }
+                        }).addTo(map);
+                        document.getElementById('loadingBadge').style.display = 'none';
+                        btn.classList.add('active');
+                        btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
+                        btn.disabled = false;
+                        usdaVisible = true;
+                        try { map.fitBounds(usdaLayer.getBounds().pad(0.1)); } catch(e) {}
+                    })
+                    .catch(function() {
+                        document.getElementById('loadingBadge').style.display = 'none';
+                        btn.disabled = false;
+                        alert('Could not load USDA data. Make sure usda-oregon.json is uploaded.');
+                    });
+            }
+        }</script>
 </body>
 </html>
