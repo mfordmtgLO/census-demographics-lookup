@@ -115,7 +115,7 @@
         
         <button class="btn btn-ffiec-search" onclick="window.open('https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx','_blank')">🔍 FFIEC Property Search</button>
         <button class="btn btn-usda" onclick="window.open('https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do','_blank')">🏠 USDA RD Eligibility</button>
-        <!-- <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ USDA Zones</button> -->
+        <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ USDA Zones</button>
         <button class="btn btn-reset" onclick="resetMap()">🔄 Reset</button>
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -404,13 +404,29 @@
             }
         }
         
-        function showUSDALayer(btn) {
+                function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
             }
             
-            usdaLayerGroup = L.geoJSON(usdaData, {
+            // Filter for Oregon only
+            var oregonFeatures = usdaData.features.filter(function(feature) {
+                var props = feature.properties || {};
+                var stusps = (props.STUSPS || props.stusps || '').toUpperCase();
+                var statefp = (props.STATEFP || props.statefp || '');
+                var stateName = (props['state name'] || props.STATE_NAME || props.state_name || '').toUpperCase();
+                return stusps === 'OR' || statefp === '41' || stateName === 'OREGON';
+            });
+            
+            if (oregonFeatures.length === 0) {
+                alert('No Oregon features found in USDA data. Found ' + usdaData.features.length + ' total features. First feature STUSPS: ' + (usdaData.features[0].properties.STUSPS || 'not found'));
+                return;
+            }
+            
+            var oregonData = {type: "FeatureCollection", features: oregonFeatures};
+            
+            usdaLayerGroup = L.geoJSON(oregonData, {
                 style: function(feature) {
                     return {
                         color: '#166534',
@@ -421,7 +437,7 @@
                 },
                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
-                    var name = props.NAME || props.name || props.DISTRICT || '';
+                    var name = props.NAME || props.name || props.DISTRICT || props['state name'] || '';
                     layer.bindPopup(
                         '<strong>🏠 USDA RD Eligibility Zone</strong><br>' +
                         (name ? name + '<br>' : '') +
