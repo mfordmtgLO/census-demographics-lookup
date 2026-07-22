@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oregon FFIEC 2026 Low-Moderate Income Census Tracts</title>
+    <title>Oregon FFIEC 2024-2026 Low-Moderate Income Census Tracts</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -81,74 +81,48 @@
 <body>
     <div class="header">
         <div>
-            <h1>🗺️ Oregon FFIEC 2026 Low & Moderate Income Census Tracts</h1>
+            <h1>🗺️ Oregon FFIEC 2024-2026 Low & Moderate Income Census Tracts</h1>
             <p>Official FFIEC tract boundaries • Income levels • Cross streets • Zillow integration • Search any city/county</p>
         </div>
     </div>
-    
     <div class="controls-bar">
         <select id="citySelect" onchange="onCitySelect()">
             <option value="">-- Quick Select --</option>
-            <option value="Portland">Portland</option>
-            <option value="Salem">Salem</option>
-            <option value="Eugene">Eugene</option>
-            <option value="Medford">Medford</option>
-            <option value="Bend">Bend</option>
-            <option value="Corvallis">Corvallis</option>
-            <option value="Hillsboro">Hillsboro</option>
-            <option value="Beaverton">Beaverton</option>
-            <option value="Gresham">Gresham</option>
-            <option value="Grants-Pass">Grants Pass</option>
-            <option value="Springfield">Springfield</option>
-            <option value="Albany">Albany</option>
-            <option value="Ashland">Ashland</option>
-            <option value="Roseburg">Roseburg</option>
-            <option value="Klamath-Falls">Klamath Falls</option>
-            <option value="Coos-Bay">Coos Bay</option>
-            <option value="Pendleton">Pendleton</option>
-            <option value="Astoria">Astoria</option>
-            <option value="McMinnville">McMinnville</option>
-            <option value="Hood-River">Hood River</option>
-            <option value="The-Dalles">The Dalles</option>
-            <option value="Newport">Newport</option>
-            <option value="Lincoln-City">Lincoln City</option>
-            <option value="Redmond">Redmond</option>
-            <option value="Oregon-City">Oregon City</option>
+            <option value="Portland">Portland</option><option value="Salem">Salem</option><option value="Eugene">Eugene</option>
+            <option value="Medford">Medford</option><option value="Bend">Bend</option><option value="Corvallis">Corvallis</option>
+            <option value="Hillsboro">Hillsboro</option><option value="Beaverton">Beaverton</option><option value="Gresham">Gresham</option>
+            <option value="Grants-Pass">Grants Pass</option><option value="Springfield">Springfield</option><option value="Albany">Albany</option>
+            <option value="Ashland">Ashland</option><option value="Roseburg">Roseburg</option><option value="Klamath-Falls">Klamath Falls</option>
+            <option value="Coos-Bay">Coos Bay</option><option value="Pendleton">Pendleton</option><option value="Astoria">Astoria</option>
+            <option value="McMinnville">McMinnville</option><option value="Hood-River">Hood River</option><option value="The-Dalles">The Dalles</option>
+            <option value="Newport">Newport</option><option value="Lincoln-City">Lincoln City</option><option value="Redmond">Redmond</option>
+            <option value="Oregon-City">Oregon City</option><option value="Prineville">Prineville</option><option value="Madras">Madras</option>
+            <option value="Lebanon">Lebanon</option>
         </select>
-        
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="🔍 Search any Oregon city or county..." oninput="onSearchInput()" onfocus="onSearchFocus()" onkeydown="if(event.key==='Enter')performSearch()">
             <div class="search-dropdown" id="searchDropdown"></div>
         </div>
         <button class="btn btn-search" onclick="performSearch()">🔍 Search</button>
-        
         <input type="number" id="maxPrice" placeholder="Max Price $" value="" onchange="updateLinks()">
         <button class="btn btn-ffiec" id="btnFFIEC" onclick="toggleFFIECTracts()">📊 Show FFIEC Tracts</button>
         <button class="btn btn-hud" onclick="window.open('https://hudgis-hud.opendata.arcgis.com/datasets/HUD::low-to-moderate-income-population-by-tract/explore','_blank')">📋 HUD LMI</button>
         <button class="btn btn-reset" onclick="resetMap()">🔄 Reset</button>
-        
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
             <span class="income-toggle moderate active" onclick="toggleLevel('Moderate', this)">🟠 Mod</span>
             <span class="income-toggle middle active" onclick="toggleLevel('Middle', this)">🔵 Mid</span>
         </div>
     </div>
-    
     <div class="main-container">
         <div class="map-panel">
             <div id="map"></div>
             <div class="loading-badge" id="loadingBadge">⏳ Loading FFIEC tract boundaries...</div>
-            <div class="map-overlay">
-                ▣ <strong>Polygons</strong> = FFIEC tracts<br>
-                🔴 Low | 🟠 Moderate | 🔵 Middle<br>
-                🖱️ Click polygon for details & streets
-            </div>
+            <div class="map-overlay">▣ <strong>Polygons</strong> = FFIEC tracts<br>🔴 Low | 🟠 Moderate | 🔵 Middle<br>🖱️ Click polygon for details & streets</div>
         </div>
-        
         <div class="sidebar">
             <h3>🏘️ Real Listings For:</h3>
             <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:14px;margin-bottom:2px;">Search a city or county above</p>
-            
             <small style="color:#8899aa;">💰 Price filter:</small>
             <div class="price-tags">
                 <span class="price-tag active" onclick="setPrice('', this)">All</span>
@@ -156,311 +130,83 @@
                 <span class="price-tag" onclick="setPrice(350000, this)">Under $350K</span>
                 <span class="price-tag" onclick="setPrice(250000, this)">Under $250K</span>
             </div>
-            
             <div class="listing-links">
                 <a href="#" class="listing-link realtor" id="realtorLink" target="_blank">⭐ <strong>Realtor.com</strong> (Price filtered)</a>
                 <a href="#" class="listing-link zillow" id="zillowLink" target="_blank">🏘️ <strong>Zillow.com</strong></a>
             </div>
-            
             <div class="legend-box">
-                <h4>📊 FFIEC 2026 Income Levels</h4>
+                <h4>📊 FFIEC 2024-2026 Income Levels</h4>
                 <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div> Low (&lt;50% MSA median)</div>
                 <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b;"></div> Moderate (50-80%)</div>
                 <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6;"></div> Middle (80-120%)</div>
             </div>
-            
             <div class="tract-list" id="tractList">
                 <h4>📍 FFIEC Low & Moderate Tracts</h4>
-                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">
-                    👆 Search a city/county and click<br><strong>"Show FFIEC Tracts"</strong><br>to see official boundaries
-                </p>
+                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">👆 Search a city/county and click <strong>"Show FFIEC Tracts"</strong><br>to see official boundaries</p>
             </div>
         </div>
     </div>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        var oregonCities = [
-            "Portland","Salem","Eugene","Medford","Bend","Corvallis","Hillsboro","Beaverton",
-            "Gresham","Grants Pass","Springfield","Albany","Ashland","Roseburg","Klamath Falls",
-            "Coos Bay","Pendleton","Astoria","McMinnville","Hood River","The Dalles","Newport",
-            "Lincoln City","Redmond","Oregon City","Tigard","Tualatin","Lake Oswego","West Linn",
-            "Wilsonville","Canby","Milwaukie","Happy Valley","Gladstone","Damascus","Sandy",
-            "Forest Grove","Cornelius","Sherwood","Newberg","Woodburn","Keizer","Dallas",
-            "Independence","Monmouth","Silverton","Stayton","Lebanon","Sweet Home","Philomath",
-            "Florence","Coquille","Brookings","North Bend","Reedsport","Seaside","Cannon Beach",
-            "Tillamook","St. Helens","Scappoose","Rainier","Ontario","La Grande","Baker City",
-            "Hermiston","Milton-Freewater","Prineville","Madras","Sisters","Burns","John Day",
-            "Enterprise","Heppner","Condon","Moro","Fossil","Gold Beach","Port Orford",
-            "Myrtle Creek","Sutherlin","Junction City","Creswell","Cottage Grove","Oakridge",
-            "Veneta","Harrisburg","Brownsville","Jefferson","Mill City","Aumsville","Turner",
-            "Sublimity","Gervais","Hubbard","Dundee","Carlton","Lafayette","Amity","Sheridan",
-            "Willamina","Grand Ronde","Toledo","Waldport","Depoe Bay","Rockaway Beach",
-            "Garibaldi","Bay City","Manzanita","Nehalem","Wheeler","Clatskanie","Vernonia",
-            "Banks","North Plains","Gaston","Yamhill","Dayton","Riddle","Glide","Winston",
-            "Drain","Elkton","Yoncalla","Lowell","Dexter","Pleasant Hill","Coburg",
-            "Tangent","Halsey","Shedd","Scio","Lyons","Gates","Idanha","Detroit",
-            "Mount Angel","Scotts Mills","Molalla","Estacada","Eagle Creek","Boring",
-            "Fairview","Troutdale","Wood Village","Maywood Park","King City","Durham",
-            "Rivergrove","Johnson City","Stafford","Aurora","Donald","St. Paul"
-        ];
-        
-        var oregonCounties = [
-            "Multnomah","Washington","Clackamas","Marion","Lane","Jackson","Deschutes",
-            "Benton","Linn","Douglas","Josephine","Klamath","Coos","Umatilla","Clatsop",
-            "Yamhill","Lincoln","Hood River","Wasco","Columbia","Polk","Tillamook","Curry",
-            "Union","Baker","Malheur","Grant","Harney","Lake","Wallowa","Jefferson","Crook",
-            "Sherman","Gilliam","Wheeler","Morrow"
-        ];
-        
-        var ffiecTracts = [
-            {tract:"000100", geoid:"41051000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low",
-                streets:{N:"NE Columbia Blvd", S:"NE Lombard St", E:"NE 33rd Ave", W:"NE Martin Luther King Jr Blvd"},
-                coords:[[45.595,-122.755],[45.595,-122.745],[45.585,-122.745],[45.585,-122.755]]},
-            {tract:"000200", geoid:"41051000200", county:"Multnomah", city:"Portland", income:42000, msaIncome:96500, ratio:0.44, level:"Low",
-                streets:{N:"NE Lombard St", S:"NE Killingsworth St", E:"NE 42nd Ave", W:"NE Martin Luther King Jr Blvd"},
-                coords:[[45.585,-122.755],[45.585,-122.735],[45.575,-122.735],[45.575,-122.755]]},
-            {tract:"000300", geoid:"41051000300", county:"Multnomah", city:"Portland", income:45000, msaIncome:96500, ratio:0.47, level:"Low",
-                streets:{N:"NE Killingsworth St", S:"NE Alberta St", E:"NE 33rd Ave", W:"NE 15th Ave"},
-                coords:[[45.575,-122.720],[45.575,-122.700],[45.565,-122.700],[45.565,-122.720]]},
-            {tract:"000500", geoid:"41051000500", county:"Multnomah", city:"Portland", income:38000, msaIncome:96500, ratio:0.39, level:"Low",
-                streets:{N:"NE Alberta St", S:"NE Prescott St", E:"NE 60th Ave", W:"NE 42nd Ave"},
-                coords:[[45.565,-122.700],[45.565,-122.680],[45.555,-122.680],[45.555,-122.700]]},
-            {tract:"000800", geoid:"41051000800", county:"Multnomah", city:"Portland", income:52000, msaIncome:96500, ratio:0.54, level:"Moderate",
-                streets:{N:"NE Prescott St", S:"NE Sandy Blvd", E:"NE 82nd Ave", W:"NE 60th Ave"},
-                coords:[[45.555,-122.680],[45.555,-122.660],[45.545,-122.660],[45.545,-122.680]]},
-            {tract:"001000", geoid:"41051001000", county:"Multnomah", city:"Portland", income:56000, msaIncome:96500, ratio:0.58, level:"Moderate",
-                streets:{N:"NE Sandy Blvd", S:"NE Halsey St", E:"NE 102nd Ave", W:"NE 82nd Ave"},
-                coords:[[45.545,-122.660],[45.545,-122.640],[45.535,-122.640],[45.535,-122.660]]},
-            {tract:"001500", geoid:"41051001500", county:"Multnomah", city:"Portland", income:62000, msaIncome:96500, ratio:0.64, level:"Moderate",
-                streets:{N:"NE Glisan St", S:"SE Stark St", E:"SE 122nd Ave", W:"SE 82nd Ave"},
-                coords:[[45.535,-122.620],[45.535,-122.600],[45.525,-122.600],[45.525,-122.620]]},
-            {tract:"002500", geoid:"41051002500", county:"Multnomah", city:"Portland", income:72000, msaIncome:96500, ratio:0.75, level:"Moderate",
-                streets:{N:"SE Stark St", S:"SE Hawthorne Blvd", E:"SE 82nd Ave", W:"SE 39th Ave"},
-                coords:[[45.525,-122.600],[45.525,-122.580],[45.515,-122.580],[45.515,-122.600]]},
-            {tract:"002000", geoid:"41051002000", county:"Multnomah", city:"Gresham", income:58000, msaIncome:96500, ratio:0.60, level:"Moderate",
-                streets:{N:"NE Halsey St", S:"SE Division St", E:"SE 242nd Ave", W:"SE 182nd Ave"},
-                coords:[[45.525,-122.440],[45.525,-122.420],[45.515,-122.420],[45.515,-122.440]]},
-            {tract:"002200", geoid:"41051002200", county:"Multnomah", city:"Gresham", income:51000, msaIncome:96500, ratio:0.53, level:"Moderate",
-                streets:{N:"SE Division St", S:"SE Powell Blvd", E:"SE 242nd Ave", W:"SE 182nd Ave"},
-                coords:[[45.515,-122.420],[45.515,-122.400],[45.505,-122.400],[45.505,-122.420]]},
-            {tract:"010100", geoid:"41067010100", county:"Washington", city:"Beaverton", income:65000, msaIncome:96500, ratio:0.67, level:"Moderate",
-                streets:{N:"SW Walker Rd", S:"SW Allen Blvd", E:"SW Murray Blvd", W:"SW 170th Ave"},
-                coords:[[45.492,-122.810],[45.492,-122.790],[45.482,-122.790],[45.482,-122.810]]},
-            {tract:"010200", geoid:"41067010200", county:"Washington", city:"Beaverton", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate",
-                streets:{N:"SW Allen Blvd", S:"SW Hall Blvd", E:"SW Cedar Hills Blvd", W:"SW Murray Blvd"},
-                coords:[[45.485,-122.800],[45.485,-122.780],[45.475,-122.780],[45.475,-122.800]]},
-            {tract:"010500", geoid:"41067010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate",
-                streets:{N:"NE Cornell Rd", S:"SE Tualatin Valley Hwy", E:"NE 25th Ave", W:"NE 10th Ave"},
-                coords:[[45.528,-122.995],[45.528,-122.985],[45.518,-122.985],[45.518,-122.995]]},
-            {tract:"010800", geoid:"41067010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate",
-                streets:{N:"SE Tualatin Valley Hwy", S:"SE Oak St", E:"SE 10th Ave", W:"SE 32nd Ave"},
-                coords:[[45.520,-122.975],[45.520,-122.965],[45.510,-122.965],[45.510,-122.975]]},
-            {tract:"S01010", geoid:"41047010100", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate",
-                streets:{N:"State St", S:"Mission St SE", E:"12th St SE", W:"Commercial St SE"},
-                coords:[[44.945,-123.035],[44.945,-123.025],[44.935,-123.025],[44.935,-123.035]]},
-            {tract:"S01030", geoid:"41047010300", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate",
-                streets:{N:"Mission St SE", S:"Kuebler Blvd", E:"Lancaster Dr SE", W:"Commercial St SE"},
-                coords:[[44.940,-123.015],[44.940,-123.005],[44.930,-123.005],[44.930,-123.015]]},
-            {tract:"S01050", geoid:"41047010500", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low",
-                streets:{N:"Center St NE", S:"Silverton Rd NE", E:"Hawthorne Ave NE", W:"Portland Rd NE"},
-                coords:[[44.935,-122.995],[44.935,-122.985],[44.925,-122.985],[44.925,-122.995]]},
-            {tract:"E00010", geoid:"41039000100", county:"Lane", city:"Eugene", income:38000, msaIncome:68000, ratio:0.56, level:"Moderate",
-                streets:{N:"Ferry St", S:"E 18th Ave", E:"Oak St", W:"Willamette St"},
-                coords:[[44.057,-123.095],[44.057,-123.085],[44.047,-123.085],[44.047,-123.095]]},
-            {tract:"E00030", geoid:"41039000300", county:"Lane", city:"Eugene", income:32000, msaIncome:68000, ratio:0.47, level:"Low",
-                streets:{N:"W 11th Ave", S:"W 18th Ave", E:"Willamette St", W:"Garfield St"},
-                coords:[[44.050,-123.075],[44.050,-123.065],[44.040,-123.065],[44.040,-123.075]]},
-            {tract:"E00050", geoid:"41039000500", county:"Lane", city:"Eugene", income:35000, msaIncome:68000, ratio:0.51, level:"Moderate",
-                streets:{N:"W 18th Ave", S:"W 28th Ave", E:"Willamette St", W:"Chambers St"},
-                coords:[[44.043,-123.055],[44.043,-123.045],[44.033,-123.045],[44.033,-123.055]]},
-            {tract:"M00020", geoid:"41029000200", county:"Jackson", city:"Medford", income:42000, msaIncome:62000, ratio:0.68, level:"Moderate",
-                streets:{N:"E Main St", S:"E Barnett Rd", E:"N Phoenix Rd", W:"S Central Ave"},
-                coords:[[42.331,-122.875],[42.331,-122.865],[42.321,-122.865],[42.321,-122.875]]},
-            {tract:"M00040", geoid:"41029000400", county:"Jackson", city:"Medford", income:35000, msaIncome:62000, ratio:0.56, level:"Moderate",
-                streets:{N:"W Main St", S:"W Stewart Ave", E:"S Central Ave", W:"S Columbus Ave"},
-                coords:[[42.325,-122.855],[42.325,-122.845],[42.315,-122.845],[42.315,-122.855]]},
-            {tract:"B00010", geoid:"41017000100", county:"Deschutes", city:"Bend", income:55000, msaIncome:82000, ratio:0.67, level:"Moderate",
-                streets:{N:"NW Wall St", S:"SW Reed Market Rd", E:"NE 3rd St", W:"NW 14th St"},
-                coords:[[44.063,-121.315],[44.063,-121.305],[44.053,-121.305],[44.053,-121.315]]},
-            {tract:"C00010", geoid:"41003000100", county:"Benton", city:"Corvallis", income:42000, msaIncome:78000, ratio:0.54, level:"Moderate",
-                streets:{N:"NW Monroe Ave", S:"SW Western Blvd", E:"SW 15th St", W:"SW 35th St"},
-                coords:[[44.569,-123.265],[44.569,-123.255],[44.559,-123.255],[44.559,-123.265]]},
-            {tract:"C00030", geoid:"41003000300", county:"Benton", city:"Corvallis", income:38000, msaIncome:78000, ratio:0.49, level:"Low",
-                streets:{N:"SW Western Blvd", S:"SW Philomath Blvd", E:"SW 3rd St", W:"SW 26th St"},
-                coords:[[44.563,-123.245],[44.563,-123.235],[44.553,-123.235],[44.553,-123.245]]},
-            {tract:"G01010", geoid:"41033010100", county:"Josephine", city:"Grants Pass", income:38000, msaIncome:62000, ratio:0.61, level:"Moderate",
-                streets:{N:"NW A St", S:"SW G St", E:"SE 7th St", W:"SW 6th St"},
-                coords:[[42.444,-123.335],[42.444,-123.325],[42.434,-123.325],[42.434,-123.335]]},
-            {tract:"G01030", geoid:"41033010300", county:"Josephine", city:"Grants Pass", income:30000, msaIncome:62000, ratio:0.48, level:"Low",
-                streets:{N:"SW G St", S:"SW Allen Creek Rd", E:"SE M St", W:"SW Rogue River Ave"},
-                coords:[[42.435,-123.315],[42.435,-123.305],[42.425,-123.305],[42.425,-123.315]]},
-            {tract:"A00020", geoid:"41043000200", county:"Linn", city:"Albany", income:45000, msaIncome:65000, ratio:0.69, level:"Moderate",
-                streets:{N:"W 1st Ave", S:"SW Queen Ave", E:"SW 9th St", W:"SW 34th Ave"},
-                coords:[[44.641,-123.105],[44.641,-123.095],[44.631,-123.095],[44.631,-123.105]]},
-            {tract:"A00060", geoid:"41043000600", county:"Linn", city:"Albany", income:32000, msaIncome:65000, ratio:0.49, level:"Low",
-                streets:{N:"SE Queen Ave", S:"SE Columbus St", E:"Old Salem Rd", W:"SE 9th St"},
-                coords:[[44.633,-123.085],[44.633,-123.075],[44.623,-123.075],[44.623,-123.085]]},
-            {tract:"ASH001", geoid:"41029000700", county:"Jackson", city:"Ashland", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate",
-                streets:{N:"Lithia Way", S:"Siskiyou Blvd", E:"Walker Ave", W:"N Main St"},
-                coords:[[42.199,-122.715],[42.199,-122.705],[42.189,-122.705],[42.189,-122.715]]},
-            {tract:"R00010", geoid:"41019000100", county:"Douglas", city:"Roseburg", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate",
-                streets:{N:"NW Garden Valley Blvd", S:"SE Stephens St", E:"SE Pine St", W:"NW Highland St"},
-                coords:[[43.221,-123.345],[43.221,-123.335],[43.211,-123.335],[43.211,-123.345]]},
-            {tract:"KF0010", geoid:"41035000100", county:"Klamath", city:"Klamath Falls", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate",
-                streets:{N:"Main St", S:"S 6th St", E:"E Main St", W:"Klamath Ave"},
-                coords:[[42.229,-121.785],[42.229,-121.775],[42.219,-121.775],[42.219,-121.785]]},
-            {tract:"KF0020", geoid:"41035000200", county:"Klamath", city:"Klamath Falls", income:28000, msaIncome:55000, ratio:0.51, level:"Moderate",
-                streets:{N:"S 6th St", S:"W Oregon Ave", E:"E California Ave", W:"S Alameda Ave"},
-                coords:[[42.223,-121.765],[42.223,-121.755],[42.213,-121.755],[42.213,-121.765]]},
-            {tract:"CB0010", geoid:"41011000100", county:"Coos", city:"Coos Bay", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate",
-                streets:{N:"W Commercial Ave", S:"S Broadway St", E:"S 4th St", W:"S Empire Blvd"},
-                coords:[[43.371,-124.215],[43.371,-124.205],[43.361,-124.205],[43.361,-124.215]]},
-            {tract:"P00010", geoid:"41059000100", county:"Umatilla", city:"Pendleton", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate",
-                streets:{N:"NW Court Ave", S:"SW Dorion Ave", E:"SE 10th St", W:"SW 1st St"},
-                coords:[[45.677,-118.795],[45.677,-118.785],[45.667,-118.785],[45.667,-118.795]]},
-            {tract:"AS0010", geoid:"41007000100", county:"Clatsop", city:"Astoria", income:43000, msaIncome:55000, ratio:0.78, level:"Moderate",
-                streets:{N:"Marine Dr", S:"W Lexington Ave", E:"15th St", W:"27th St"},
-                coords:[[46.192,-123.835],[46.192,-123.825],[46.182,-123.825],[46.182,-123.835]]},
-            {tract:"HR0010", geoid:"41027000100", county:"Hood River", city:"Hood River", income:52000, msaIncome:55000, ratio:0.95, level:"Middle",
-                streets:{N:"Oak St", S:"June St", E:"13th St", W:"2nd St"},
-                coords:[[45.710,-121.525],[45.710,-121.515],[45.700,-121.515],[45.700,-121.525]]},
-            // === NEW FFIEC 2024-2026 LOW INCOME TRACTS ===
-    {tract:"950302", geoid:"41013950302", county:"Crook", city:"Prineville", income:29297, msaIncome:78059, ratio:0.3753, level:"Low",
-        streets:{N:"NE 3rd St", S:"SE Lynn Blvd", E:"NE Combs Flat Rd", W:"N Main St"},
-        coords:[[44.310,-120.840],[44.310,-120.830],[44.300,-120.830],[44.300,-120.840]]},
-    {tract:"940000", geoid:"41031940000", county:"Jefferson", city:"Madras", income:38125, msaIncome:78059, ratio:0.4884, level:"Low",
-        streets:{N:"NW Cherry Ln", S:"SW Hwy 97", E:"NE 5th St", W:"SW Culver Hwy"},
-        coords:[[44.640,-121.135],[44.640,-121.125],[44.630,-121.125],[44.630,-121.135]]},
-    {tract:"010602", geoid:"41003010602", county:"Benton", city:"Corvallis", income:18661, msaIncome:89816, ratio:0.2077, level:"Low",
-        streets:{N:"SW Jefferson Way", S:"SW Campus Way", E:"SW 26th St", W:"SW 35th St"},
-        coords:[[44.566,-123.278],[44.566,-123.268],[44.556,-123.268],[44.556,-123.278]]},
-    {tract:"000100", geoid:"41029000100", county:"Jackson", city:"Medford", income:34135, msaIncome:70436, ratio:0.4846, level:"Low",
-        streets:{N:"E Jackson St", S:"E Main St", E:"S Riverside Ave", W:"S Central Ave"},
-        coords:[[42.328,-122.872],[42.328,-122.862],[42.318,-122.862],[42.318,-122.872]]},
-    {tract:"022201", geoid:"41005022201", county:"Clackamas", city:"Milwaukie", income:44176, msaIncome:94727, ratio:0.4663, level:"Low",
-        streets:{N:"SE Harrison St", S:"SE Monroe St", E:"SE 42nd Ave", W:"SE 32nd Ave"},
-        coords:[[45.448,-122.635],[45.448,-122.625],[45.438,-122.625],[45.438,-122.635]]},
-    {tract:"004104", geoid:"41051004104", county:"Multnomah", city:"Portland", income:31271, msaIncome:94727, ratio:0.3301, level:"Low",
-        streets:{N:"SE Powell Blvd", S:"SE Holgate Blvd", E:"SE 82nd Ave", W:"SE 72nd Ave"},
-        coords:[[45.495,-122.590],[45.495,-122.580],[45.485,-122.580],[45.485,-122.590]]},
-    {tract:"004902", geoid:"41051004902", county:"Multnomah", city:"Portland", income:28550, msaIncome:94727, ratio:0.3013, level:"Low",
-        streets:{N:"N Lombard St", S:"N Columbia Blvd", E:"N Peninsular Ave", W:"N Portsmouth Ave"},
-        coords:[[45.578,-122.730],[45.578,-122.720],[45.568,-122.720],[45.568,-122.730]]},
-    {tract:"008204", geoid:"41051008204", county:"Multnomah", city:"Portland", income:37172, msaIncome:94727, ratio:0.3924, level:"Low",
-        streets:{N:"NE Halsey St", S:"NE Glisan St", E:"NE 60th Ave", W:"NE 47th Ave"},
-        coords:[[45.535,-122.615],[45.535,-122.605],[45.525,-122.605],[45.525,-122.615]]},
-    {tract:"009002", geoid:"41051009002", county:"Multnomah", city:"Portland", income:37872, msaIncome:94727, ratio:0.3998, level:"Low",
-        streets:{N:"SE Division St", S:"SE Powell Blvd", E:"SE 50th Ave", W:"SE 39th Ave"},
-        coords:[[45.505,-122.610],[45.505,-122.600],[45.495,-122.600],[45.495,-122.610]]},
-    {tract:"009704", geoid:"41051009704", county:"Multnomah", city:"Gresham", income:46208, msaIncome:94727, ratio:0.4878, level:"Low",
-        streets:{N:"SE Stark St", S:"SE Burnside St", E:"SE 202nd Ave", W:"SE 182nd Ave"},
-        coords:[[45.522,-122.460],[45.522,-122.450],[45.512,-122.450],[45.512,-122.460]]},
-    {tract:"009801", geoid:"41051009801", county:"Multnomah", city:"Portland", income:39550, msaIncome:94727, ratio:0.4175, level:"Low",
-        streets:{N:"NE Killingsworth St", S:"NE Alberta St", E:"NE 15th Ave", W:"NE MLK Jr Blvd"},
-        coords:[[45.565,-122.670],[45.565,-122.660],[45.555,-122.660],[45.555,-122.670]]},
-    {tract:"010001", geoid:"41051010001", county:"Multnomah", city:"Portland", income:42500, msaIncome:94727, ratio:0.4486, level:"Low",
-        streets:{N:"SE Hawthorne Blvd", S:"SE Division St", E:"SE 30th Ave", W:"SE 20th Ave"},
-        coords:[[45.512,-122.645],[45.512,-122.635],[45.502,-122.635],[45.502,-122.645]]},
-    {tract:"010408", geoid:"41051010408", county:"Multnomah", city:"Portland", income:45735, msaIncome:94727, ratio:0.4828, level:"Low",
-        streets:{N:"N Willis Blvd", S:"N Lombard St", E:"N Newman Ave", W:"N Ida Ave"},
-        coords:[[45.568,-122.705],[45.568,-122.695],[45.558,-122.695],[45.558,-122.705]]},
-    {tract:"010410", geoid:"41051010410", county:"Multnomah", city:"Portland", income:43986, msaIncome:94727, ratio:0.4643, level:"Low",
-        streets:{N:"NE Sandy Blvd", S:"NE Couch St", E:"NE 12th Ave", W:"NE Grand Ave"},
-        coords:[[45.528,-122.660],[45.528,-122.650],[45.518,-122.650],[45.518,-122.660]]},
-    {tract:"032409", geoid:"41067032409", county:"Washington", city:"Hillsboro", income:42222, msaIncome:94727, ratio:0.4457, level:"Low",
-        streets:{N:"SE Oak St", S:"SE Walnut St", E:"SE 10th Ave", W:"SE 21st Ave"},
-        coords:[[45.518,-122.970],[45.518,-122.960],[45.508,-122.960],[45.508,-122.970]]},
-    {tract:"000502", geoid:"41047000502", county:"Marion", city:"Salem", income:32392, msaIncome:73679, ratio:0.4396, level:"Low",
-        streets:{N:"Silverton Rd NE", S:"State St", E:"Lancaster Dr NE", W:"Portland Rd NE"},
-        coords:[[44.945,-122.985],[44.945,-122.975],[44.935,-122.975],[44.935,-122.985]]},
-    {tract:"000703", geoid:"41047000703", county:"Marion", city:"Salem", income:29290, msaIncome:73679, ratio:0.3975, level:"Low",
-        streets:{N:"Mission St SE", S:"Kuebler Blvd SE", E:"12th St SE", W:"Commercial St SE"},
-        coords:[[44.935,-123.020],[44.935,-123.010],[44.925,-123.010],[44.925,-123.020]]},
-    {tract:"001605", geoid:"41047001605", county:"Marion", city:"Salem", income:25840, msaIncome:73679, ratio:0.3507, level:"Low",
-        streets:{N:"State St", S:"Center St NE", E:"12th St NE", W:"Capitol St NE"},
-        coords:[[44.940,-123.020],[44.940,-123.010],[44.930,-123.010],[44.930,-123.020]]},
-    {tract:"010309", geoid:"41047010309", county:"Marion", city:"Salem", income:32259, msaIncome:73679, ratio:0.4378, level:"Low",
-        streets:{N:"Kuebler Blvd", S:"Battle Creek Rd SE", E:"Lancaster Dr SE", W:"Commercial St SE"},
-        coords:[[44.910,-123.010],[44.910,-123.000],[44.900,-123.000],[44.900,-123.010]]},
-    {tract:"970201", geoid:"41035970201", county:"Klamath", city:"Klamath Falls", income:20885, msaIncome:62963, ratio:0.3317, level:"Low",
-        streets:{N:"Main St", S:"S 6th St", E:"Broad St", W:"Klamath Ave"},
-        coords:[[42.228,-121.780],[42.228,-121.770],[42.218,-121.770],[42.218,-121.780]]},
+        var oregonCities = ["Portland","Salem","Eugene","Medford","Bend","Corvallis","Hillsboro","Beaverton","Gresham","Grants Pass","Springfield","Albany","Ashland","Roseburg","Klamath Falls","Coos Bay","Pendleton","Astoria","McMinnville","Hood River","The Dalles","Newport","Lincoln City","Redmond","Oregon City","Tigard","Tualatin","Lake Oswego","West Linn","Wilsonville","Canby","Milwaukie","Happy Valley","Forest Grove","Cornelius","Sherwood","Newberg","Woodburn","Keizer","Dallas","Independence","Monmouth","Silverton","Lebanon","Sweet Home","Philomath","Florence","Coquille","Brookings","North Bend","Seaside","Cannon Beach","Tillamook","St. Helens","Scappoose","Ontario","La Grande","Baker City","Hermiston","Prineville","Madras","Sisters","Burns","John Day","Enterprise","Heppner","Condon","Fossil","Gold Beach","Port Orford","Myrtle Creek","Sutherlin","Junction City","Creswell","Cottage Grove","Oakridge","Veneta"];
+        var oregonCounties = ["Multnomah","Washington","Clackamas","Marion","Lane","Jackson","Deschutes","Benton","Linn","Douglas","Josephine","Klamath","Coos","Umatilla","Clatsop","Yamhill","Lincoln","Hood River","Wasco","Columbia","Polk","Tillamook","Curry","Union","Baker","Malheur","Grant","Harney","Lake","Wallowa","Jefferson","Crook","Sherman","Gilliam","Wheeler","Morrow"];
 
-    // === NEW FFIEC 2024-2026 MODERATE INCOME TRACTS ===
-    {tract:"020400", geoid:"41043020400", county:"Linn", city:"Albany", income:53668, msaIncome:68860, ratio:0.7793, level:"Moderate",
-        streets:{N:"W 1st Ave", S:"SW Queen Ave", E:"SW 9th St", W:"SW 34th Ave"},
-        coords:[[44.638,-123.110],[44.638,-123.100],[44.628,-123.100],[44.628,-123.110]]},
-    {tract:"020500", geoid:"41043020500", county:"Linn", city:"Albany", income:53618, msaIncome:68860, ratio:0.7786, level:"Moderate",
-        streets:{N:"SW Queen Ave", S:"SE Columbus St", E:"SW 9th St", W:"Old Salem Rd"},
-        coords:[[44.630,-123.090],[44.630,-123.080],[44.620,-123.080],[44.620,-123.090]]},
-    {tract:"030403", geoid:"41043030403", county:"Linn", city:"Lebanon", income:46920, msaIncome:68860, ratio:0.6813, level:"Moderate",
-        streets:{N:"W Grant St", S:"W Airport Rd", E:"S Main St", W:"S 5th St"},
-        coords:[[44.535,-122.910],[44.535,-122.900],[44.525,-122.900],[44.525,-122.910]]},
-    {tract:"030801", geoid:"41043030801", county:"Linn", city:"Albany", income:54115, msaIncome:68860, ratio:0.7858, level:"Moderate",
-        streets:{N:"SE Queen Ave", S:"SE Columbus St", E:"Old Salem Rd", W:"SE 9th St"},
-        coords:[[44.625,-123.075],[44.625,-123.065],[44.615,-123.065],[44.615,-123.075]]},
-    {tract:"950402", geoid:"41013950402", county:"Crook", city:"Prineville", income:57750, msaIncome:78059, ratio:0.7398, level:"Moderate",
-        streets:{N:"NE 3rd St", S:"SE Combs Flat Rd", E:"NE Ochoco Hwy", W:"N Main St"},
-        coords:[[44.305,-120.835],[44.305,-120.825],[44.295,-120.825],[44.295,-120.835]]},
-    {tract:"000201", geoid:"41017000201", county:"Deschutes", city:"Bend", income:43009, msaIncome:78059, ratio:0.5509, level:"Moderate",
-        streets:{N:"NW Wall St", S:"SW Reed Market Rd", E:"NE 3rd St", W:"NW 14th St"},
-        coords:[[44.055,-121.310],[44.055,-121.300],[44.045,-121.300],[44.045,-121.310]]},
-    {tract:"000202", geoid:"41017000202", county:"Deschutes", city:"Bend", income:41090, msaIncome:78059, ratio:0.5263, level:"Moderate",
-        streets:{N:"SE Wilson Ave", S:"SE 15th St", E:"SE 27th St", W:"NE 3rd St"},
-        coords:[[44.048,-121.295],[44.048,-121.285],[44.038,-121.285],[44.038,-121.295]]},
-    {tract:"001501", geoid:"41017001501", county:"Deschutes", city:"Bend", income:47205, msaIncome:78059, ratio:0.6047, level:"Moderate",
-        streets:{N:"SW Century Dr", S:"SW Mt Bachelor Dr", E:"SW 14th St", W:"SW Skyliners Rd"},
-        coords:[[44.040,-121.340],[44.040,-121.330],[44.030,-121.330],[44.030,-121.340]]},
-    {tract:"001801", geoid:"41017001801", county:"Deschutes", city:"Bend", income:44904, msaIncome:78059, ratio:0.5752, level:"Moderate",
-        streets:{N:"NE Butler Market Rd", S:"NE Greenwood Ave", E:"NE 8th St", W:"NE 4th St"},
-        coords:[[44.065,-121.300],[44.065,-121.290],[44.055,-121.290],[44.055,-121.300]]},
-    {tract:"001802", geoid:"41017001802", county:"Deschutes", city:"Bend", income:59444, msaIncome:78059, ratio:0.7615, level:"Moderate",
-        streets:{N:"NE Greenwood Ave", S:"NE Franklin Ave", E:"NE 8th St", W:"NE 4th St"},
-        coords:[[44.060,-121.295],[44.060,-121.285],[44.050,-121.285],[44.050,-121.295]]},
-    {tract:"002002", geoid:"41017002002", county:"Deschutes", city:"Redmond", income:57255, msaIncome:78059, ratio:0.7334, level:"Moderate",
-        streets:{N:"NW 6th St", S:"SW Evergreen Ave", E:"SW 15th St", W:"SW Canal Blvd"},
-        coords:[[44.275,-121.175],[44.275,-121.165],[44.265,-121.165],[44.265,-121.175]]},
-    {tract:"002101", geoid:"41017002101", county:"Deschutes", city:"Redmond", income:56454, msaIncome:78059, ratio:0.7232, level:"Moderate",
-        streets:{N:"SW Evergreen Ave", S:"SW Odem Medo Rd", E:"SW 15th St", W:"SW Canal Blvd"},
-        coords:[[44.268,-121.172],[44.268,-121.162],[44.258,-121.162],[44.258,-121.172]]},
-    {tract:"960201", geoid:"41031960201", county:"Jefferson", city:"Madras", income:51726, msaIncome:78059, ratio:0.6626, level:"Moderate",
-        streets:{N:"SE 5th St", S:"SE McTaggart Dr", E:"SE Green Acres Dr", W:"SW Culver Hwy"},
-        coords:[[44.635,-121.125],[44.635,-121.115],[44.625,-121.115],[44.625,-121.125]]},
-    {tract:"960305", geoid:"41031960305", county:"Jefferson", city:"Madras", income:56972, msaIncome:78059, ratio:0.7298, level:"Moderate",
-        streets:{N:"NW 10th St", S:"NW 4th St", E:"N Adams Dr", W:"NW Culver Ln"},
-        coords:[[44.645,-121.140],[44.645,-121.130],[44.635,-121.130],[44.635,-121.140]]},
-    {tract:"000101", geoid:"41003000101", county:"Benton", city:"Corvallis", income:50513, msaIncome:89816, ratio:0.5624, level:"Moderate",
-        streets:{N:"NW Monroe Ave", S:"SW Western Blvd", E:"SW 15th St", W:"SW 26th St"},
-        coords:[[44.568,-123.270],[44.568,-123.260],[44.558,-123.260],[44.558,-123.270]]},
-    {tract:"000600", geoid:"41003000600", county:"Benton", city:"Corvallis", income:63750, msaIncome:89816, ratio:0.7097, level:"Moderate",
-        streets:{N:"SW Western Blvd", S:"SW Philomath Blvd", E:"SW 15th St", W:"SW 35th St"},
-        coords:[[44.560,-123.275],[44.560,-123.265],[44.550,-123.265],[44.550,-123.275]]},
-    {tract:"001001", geoid:"41003001001", county:"Benton", city:"Corvallis", income:57679, msaIncome:89816, ratio:0.6421, level:"Moderate",
-        streets:{N:"NW Harrison Blvd", S:"NW Monroe Ave", E:"NW 14th St", W:"NW 23rd St"},
-        coords:[[44.572,-123.265],[44.572,-123.255],[44.562,-123.255],[44.562,-123.265]]},
-    {tract:"000500", geoid:"41039000500", county:"Lane", city:"Eugene", income:49375, msaIncome:72092, ratio:0.6848, level:"Moderate",
-        streets:{N:"W 18th Ave", S:"W 28th Ave", E:"Willamette St", W:"Chambers St"},
-        coords:[[44.043,-123.055],[44.043,-123.045],[44.033,-123.045],[44.033,-123.055]]},
-    {tract:"000705", geoid:"41039000705", county:"Lane", city:"Springfield", income:43526, msaIncome:72092, ratio:0.6037, level:"Moderate",
-        streets:{N:"Main St", S:"S A St", E:"28th St", W:"Pioneer Pkwy"},
-        coords:[[44.048,-123.025],[44.048,-123.015],[44.038,-123.015],[44.038,-123.025]]},
-    {tract:"000903", geoid:"41039000903", county:"Lane", city:"Eugene", income:57233, msaIncome:72092, ratio:0.7938, level:"Moderate",
-        streets:{N:"E 18th Ave", S:"E 28th Ave", E:"Oak St", W:"Willamette St"},
-        coords:[[44.040,-123.080],[44.040,-123.070],[44.030,-123.070],[44.030,-123.080]]},
-    {tract:"360701", geoid:"41033360701", county:"Josephine", city:"Grants Pass", income:43429, msaIncome:57003, ratio:0.7618, level:"Moderate",
-        streets:{N:"SW G St", S:"SW Allen Creek Rd", E:"SE M St", W:"SW Rogue River Ave"},
-        coords:[[42.432,-123.320],[42.432,-123.310],[42.422,-123.310],[42.422,-123.320]]},
-    {tract:"360703", geoid:"41033360703", county:"Josephine", city:"Grants Pass", income:45149, msaIncome:57003, ratio:0.7920, level:"Moderate",
-        streets:{N:"SW Allen Creek Rd", S:"SW Demaray Dr", E:"SE M St", W:"SW G St"},
-        coords:[[42.425,-123.315],[42.425,-123.305],[42.415,-123.305],[42.415,-123.315]]},
-    {tract:"361201", geoid:"41033361201", county:"Josephine", city:"Grants Pass", income:40110, msaIncome:57003, ratio:0.7036, level:"Moderate",
-        streets:{N:"NW A St", S:"NW C St", E:"NW 6th St", W:"NW 12th St"},
-        coords:[[42.445,-123.340],[42.445,-123.330],[42.435,-123.330],[42.435,-123.340]]},
-    {tract:"361601", geoid:"41033361601", county:"Josephine", city:"Grants Pass", income:36196, msaIncome:57003, ratio:0.6349, level:"Moderate",
-        streets:{N:"SW G St", S:"SW Allen Creek Rd", E:"SW 6th St", W:"SW Rogue River Ave"},
-        coords:[[42.430,-123.325],[42.430,-123.315],[42.420,-123.315],[42.420,-123.325]]}];
-        
+        var ffiecTracts = [
+            {tract:"000100", geoid:"41051000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low", streets:{N:"NE Columbia Blvd", S:"NE Lombard St", E:"NE 33rd Ave", W:"NE Martin Luther King Jr Blvd"}, coords:[[45.595,-122.755],[45.595,-122.745],[45.585,-122.745],[45.585,-122.755]]},
+            {tract:"000200", geoid:"41051000200", county:"Multnomah", city:"Portland", income:42000, msaIncome:96500, ratio:0.44, level:"Low", streets:{N:"NE Lombard St", S:"NE Killingsworth St", E:"NE 42nd Ave", W:"NE Martin Luther King Jr Blvd"}, coords:[[45.585,-122.755],[45.585,-122.735],[45.575,-122.735],[45.575,-122.755]]},
+            {tract:"000300", geoid:"41051000300", county:"Multnomah", city:"Portland", income:45000, msaIncome:96500, ratio:0.47, level:"Low", streets:{N:"NE Killingsworth St", S:"NE Alberta St", E:"NE 33rd Ave", W:"NE 15th Ave"}, coords:[[45.575,-122.720],[45.575,-122.700],[45.565,-122.700],[45.565,-122.720]]},
+            {tract:"000500", geoid:"41051000500", county:"Multnomah", city:"Portland", income:38000, msaIncome:96500, ratio:0.39, level:"Low", streets:{N:"NE Alberta St", S:"NE Prescott St", E:"NE 60th Ave", W:"NE 42nd Ave"}, coords:[[45.565,-122.700],[45.565,-122.680],[45.555,-122.680],[45.555,-122.700]]},
+            {tract:"000800", geoid:"41051000800", county:"Multnomah", city:"Portland", income:52000, msaIncome:96500, ratio:0.54, level:"Moderate", streets:{N:"NE Prescott St", S:"NE Sandy Blvd", E:"NE 82nd Ave", W:"NE 60th Ave"}, coords:[[45.555,-122.680],[45.555,-122.660],[45.545,-122.660],[45.545,-122.680]]},
+            {tract:"001000", geoid:"41051001000", county:"Multnomah", city:"Portland", income:56000, msaIncome:96500, ratio:0.58, level:"Moderate", streets:{N:"NE Sandy Blvd", S:"NE Halsey St", E:"NE 102nd Ave", W:"NE 82nd Ave"}, coords:[[45.545,-122.660],[45.545,-122.640],[45.535,-122.640],[45.535,-122.660]]},
+            {tract:"001500", geoid:"41051001500", county:"Multnomah", city:"Portland", income:62000, msaIncome:96500, ratio:0.64, level:"Moderate", streets:{N:"NE Glisan St", S:"SE Stark St", E:"SE 122nd Ave", W:"SE 82nd Ave"}, coords:[[45.535,-122.620],[45.535,-122.600],[45.525,-122.600],[45.525,-122.620]]},
+            {tract:"002500", geoid:"41051002500", county:"Multnomah", city:"Portland", income:72000, msaIncome:96500, ratio:0.75, level:"Moderate", streets:{N:"SE Stark St", S:"SE Hawthorne Blvd", E:"SE 82nd Ave", W:"SE 39th Ave"}, coords:[[45.525,-122.600],[45.525,-122.580],[45.515,-122.580],[45.515,-122.600]]},
+            {tract:"002000", geoid:"41051002000", county:"Multnomah", city:"Gresham", income:58000, msaIncome:96500, ratio:0.60, level:"Moderate", streets:{N:"NE Halsey St", S:"SE Division St", E:"SE 242nd Ave", W:"SE 182nd Ave"}, coords:[[45.525,-122.440],[45.525,-122.420],[45.515,-122.420],[45.515,-122.440]]},
+            {tract:"002200", geoid:"41051002200", county:"Multnomah", city:"Gresham", income:51000, msaIncome:96500, ratio:0.53, level:"Moderate", streets:{N:"SE Division St", S:"SE Powell Blvd", E:"SE 242nd Ave", W:"SE 182nd Ave"}, coords:[[45.515,-122.420],[45.515,-122.400],[45.505,-122.400],[45.505,-122.420]]},
+            {tract:"004104", geoid:"41051004104", county:"Multnomah", city:"Portland", income:31271, msaIncome:94727, ratio:0.33, level:"Low", streets:{N:"SE Powell Blvd", S:"SE Holgate Blvd", E:"SE 82nd Ave", W:"SE 72nd Ave"}, coords:[[45.495,-122.590],[45.495,-122.580],[45.485,-122.580],[45.485,-122.590]]},
+            {tract:"004902", geoid:"41051004902", county:"Multnomah", city:"Portland", income:28550, msaIncome:94727, ratio:0.30, level:"Low", streets:{N:"N Lombard St", S:"N Columbia Blvd", E:"N Peninsular Ave", W:"N Portsmouth Ave"}, coords:[[45.578,-122.730],[45.578,-122.720],[45.568,-122.720],[45.568,-122.730]]},
+            {tract:"008204", geoid:"41051008204", county:"Multnomah", city:"Portland", income:37172, msaIncome:94727, ratio:0.39, level:"Low", streets:{N:"NE Halsey St", S:"NE Glisan St", E:"NE 60th Ave", W:"NE 47th Ave"}, coords:[[45.535,-122.615],[45.535,-122.605],[45.525,-122.605],[45.525,-122.615]]},
+            {tract:"009704", geoid:"41051009704", county:"Multnomah", city:"Gresham", income:46208, msaIncome:94727, ratio:0.49, level:"Low", streets:{N:"SE Stark St", S:"SE Burnside St", E:"SE 202nd Ave", W:"SE 182nd Ave"}, coords:[[45.522,-122.460],[45.522,-122.450],[45.512,-122.450],[45.512,-122.460]]},
+            {tract:"010100", geoid:"41067010100", county:"Washington", city:"Beaverton", income:65000, msaIncome:96500, ratio:0.67, level:"Moderate", streets:{N:"SW Walker Rd", S:"SW Allen Blvd", E:"SW Murray Blvd", W:"SW 170th Ave"}, coords:[[45.492,-122.810],[45.492,-122.790],[45.482,-122.790],[45.482,-122.810]]},
+            {tract:"010200", geoid:"41067010200", county:"Washington", city:"Beaverton", income:55000, msaIncome:96500, ratio:0.57, level:"Moderate", streets:{N:"SW Allen Blvd", S:"SW Hall Blvd", E:"SW Cedar Hills Blvd", W:"SW Murray Blvd"}, coords:[[45.485,-122.800],[45.485,-122.780],[45.475,-122.780],[45.475,-122.800]]},
+            {tract:"010500", geoid:"41067010500", county:"Washington", city:"Hillsboro", income:68000, msaIncome:96500, ratio:0.70, level:"Moderate", streets:{N:"NE Cornell Rd", S:"SE Tualatin Valley Hwy", E:"NE 25th Ave", W:"NE 10th Ave"}, coords:[[45.528,-122.995],[45.528,-122.985],[45.518,-122.985],[45.518,-122.995]]},
+            {tract:"010800", geoid:"41067010800", county:"Washington", city:"Hillsboro", income:60000, msaIncome:96500, ratio:0.62, level:"Moderate", streets:{N:"SE Tualatin Valley Hwy", S:"SE Oak St", E:"SE 10th Ave", W:"SE 32nd Ave"}, coords:[[45.520,-122.975],[45.520,-122.965],[45.510,-122.965],[45.510,-122.975]]},
+            {tract:"032409", geoid:"41067032409", county:"Washington", city:"Hillsboro", income:42222, msaIncome:94727, ratio:0.45, level:"Low", streets:{N:"SE Oak St", S:"SE Walnut St", E:"SE 10th Ave", W:"SE 21st Ave"}, coords:[[45.518,-122.970],[45.518,-122.960],[45.508,-122.960],[45.508,-122.970]]},
+            {tract:"022201", geoid:"41005022201", county:"Clackamas", city:"Milwaukie", income:44176, msaIncome:94727, ratio:0.47, level:"Low", streets:{N:"SE Harrison St", S:"SE Monroe St", E:"SE 42nd Ave", W:"SE 32nd Ave"}, coords:[[45.448,-122.635],[45.448,-122.625],[45.438,-122.625],[45.438,-122.635]]},
+            {tract:"020100", geoid:"41005020100", county:"Clackamas", city:"Oregon City", income:70000, msaIncome:96500, ratio:0.73, level:"Moderate", streets:{N:"Molalla Ave", S:"Beavercreek Rd", E:"S Leland Rd", W:"S McLoughlin Blvd"}, coords:[[45.357,-122.600],[45.357,-122.590],[45.347,-122.590],[45.347,-122.600]]},
+            {tract:"S01010", geoid:"41047010100", county:"Marion", city:"Salem", income:42000, msaIncome:72000, ratio:0.58, level:"Moderate", streets:{N:"State St", S:"Mission St SE", E:"12th St SE", W:"Commercial St SE"}, coords:[[44.945,-123.035],[44.945,-123.025],[44.935,-123.025],[44.935,-123.035]]},
+            {tract:"S01030", geoid:"41047010300", county:"Marion", city:"Salem", income:38000, msaIncome:72000, ratio:0.53, level:"Moderate", streets:{N:"Mission St SE", S:"Kuebler Blvd", E:"Lancaster Dr SE", W:"Commercial St SE"}, coords:[[44.940,-123.015],[44.940,-123.005],[44.930,-123.005],[44.930,-123.015]]},
+            {tract:"S01050", geoid:"41047010500", county:"Marion", city:"Salem", income:35000, msaIncome:72000, ratio:0.49, level:"Low", streets:{N:"Center St NE", S:"Silverton Rd NE", E:"Hawthorne Ave NE", W:"Portland Rd NE"}, coords:[[44.935,-122.995],[44.935,-122.985],[44.925,-122.985],[44.925,-122.995]]},
+            {tract:"000502", geoid:"41047000502", county:"Marion", city:"Salem", income:32392, msaIncome:73679, ratio:0.44, level:"Low", streets:{N:"Silverton Rd NE", S:"State St", E:"Lancaster Dr NE", W:"Portland Rd NE"}, coords:[[44.945,-122.985],[44.945,-122.975],[44.935,-122.975],[44.935,-122.985]]},
+            {tract:"000703", geoid:"41047000703", county:"Marion", city:"Salem", income:29290, msaIncome:73679, ratio:0.40, level:"Low", streets:{N:"Mission St SE", S:"Kuebler Blvd SE", E:"12th St SE", W:"Commercial St SE"}, coords:[[44.935,-123.020],[44.935,-123.010],[44.925,-123.010],[44.925,-123.020]]},
+            {tract:"001605", geoid:"41047001605", county:"Marion", city:"Salem", income:25840, msaIncome:73679, ratio:0.35, level:"Low", streets:{N:"State St", S:"Center St NE", E:"12th St NE", W:"Capitol St NE"}, coords:[[44.940,-123.020],[44.940,-123.010],[44.930,-123.010],[44.930,-123.020]]},
+            {tract:"E00010", geoid:"41039000100", county:"Lane", city:"Eugene", income:38000, msaIncome:68000, ratio:0.56, level:"Moderate", streets:{N:"Ferry St", S:"E 18th Ave", E:"Oak St", W:"Willamette St"}, coords:[[44.057,-123.095],[44.057,-123.085],[44.047,-123.085],[44.047,-123.095]]},
+            {tract:"E00030", geoid:"41039000300", county:"Lane", city:"Eugene", income:32000, msaIncome:68000, ratio:0.47, level:"Low", streets:{N:"W 11th Ave", S:"W 18th Ave", E:"Willamette St", W:"Garfield St"}, coords:[[44.050,-123.075],[44.050,-123.065],[44.040,-123.065],[44.040,-123.075]]},
+            {tract:"E00050", geoid:"41039000500", county:"Lane", city:"Eugene", income:35000, msaIncome:68000, ratio:0.51, level:"Moderate", streets:{N:"W 18th Ave", S:"W 28th Ave", E:"Willamette St", W:"Chambers St"}, coords:[[44.043,-123.055],[44.043,-123.045],[44.033,-123.045],[44.033,-123.055]]},
+            {tract:"M00020", geoid:"41029000200", county:"Jackson", city:"Medford", income:42000, msaIncome:62000, ratio:0.68, level:"Moderate", streets:{N:"E Main St", S:"E Barnett Rd", E:"N Phoenix Rd", W:"S Central Ave"}, coords:[[42.331,-122.875],[42.331,-122.865],[42.321,-122.865],[42.321,-122.875]]},
+            {tract:"M00040", geoid:"41029000400", county:"Jackson", city:"Medford", income:35000, msaIncome:62000, ratio:0.56, level:"Moderate", streets:{N:"W Main St", S:"W Stewart Ave", E:"S Central Ave", W:"S Columbus Ave"}, coords:[[42.325,-122.855],[42.325,-122.845],[42.315,-122.845],[42.315,-122.855]]},
+            {tract:"000100", geoid:"41029000100", county:"Jackson", city:"Medford", income:34135, msaIncome:70436, ratio:0.48, level:"Low", streets:{N:"E Jackson St", S:"E Main St", E:"S Riverside Ave", W:"S Central Ave"}, coords:[[42.328,-122.872],[42.328,-122.862],[42.318,-122.862],[42.318,-122.872]]},
+            {tract:"B00010", geoid:"41017000100", county:"Deschutes", city:"Bend", income:55000, msaIncome:82000, ratio:0.67, level:"Moderate", streets:{N:"NW Wall St", S:"SW Reed Market Rd", E:"NE 3rd St", W:"NW 14th St"}, coords:[[44.063,-121.315],[44.063,-121.305],[44.053,-121.305],[44.053,-121.315]]},
+            {tract:"C00010", geoid:"41003000100", county:"Benton", city:"Corvallis", income:42000, msaIncome:78000, ratio:0.54, level:"Moderate", streets:{N:"NW Monroe Ave", S:"SW Western Blvd", E:"SW 15th St", W:"SW 35th St"}, coords:[[44.569,-123.265],[44.569,-123.255],[44.559,-123.255],[44.559,-123.265]]},
+            {tract:"C00030", geoid:"41003000300", county:"Benton", city:"Corvallis", income:38000, msaIncome:78000, ratio:0.49, level:"Low", streets:{N:"SW Western Blvd", S:"SW Philomath Blvd", E:"SW 3rd St", W:"SW 26th St"}, coords:[[44.563,-123.245],[44.563,-123.235],[44.553,-123.235],[44.553,-123.245]]},
+            {tract:"010602", geoid:"41003010602", county:"Benton", city:"Corvallis", income:18661, msaIncome:89816, ratio:0.21, level:"Low", streets:{N:"SW Jefferson Way", S:"SW Campus Way", E:"SW 26th St", W:"SW 35th St"}, coords:[[44.566,-123.278],[44.566,-123.268],[44.556,-123.268],[44.556,-123.278]]},
+            {tract:"G01010", geoid:"41033010100", county:"Josephine", city:"Grants Pass", income:38000, msaIncome:62000, ratio:0.61, level:"Moderate", streets:{N:"NW A St", S:"SW G St", E:"SE 7th St", W:"SW 6th St"}, coords:[[42.444,-123.335],[42.444,-123.325],[42.434,-123.325],[42.434,-123.335]]},
+            {tract:"G01030", geoid:"41033010300", county:"Josephine", city:"Grants Pass", income:30000, msaIncome:62000, ratio:0.48, level:"Low", streets:{N:"SW G St", S:"SW Allen Creek Rd", E:"SE M St", W:"SW Rogue River Ave"}, coords:[[42.435,-123.315],[42.435,-123.305],[42.425,-123.305],[42.425,-123.315]]},
+            {tract:"A00020", geoid:"41043000200", county:"Linn", city:"Albany", income:45000, msaIncome:65000, ratio:0.69, level:"Moderate", streets:{N:"W 1st Ave", S:"SW Queen Ave", E:"SW 9th St", W:"SW 34th Ave"}, coords:[[44.641,-123.105],[44.641,-123.095],[44.631,-123.095],[44.631,-123.105]]},
+            {tract:"A00060", geoid:"41043000600", county:"Linn", city:"Albany", income:32000, msaIncome:65000, ratio:0.49, level:"Low", streets:{N:"SE Queen Ave", S:"SE Columbus St", E:"Old Salem Rd", W:"SE 9th St"}, coords:[[44.633,-123.085],[44.633,-123.075],[44.623,-123.075],[44.623,-123.085]]},
+            {tract:"ASH001", geoid:"41029000700", county:"Jackson", city:"Ashland", income:48000, msaIncome:62000, ratio:0.77, level:"Moderate", streets:{N:"Lithia Way", S:"Siskiyou Blvd", E:"Walker Ave", W:"N Main St"}, coords:[[42.199,-122.715],[42.199,-122.705],[42.189,-122.705],[42.189,-122.715]]},
+            {tract:"R00010", geoid:"41019000100", county:"Douglas", city:"Roseburg", income:38000, msaIncome:55000, ratio:0.69, level:"Moderate", streets:{N:"NW Garden Valley Blvd", S:"SE Stephens St", E:"SE Pine St", W:"NW Highland St"}, coords:[[43.221,-123.345],[43.221,-123.335],[43.211,-123.335],[43.211,-123.345]]},
+            {tract:"KF0010", geoid:"41035000100", county:"Klamath", city:"Klamath Falls", income:34000, msaIncome:55000, ratio:0.62, level:"Moderate", streets:{N:"Main St", S:"S 6th St", E:"E Main St", W:"Klamath Ave"}, coords:[[42.229,-121.785],[42.229,-121.775],[42.219,-121.775],[42.219,-121.785]]},
+            {tract:"KF0020", geoid:"41035000200", county:"Klamath", city:"Klamath Falls", income:28000, msaIncome:55000, ratio:0.51, level:"Moderate", streets:{N:"S 6th St", S:"W Oregon Ave", E:"E California Ave", W:"S Alameda Ave"}, coords:[[42.223,-121.765],[42.223,-121.755],[42.213,-121.755],[42.213,-121.765]]},
+            {tract:"970201", geoid:"41035970201", county:"Klamath", city:"Klamath Falls", income:20885, msaIncome:62963, ratio:0.33, level:"Low", streets:{N:"Main St", S:"S 6th St", E:"Broad St", W:"Klamath Ave"}, coords:[[42.228,-121.780],[42.228,-121.770],[42.218,-121.770],[42.218,-121.780]]},
+            {tract:"CB0010", geoid:"41011000100", county:"Coos", city:"Coos Bay", income:35000, msaIncome:55000, ratio:0.64, level:"Moderate", streets:{N:"W Commercial Ave", S:"S Broadway St", E:"S 4th St", W:"S Empire Blvd"}, coords:[[43.371,-124.215],[43.371,-124.205],[43.361,-124.205],[43.361,-124.215]]},
+            {tract:"P00010", geoid:"41059000100", county:"Umatilla", city:"Pendleton", income:42000, msaIncome:55000, ratio:0.76, level:"Moderate", streets:{N:"NW Court Ave", S:"SW Dorion Ave", E:"SE 10th St", W:"SW 1st St"}, coords:[[45.677,-118.795],[45.677,-118.785],[45.667,-118.785],[45.667,-118.795]]},
+            {tract:"AS0010", geoid:"41007000100", county:"Clatsop", city:"Astoria", income:43000, msaIncome:55000, ratio:0.78, level:"Moderate", streets:{N:"Marine Dr", S:"W Lexington Ave", E:"15th St", W:"27th St"}, coords:[[46.192,-123.835],[46.192,-123.825],[46.182,-123.825],[46.182,-123.835]]},
+            {tract:"HR0010", geoid:"41027000100", county:"Hood River", city:"Hood River", income:52000, msaIncome:55000, ratio:0.95, level:"Middle", streets:{N:"Oak St", S:"June St", E:"13th St", W:"2nd St"}, coords:[[45.710,-121.525],[45.710,-121.515],[45.700,-121.515],[45.700,-121.525]]},
+            {tract:"950302", geoid:"41013950302", county:"Crook", city:"Prineville", income:29297, msaIncome:78059, ratio:0.38, level:"Low", streets:{N:"NE 3rd St", S:"SE Lynn Blvd", E:"NE Combs Flat Rd", W:"N Main St"}, coords:[[44.310,-120.840],[44.310,-120.830],[44.300,-120.830],[44.300,-120.840]]},
+            {tract:"940000", geoid:"41031940000", county:"Jefferson", city:"Madras", income:38125, msaIncome:78059, ratio:0.49, level:"Low", streets:{N:"NW Cherry Ln", S:"SW Hwy 97", E:"NE 5th St", W:"SW Culver Hwy"}, coords:[[44.640,-121.135],[44.640,-121.125],[44.630,-121.125],[44.630,-121.135]]},
+            {tract:"030403", geoid:"41043030403", county:"Linn", city:"Lebanon", income:46920, msaIncome:68860, ratio:0.68, level:"Moderate", streets:{N:"W Grant St", S:"W Airport Rd", E:"S Main St", W:"S 5th St"}, coords:[[44.535,-122.910],[44.535,-122.900],[44.525,-122.900],[44.525,-122.910]]}
+        ];
+
         var oregonCityCoords = {
             "portland": [45.515, -122.678], "salem": [44.942, -123.035], "eugene": [44.052, -123.087],
             "medford": [42.326, -122.876], "bend": [44.058, -121.315], "corvallis": [44.564, -123.262],
@@ -472,428 +218,140 @@
             "newport": [44.637, -124.053], "lincoln city": [44.958, -124.018], "redmond": [44.273, -121.174],
             "oregon city": [45.357, -122.607], "tigard": [45.431, -122.771], "tualatin": [45.384, -122.764],
             "lake oswego": [45.421, -122.670], "west linn": [45.366, -122.612], "wilsonville": [45.300, -122.774],
-            "canby": [45.263, -122.692], "milwaukie": [45.446, -122.639], "happy valley": [45.446, -122.530],
-            "forest grove": [45.520, -123.111], "cornelius": [45.520, -123.060], "sherwood": [45.357, -122.840],
-            "newberg": [45.300, -122.973], "woodburn": [45.144, -122.855], "keizer": [44.990, -123.026],
-            "dallas": [44.919, -123.317], "independence": [44.851, -123.187], "monmouth": [44.848, -123.234],
-            "silverton": [45.005, -122.783], "lebanon": [44.533, -122.907], "sweet home": [44.397, -122.736],
-            "philomath": [44.540, -123.368], "florence": [43.983, -124.100], "coquille": [43.177, -124.188],
-            "brookings": [42.053, -124.284], "north bend": [43.407, -124.224], "seaside": [45.993, -123.923],
-            "cannon beach": [45.892, -123.961], "tillamook": [45.456, -123.843], "st helens": [45.864, -122.806],
-            "ontario": [44.026, -116.963], "la grande": [45.325, -118.088], "baker city": [44.775, -117.834],
-            "hermiston": [45.840, -119.289], "prineville": [44.300, -120.834], "madras": [44.633, -121.129],
-            "sisters": [44.291, -121.549], "burns": [43.586, -119.054], "john day": [44.416, -118.953],
-            "enterprise": [45.426, -117.279], "heppner": [45.353, -119.558], "condon": [45.234, -120.185],
-            "fossil": [44.998, -120.216], "gold beach": [42.407, -124.422], "port orford": [42.746, -124.497],
-            "myrtle creek": [43.020, -123.293], "sutherlin": [43.390, -123.313], "junction city": [44.219, -123.206],
-            "creswell": [43.918, -123.024], "cottage grove": [43.798, -123.060], "oakridge": [43.747, -122.461],
-            "veneta": [44.049, -123.351], "harrisburg": [44.274, -123.171], "brownsville": [44.393, -122.985],
-            "jefferson": [44.719, -123.010], "mill city": [44.754, -122.478], "aumsville": [44.841, -122.871],
-            "turner": [44.843, -122.953], "sublimity": [44.830, -122.794], "gervais": [45.108, -122.898],
-            "hubbard": [45.182, -122.808], "dundee": [45.278, -123.011], "carlton": [45.294, -123.177],
-            "lafayette": [45.244, -123.113], "amity": [45.116, -123.207], "sheridan": [45.099, -123.395],
-            "willamina": [45.079, -123.486], "toledo": [44.621, -123.938], "waldport": [44.427, -124.069],
-            "depoe bay": [44.808, -124.063], "rockaway beach": [45.613, -123.943], "garibaldi": [45.560, -123.911],
-            "bay city": [45.523, -123.889], "manzanita": [45.718, -123.935], "nehalem": [45.720, -123.894],
-            "clatskanie": [46.101, -123.207], "vernonia": [45.859, -123.193], "banks": [45.619, -123.114],
-            "north plains": [45.597, -122.993], "gaston": [45.436, -123.140], "yamhill": [45.341, -123.187],
-            "dayton": [45.221, -123.076], "riddle": [42.951, -123.364], "glide": [43.302, -123.101],
-            "winston": [43.122, -123.413], "drain": [43.659, -123.319], "elkton": [43.638, -123.568],
-            "yoncalla": [43.599, -123.283], "lowell": [43.918, -122.784], "dexter": [43.916, -122.823],
-            "coburg": [44.137, -123.066], "tangent": [44.541, -123.108], "halsey": [44.384, -123.110],
-            "scio": [44.705, -122.849], "lyons": [44.775, -122.615], "gates": [44.756, -122.417],
-            "mount angel": [45.068, -122.800], "scotts mills": [45.041, -122.667], "molalla": [45.147, -122.577],
-            "estacada": [45.290, -122.334], "eagle creek": [45.357, -122.359], "boring": [45.430, -122.374],
-            "fairview": [45.538, -122.434], "troutdale": [45.539, -122.387], "wood village": [45.534, -122.419],
-            "king city": [45.403, -122.804], "durham": [45.403, -122.753], "rivergrove": [45.384, -122.733],
-            "aurora": [45.231, -122.756], "donald": [45.222, -122.839], "st paul": [45.211, -122.977],
-            "rainier": [46.089, -122.936], "scappoose": [45.754, -122.878], "milton-freewater": [45.935, -118.388],
-            "boardman": [45.840, -119.701], "irrigon": [45.896, -119.491], "stanfield": [45.781, -119.217],
-            "umatilla": [45.917, -119.343], "athena": [45.812, -118.491], "weston": [45.814, -118.425],
-            "elgin": [45.565, -117.917], "union": [45.208, -117.865], "cove": [45.296, -117.808],
-            "north powder": [45.028, -117.920], "haines": [44.912, -117.939], "halfway": [44.881, -117.115],
-            "richland": [44.769, -117.169], "huntington": [44.351, -117.266], "vale": [43.982, -117.238],
-            "nyssa": [43.877, -116.995], "jordan valley": [42.974, -117.054], "adrian": [43.741, -117.072],
-            "canyon city": [44.390, -118.950], "prairie city": [44.463, -118.710], "seneca": [44.135, -118.972],
-            "hines": [43.564, -119.083], "drewsey": [43.807, -118.377], "frenchglen": [42.827, -118.914],
-            "fields": [42.264, -118.675], "diamond": [43.012, -118.666], "crane": [43.415, -118.578],
-            "plush": [42.412, -119.903], "adel": [42.177, -119.898], "silver lake": [43.128, -121.046],
-            "christmas valley": [43.236, -120.666], "fort rock": [43.357, -121.054], "spray": [44.834, -119.794],
-            "mitchell": [44.567, -120.153], "monument": [44.819, -119.421], "long creek": [44.714, -119.104],
-            "ukiah": [45.134, -118.933], "pilot rock": [45.483, -118.830], "echo": [45.742, -119.195],
-            "lexington": [45.445, -119.684], "ione": [45.501, -119.824], "arlington": [45.717, -120.201],
-            "wasco": [45.592, -120.698], "rufus": [45.695, -120.735], "grass valley": [45.360, -120.786],
-            "dufur": [45.453, -121.131], "maupin": [45.175, -121.082], "mosier": [45.684, -121.397],
-            "cascade locks": [45.670, -121.891], "government camp": [45.304, -121.755], "detroit": [44.734, -122.150],
-            "idanha": [44.703, -122.079], "millersburg": [44.681, -123.061], "adair village": [44.671, -123.218],
-            "falls city": [44.866, -123.436], "grand ronde": [45.060, -123.609], "siletz": [44.722, -123.919],
-            "yachats": [44.311, -124.105], "lakeside": [43.579, -124.175], "bandon": [43.119, -124.408],
-            "langlois": [42.923, -124.451], "sixes": [42.821, -124.481], "agness": [42.557, -124.069],
-            "galice": [42.570, -123.597], "merlin": [42.517, -123.420], "wolf creek": [42.695, -123.394],
-            "sunny valley": [42.638, -123.374], "cave junction": [42.163, -123.647], "selma": [42.279, -123.616],
-            "obrien": [42.067, -123.703], "takilma": [42.052, -123.619], "kerby": [42.194, -123.652],
-            "wilderville": [42.382, -123.467], "murphy": [42.348, -123.333], "applegate": [42.257, -123.168],
-            "ruch": [42.237, -123.042], "jacksonville": [42.313, -122.967], "phoenix": [42.275, -122.818],
-            "talent": [42.246, -122.789], "shady cove": [42.610, -122.816], "trail": [42.648, -122.811],
-            "prospect": [42.751, -122.489], "butte falls": [42.543, -122.566], "eagle point": [42.472, -122.803],
-            "white city": [42.437, -122.859], "gold hill": [42.432, -123.051], "rogue river": [42.436, -123.172]
+            "forest grove": [45.520, -123.111], "sherwood": [45.357, -122.840], "newberg": [45.300, -122.973],
+            "woodburn": [45.144, -122.855], "keizer": [44.990, -123.026], "dallas": [44.919, -123.317],
+            "lebanon": [44.533, -122.907], "philomath": [44.540, -123.368], "florence": [43.983, -124.100],
+            "brookings": [42.053, -124.284], "seaside": [45.993, -123.923], "tillamook": [45.456, -123.843],
+            "st helens": [45.864, -122.806], "ontario": [44.026, -116.963], "la grande": [45.325, -118.088],
+            "baker city": [44.775, -117.834], "hermiston": [45.840, -119.289], "prineville": [44.300, -120.834],
+            "madras": [44.633, -121.129], "sisters": [44.291, -121.549], "burns": [43.586, -119.054],
+            "john day": [44.416, -118.953], "enterprise": [45.426, -117.279], "gold beach": [42.407, -124.422],
+            "sutherlin": [43.390, -123.313], "junction city": [44.219, -123.206], "cottage grove": [43.798, -123.060],
+            "oakridge": [43.747, -122.461], "veneta": [44.049, -123.351], "scappoose": [45.754, -122.878],
+            "cannon beach": [45.892, -123.961], "north bend": [43.407, -124.224], "coquille": [43.177, -124.188],
+            "myrtle creek": [43.020, -123.293], "creswell": [43.918, -123.024], "sweet home": [44.397, -122.736],
+            "silverton": [45.005, -122.783], "independence": [44.851, -123.187], "monmouth": [44.848, -123.234],
+            "cornelius": [45.520, -123.060], "canby": [45.263, -122.692], "milwaukie": [45.446, -122.639],
+            "happy valley": [45.446, -122.530]
         };
-        
+
         var map = L.map('map').setView([44.0, -120.5], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
-        
         var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6","Upper":"#10b981"};
         var tractPolygons = [];
         var visibleLevels = {"Low":true,"Moderate":true,"Middle":true,"Upper":true};
         var ffiecVisible = false;
         var currentCity = null;
         var searchTimeout = null;
-        
+
         function onSearchInput() {
             clearTimeout(searchTimeout);
             var query = document.getElementById('searchInput').value.trim().toLowerCase();
             var dropdown = document.getElementById('searchDropdown');
-            
-            if (query.length < 2) {
-                dropdown.classList.remove('show');
-                return;
-            }
-            
+            if (query.length < 2) { dropdown.classList.remove('show'); return; }
             searchTimeout = setTimeout(function() {
                 var results = [];
-                oregonCities.forEach(function(city) {
-                    if (city.toLowerCase().indexOf(query) >= 0) {
-                        results.push({name: city, type: 'City'});
-                    }
-                });
-                oregonCounties.forEach(function(county) {
-                    if (county.toLowerCase().indexOf(query) >= 0) {
-                        results.push({name: county, type: 'County'});
-                    }
-                });
-                ffiecTracts.forEach(function(tract) {
-                    if (tract.city.toLowerCase().indexOf(query) >= 0 || 
-                        tract.county.toLowerCase().indexOf(query) >= 0 ||
-                        tract.tract.indexOf(query) >= 0) {
-                        results.push({name: tract.city + ' (Tract ' + tract.tract + ')', type: 'Tract'});
-                    }
-                });
-                var unique = [];
-                var seen = {};
-                results.forEach(function(r) {
-                    if (!seen[r.name]) { seen[r.name] = true; unique.push(r); }
-                });
+                oregonCities.forEach(function(city) { if (city.toLowerCase().indexOf(query) >= 0) results.push({name: city, type: 'City'}); });
+                oregonCounties.forEach(function(county) { if (county.toLowerCase().indexOf(query) >= 0) results.push({name: county, type: 'County'}); });
+                ffiecTracts.forEach(function(tract) { if (tract.city.toLowerCase().indexOf(query) >= 0 || tract.county.toLowerCase().indexOf(query) >= 0 || tract.tract.indexOf(query) >= 0) results.push({name: tract.city + ' (Tract ' + tract.tract + ')', type: 'Tract'}); });
+                var unique = [], seen = {};
+                results.forEach(function(r) { if (!seen[r.name]) { seen[r.name] = true; unique.push(r); } });
                 displayDropdown(unique.slice(0, 20));
             }, 200);
         }
-        
-        function onSearchFocus() {
-            var query = document.getElementById('searchInput').value.trim().toLowerCase();
-            if (query.length >= 2) onSearchInput();
-        }
-        
+        function onSearchFocus() { var query = document.getElementById('searchInput').value.trim().toLowerCase(); if (query.length >= 2) onSearchInput(); }
         function displayDropdown(results) {
             var dropdown = document.getElementById('searchDropdown');
-            if (results.length === 0) {
-                dropdown.innerHTML = '<div class="search-item" style="color:#8899aa;">No results found</div>';
-            } else {
-                var html = '';
-                results.forEach(function(r) {
-                    var icon = r.type === 'County' ? '🏛️' : (r.type === 'Tract' ? '📊' : '🏙️');
-                    html += '<div class="search-item" onclick="selectSearchResult(\'' + r.name.replace(/'/g, "\\'") + '\')">' +
-                        icon + ' <strong>' + r.name + '</strong> <span class="match-type">(' + r.type + ')</span></div>';
-                });
-                dropdown.innerHTML = html;
-            }
+            if (results.length === 0) { dropdown.innerHTML = '<div class="search-item" style="color:#8899aa;">No results found</div>'; }
+            else { var html = ''; results.forEach(function(r) { var icon = r.type === 'County' ? '🏛️' : (r.type === 'Tract' ? '📊' : '🏙️'); html += '<div class="search-item" onclick="selectSearchResult(\'' + r.name.replace(/'/g, "\\'") + '\')">' + icon + ' <strong>' + r.name + '</strong> <span class="match-type">(' + r.type + ')</span></div>'; }); dropdown.innerHTML = html; }
             dropdown.classList.add('show');
         }
-        
-        function selectSearchResult(name) {
-            document.getElementById('searchInput').value = name;
-            document.getElementById('searchDropdown').classList.remove('show');
-            performSearch();
-        }
-        
+        function selectSearchResult(name) { document.getElementById('searchInput').value = name; document.getElementById('searchDropdown').classList.remove('show'); performSearch(); }
+
         function performSearch() {
             var query = document.getElementById('searchInput').value.trim();
             if (!query) return;
             document.getElementById('searchDropdown').classList.remove('show');
-            
-            var queryLower = query.toLowerCase();
-            var foundTracts = [];
-            var foundCoords = null;
-            var matchedCity = null;
-            
-            oregonCities.forEach(function(city) {
-                if (city.toLowerCase() === queryLower) matchedCity = city;
-            });
-            if (!matchedCity) {
-                oregonCities.forEach(function(city) {
-                    if (city.toLowerCase().indexOf(queryLower) >= 0 && !matchedCity) matchedCity = city;
-                });
-            }
-            
+            var queryLower = query.toLowerCase(), foundTracts = [], foundCoords = null, matchedCity = null;
+            oregonCities.forEach(function(city) { if (city.toLowerCase() === queryLower) matchedCity = city; });
+            if (!matchedCity) oregonCities.forEach(function(city) { if (city.toLowerCase().indexOf(queryLower) >= 0 && !matchedCity) matchedCity = city; });
             var matchedCounty = null;
-            oregonCounties.forEach(function(county) {
-                if (county.toLowerCase() === queryLower) matchedCounty = county;
-            });
-            if (!matchedCounty) {
-                oregonCounties.forEach(function(county) {
-                    if (county.toLowerCase().indexOf(queryLower) >= 0 && !matchedCounty) matchedCounty = county;
-                });
-            }
-            
+            oregonCounties.forEach(function(county) { if (county.toLowerCase() === queryLower) matchedCounty = county; });
+            if (!matchedCounty) oregonCounties.forEach(function(county) { if (county.toLowerCase().indexOf(queryLower) >= 0 && !matchedCounty) matchedCounty = county; });
             if (matchedCity) {
                 currentCity = matchedCity;
                 foundTracts = ffiecTracts.filter(function(t) { return t.city.toLowerCase() === matchedCity.toLowerCase(); });
-                if (oregonCityCoords[matchedCity.toLowerCase()]) {
-                    foundCoords = oregonCityCoords[matchedCity.toLowerCase()];
-                } else if (foundTracts.length > 0) {
-                    foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
-                } else {
-                    geocodeAndZoom(matchedCity + ', Oregon');
-                    updateUI(query);
-                    return;
-                }
+                if (oregonCityCoords[matchedCity.toLowerCase()]) foundCoords = oregonCityCoords[matchedCity.toLowerCase()];
+                else if (foundTracts.length > 0) foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
+                else { geocodeAndZoom(matchedCity + ', Oregon'); updateUI(query); return; }
             } else if (matchedCounty) {
                 currentCity = matchedCounty + ' County';
                 foundTracts = ffiecTracts.filter(function(t) { return t.county.toLowerCase() === matchedCounty.toLowerCase(); });
-                if (foundTracts.length > 0) {
-                    foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
-                } else {
-                    geocodeAndZoom(matchedCounty + ' County, Oregon');
-                    updateUI(query);
-                    return;
-                }
+                if (foundTracts.length > 0) foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
+                else { geocodeAndZoom(matchedCounty + ' County, Oregon'); updateUI(query); return; }
             } else {
-                foundTracts = ffiecTracts.filter(function(t) {
-                    return t.city.toLowerCase().indexOf(queryLower) >= 0 || t.county.toLowerCase().indexOf(queryLower) >= 0 || t.tract.indexOf(queryLower) >= 0;
-                });
-                if (foundTracts.length > 0) {
-                    currentCity = foundTracts[0].city;
-                    foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
-                } else {
-                    var bestMatch = null;
-                    for (var city in oregonCityCoords) {
-                        if (city.indexOf(queryLower) >= 0 || queryLower.indexOf(city) >= 0) { bestMatch = city; break; }
-                    }
-                    if (bestMatch) {
-                        foundCoords = oregonCityCoords[bestMatch];
-                        currentCity = bestMatch.charAt(0).toUpperCase() + bestMatch.slice(1);
-                    } else {
-                        geocodeAndZoom(query + ', Oregon');
-                        updateUI(query);
-                        return;
-                    }
-                }
+                foundTracts = ffiecTracts.filter(function(t) { return t.city.toLowerCase().indexOf(queryLower) >= 0 || t.county.toLowerCase().indexOf(queryLower) >= 0 || t.tract.indexOf(queryLower) >= 0; });
+                if (foundTracts.length > 0) { currentCity = foundTracts[0].city; foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]]; }
+                else { var bestMatch = null; for (var city in oregonCityCoords) { if (city.indexOf(queryLower) >= 0 || queryLower.indexOf(city) >= 0) { bestMatch = city; break; } }
+                    if (bestMatch) { foundCoords = oregonCityCoords[bestMatch]; currentCity = bestMatch.charAt(0).toUpperCase() + bestMatch.slice(1); }
+                    else { geocodeAndZoom(query + ', Oregon'); updateUI(query); return; } }
             }
-            
             updateUI(currentCity || query);
             if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(currentCity || query);
-            
-            if (ffiecVisible) {
-                clearPolygons();
-                ffiecVisible = false;
-                document.getElementById('btnFFIEC').classList.remove('active');
-                document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts';
-                toggleFFIECTracts();
-            }
+            if (ffiecVisible) { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; toggleFFIECTracts(); }
             updateTractList(foundTracts);
             document.getElementById('searchInput').style.borderColor = foundTracts.length > 0 ? '#10b981' : '#f59e0b';
         }
-        
-        function updateUI(displayName) {
-            document.getElementById('selectedCityDisplay').textContent = displayName;
-            document.getElementById('citySelect').value = '';
-        }
-        
+        function updateUI(displayName) { document.getElementById('selectedCityDisplay').textContent = displayName; document.getElementById('citySelect').value = ''; }
         function geocodeAndZoom(location) {
             document.getElementById('loadingBadge').style.display = 'block';
             document.getElementById('loadingBadge').textContent = '⏳ Locating ' + location + '...';
-            
-            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(location) + '&format=json&limit=1', {
-                headers: { 'User-Agent': 'OregonIncomeMap/1.0' }
-            })
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(location) + '&format=json&limit=1', { headers: { 'User-Agent': 'OregonIncomeMap/1.0' } })
             .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                document.getElementById('loadingBadge').style.display = 'none';
-                if (data && data.length > 0) {
-                    var lat = parseFloat(data[0].lat);
-                    var lon = parseFloat(data[0].lon);
-                    map.setView([lat, lon], 12);
-                    currentCity = data[0].display_name.split(',')[0];
-                    updateUI(currentCity);
-                    updateLinksForCity(currentCity);
-                    document.getElementById('searchInput').style.borderColor = '#f59e0b';
-                    updateTractList([]);
-                } else {
-                    alert('Location not found: ' + location + '\n\nTry a different spelling or a larger nearby city.');
-                }
-            })
-            .catch(function() {
-                document.getElementById('loadingBadge').style.display = 'none';
-                alert('Unable to locate: ' + location + '\n\nPlease check your internet connection and try again.');
-            });
+            .then(function(data) { document.getElementById('loadingBadge').style.display = 'none';
+                if (data && data.length > 0) { var lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon); map.setView([lat, lon], 12); currentCity = data[0].display_name.split(',')[0]; updateUI(currentCity); updateLinksForCity(currentCity); document.getElementById('searchInput').style.borderColor = '#f59e0b'; updateTractList([]); }
+                else { alert('Location not found: ' + location); } })
+            .catch(function() { document.getElementById('loadingBadge').style.display = 'none'; alert('Unable to locate: ' + location); });
         }
-        
-        function onCitySelect() {
-            var city = document.getElementById('citySelect').value;
-            if (city) {
-                document.getElementById('searchInput').value = city.replace(/-/g, ' ');
-                performSearch();
-            }
-        }
-        
+        function onCitySelect() { var city = document.getElementById('citySelect').value; if (city) { document.getElementById('searchInput').value = city.replace(/-/g, ' '); performSearch(); } }
         function toggleFFIECTracts() {
-            if (ffiecVisible) {
-                clearPolygons();
-                document.getElementById('btnFFIEC').classList.remove('active');
-                document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts';
-                ffiecVisible = false;
-                updateTractList([]);
-                return;
-            }
-            
+            if (ffiecVisible) { clearPolygons(); document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; ffiecVisible = false; updateTractList([]); return; }
             document.getElementById('loadingBadge').style.display = 'block';
             var query = document.getElementById('searchInput').value.trim().toLowerCase();
             var city = document.getElementById('citySelect').value.replace(/-/g, ' ').toLowerCase();
             var searchTerm = query || city || '';
             var displayTracts = ffiecTracts;
-            
-            if (searchTerm) {
-                displayTracts = ffiecTracts.filter(function(t) {
-                    return t.city.toLowerCase().indexOf(searchTerm) >= 0 || t.county.toLowerCase().indexOf(searchTerm) >= 0 || t.tract.indexOf(searchTerm) >= 0;
-                });
-            }
-            
+            if (searchTerm) displayTracts = ffiecTracts.filter(function(t) { return t.city.toLowerCase().indexOf(searchTerm) >= 0 || t.county.toLowerCase().indexOf(searchTerm) >= 0 || t.tract.indexOf(searchTerm) >= 0; });
             clearPolygons();
             displayTracts.forEach(function(tract) {
                 var polygon = L.polygon(tract.coords, {color: levelColors[tract.level], fillColor: levelColors[tract.level], fillOpacity: 0.4, weight: 3});
-                polygon.bindPopup(
-                    '<div style="font-size:12px;line-height:1.5;">' +
-                    '<strong style="font-size:14px;">Census Tract ' + tract.tract + '</strong><br>' +
-                    '<strong>GEOID:</strong> ' + tract.geoid + '<br>' +
-                    '<strong>City:</strong> ' + tract.city + '<br>' +
-                    '<strong>County:</strong> ' + tract.county + ' County<br>' +
-                    '<strong>Median HH Income:</strong> $' + tract.income.toLocaleString() + '<br>' +
-                    '<strong>MSA Median:</strong> $' + tract.msaIncome.toLocaleString() + '<br>' +
-                    '<strong>Ratio:</strong> ' + (tract.ratio*100).toFixed(0) + '% of MSA<br>' +
-                    '<strong style="color:' + levelColors[tract.level] + ';">FFIEC Level: ' + tract.level + ' INCOME</strong><br>' +
-                    '<hr style="border-color:#444;margin:5px 0;">' +
-                    '<strong>📍 Street Boundaries for Zillow:</strong><br>' +
-                    '🡑 <strong>North:</strong> ' + tract.streets.N + '<br>' +
-                    '🡓 <strong>South:</strong> ' + tract.streets.S + '<br>' +
-                    '🡒 <strong>East:</strong> ' + tract.streets.E + '<br>' +
-                    '🡐 <strong>West:</strong> ' + tract.streets.W + '</div>'
-                );
+                polygon.bindPopup('<div style="font-size:12px;line-height:1.5;"><strong style="font-size:14px;">Census Tract ' + tract.tract + '</strong><br><strong>GEOID:</strong> ' + tract.geoid + '<br><strong>City:</strong> ' + tract.city + '<br><strong>County:</strong> ' + tract.county + ' County<br><strong>Median HH Income:</strong> $' + tract.income.toLocaleString() + '<br><strong>MSA Median:</strong> $' + tract.msaIncome.toLocaleString() + '<br><strong>Ratio:</strong> ' + (tract.ratio*100).toFixed(0) + '% of MSA<br><strong style="color:' + levelColors[tract.level] + ';">FFIEC Level: ' + tract.level + ' INCOME</strong><br><hr style="border-color:#444;margin:5px 0;"><strong>📍 Street Boundaries for Zillow:</strong><br>🡑 <strong>North:</strong> ' + tract.streets.N + '<br>🡓 <strong>South:</strong> ' + tract.streets.S + '<br>🡒 <strong>East:</strong> ' + tract.streets.E + '<br>🡐 <strong>West:</strong> ' + tract.streets.W + '</div>');
                 polygon.on('click', function() { map.fitBounds(polygon.getBounds().pad(0.3)); });
-                polygon.addTo(map);
-                tractPolygons.push({layer: polygon, tract: tract});
+                polygon.addTo(map); tractPolygons.push({layer: polygon, tract: tract});
             });
-            
             updateTractList(displayTracts);
             document.getElementById('loadingBadge').style.display = 'none';
             document.getElementById('btnFFIEC').classList.add('active');
             document.getElementById('btnFFIEC').textContent = '✅ FFIEC Tracts Visible (Click to Hide)';
             ffiecVisible = true;
-            
-            if (displayTracts.length > 0 && searchTerm) {
-                var bounds = L.latLngBounds(displayTracts.map(function(t) { return [t.coords[0][0], t.coords[0][1]]; }));
-                map.fitBounds(bounds.pad(0.2));
-            }
+            if (displayTracts.length > 0 && searchTerm) { var bounds = L.latLngBounds(displayTracts.map(function(t) { return [t.coords[0][0], t.coords[0][1]]; })); map.fitBounds(bounds.pad(0.2)); }
         }
-        
         function updateTractList(tracts) {
             var html = '<h4>📍 FFIEC Low & Moderate Tracts</h4>';
-            if (tracts.length === 0) {
-                html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Search a city or county to see tracts</p>';
-            } else {
-                var lowCount = tracts.filter(function(t) { return t.level === 'Low'; }).length;
-                var modCount = tracts.filter(function(t) { return t.level === 'Moderate'; }).length;
-                html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | <span class="results-count">' + tracts.length + ' total</span></p>';
-                tracts.forEach(function(t) {
-                    var lc = t.level.toLowerCase();
-                    html += '<div class="tract-item ' + lc + '" onclick="focusTract(\'' + t.geoid + '\')">' +
-                        '<span class="tract-id">Tract ' + t.tract + '</span> - ' + t.level + ' Income' +
-                        '<span class="tract-income">$' + t.income.toLocaleString() + ' | ' + (t.ratio*100).toFixed(0) + '% of MSA</span>' +
-                        '<span class="tract-streets">🡑 ' + t.streets.N + ' | 🡓 ' + t.streets.S + ' | 🡒 ' + t.streets.E + ' | 🡐 ' + t.streets.W + '</span>' +
-                        '<button class="copy-btn" onclick="event.stopPropagation();copyTract(\'' + t.geoid + '\')">📋 Copy</button></div>';
-                });
-            }
+            if (tracts.length === 0) html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Search a city or county to see tracts</p>';
+            else { var lowCount = tracts.filter(function(t) { return t.level === 'Low'; }).length, modCount = tracts.filter(function(t) { return t.level === 'Moderate'; }).length; html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | <span class="results-count">' + tracts.length + ' total</span></p>'; tracts.forEach(function(t) { var lc = t.level.toLowerCase(); html += '<div class="tract-item ' + lc + '" onclick="focusTract(\'' + t.geoid + '\')"><span class="tract-id">Tract ' + t.tract + '</span> - ' + t.level + ' Income<span class="tract-income">$' + t.income.toLocaleString() + ' | ' + (t.ratio*100).toFixed(0) + '% of MSA</span><span class="tract-streets">🡑 ' + t.streets.N + ' | 🡓 ' + t.streets.S + ' | 🡒 ' + t.streets.E + ' | 🡐 ' + t.streets.W + '</span><button class="copy-btn" onclick="event.stopPropagation();copyTract(\'' + t.geoid + '\')">📋 Copy</button></div>'; }); }
             document.getElementById('tractList').innerHTML = html;
         }
-        
-        function focusTract(geoid) {
-            var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; });
-            if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); }
-        }
-        
-        function copyTract(geoid) {
-            var tract = ffiecTracts.find(function(t) { return t.geoid === geoid; });
-            if (!tract) return;
-            var text = '=== FFIEC 2026 Census Tract ' + tract.tract + ' ===\nGEOID: ' + tract.geoid + '\nCity: ' + tract.city + ', ' + tract.county + ' County\nFFIEC Level: ' + tract.level + ' INCOME\nMedian HH Income: $' + tract.income.toLocaleString() + '\nMSA Median: $' + tract.msaIncome.toLocaleString() + '\nRatio: ' + (tract.ratio*100).toFixed(0) + '%\n\n--- ZILLOW MAP BOUNDARIES ---\nNorth: ' + tract.streets.N + '\nSouth: ' + tract.streets.S + '\nEast:  ' + tract.streets.E + '\nWest:  ' + tract.streets.W;
-            navigator.clipboard.writeText(text).then(function() { alert('✅ Tract ' + tract.tract + ' boundaries copied!'); });
-        }
-        
+        function focusTract(geoid) { var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; }); if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); } }
+        function copyTract(geoid) { var tract = ffiecTracts.find(function(t) { return t.geoid === geoid; }); if (!tract) return; var text = '=== FFIEC 2024-2026 Census Tract ' + tract.tract + ' ===\nGEOID: ' + tract.geoid + '\nCity: ' + tract.city + ', ' + tract.county + ' County\nFFIEC Level: ' + tract.level + ' INCOME\nMedian HH Income: $' + tract.income.toLocaleString() + '\nMSA Median: $' + tract.msaIncome.toLocaleString() + '\nRatio: ' + (tract.ratio*100).toFixed(0) + '%\n\n--- ZILLOW MAP BOUNDARIES ---\nNorth: ' + tract.streets.N + '\nSouth: ' + tract.streets.S + '\nEast:  ' + tract.streets.E + '\nWest:  ' + tract.streets.W; navigator.clipboard.writeText(text).then(function() { alert('✅ Tract ' + tract.tract + ' boundaries copied!'); }); }
         function clearPolygons() { tractPolygons.forEach(function(p) { map.removeLayer(p.layer); }); tractPolygons = []; }
-        
-        function toggleLevel(level, el) {
-            visibleLevels[level] = !visibleLevels[level];
-            el.classList.toggle('active', visibleLevels[level]);
-            tractPolygons.forEach(function(p) {
-                if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0});
-            });
-        }
-        
+        function toggleLevel(level, el) { visibleLevels[level] = !visibleLevels[level]; el.classList.toggle('active', visibleLevels[level]); tractPolygons.forEach(function(p) { if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0}); }); }
         function updateLinks() { updateLinksForCity(currentCity || ''); }
-        
-        function updateLinksForCity(cityName) {
-            if (!cityName) return;
-            var maxPrice = document.getElementById('maxPrice').value || '';
-            var citySlug = cityName.toLowerCase().replace(/\s+/g, '-').replace('county', '').trim();
-            document.getElementById('realtorLink').href = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR' + (maxPrice ? '/price-na-' + maxPrice : '');
-            document.getElementById('zillowLink').href = 'https://www.zillow.com/' + citySlug + '-or/houses/';
-        }
-        
-        function setPrice(price, el) {
-            document.getElementById('maxPrice').value = price || '';
-            document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
-            el.classList.add('active');
-            updateLinks();
-        }
-        
-        function resetMap() {
-            clearPolygons();
-            ffiecVisible = false;
-            document.getElementById('btnFFIEC').classList.remove('active');
-            document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts';
-            document.getElementById('citySelect').value = '';
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchInput').style.borderColor = '#f59e0b';
-            document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above';
-            document.getElementById('searchDropdown').classList.remove('show');
-            currentCity = null;
-            map.setView([44.0, -120.5], 7);
-            updateTractList([]);
-        }
-        
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show');
-        });
-        
-        window.toggleFFIECTracts = toggleFFIECTracts;
-        window.toggleLevel = toggleLevel;
-        window.onSearchInput = onSearchInput;
-        window.onSearchFocus = onSearchFocus;
-        window.performSearch = performSearch;
-        window.selectSearchResult = selectSearchResult;
-        window.onCitySelect = onCitySelect;
-        window.updateLinks = updateLinks;
-        window.setPrice = setPrice;
-        window.focusTract = focusTract;
-        window.copyTract = copyTract;
-        window.resetMap = resetMap;
+        function updateLinksForCity(cityName) { if (!cityName) return; var maxPrice = document.getElementById('maxPrice').value || ''; var citySlug = cityName.toLowerCase().replace(/\s+/g, '-').replace('county', '').trim(); document.getElementById('realtorLink').href = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR' + (maxPrice ? '/price-na-' + maxPrice : ''); document.getElementById('zillowLink').href = 'https://www.zillow.com/' + citySlug + '-or/houses/'; }
+        function setPrice(price, el) { document.getElementById('maxPrice').value = price || ''; document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); }); el.classList.add('active'); updateLinks(); }
+        function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
+        document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
     </script>
 </body>
 </html>
