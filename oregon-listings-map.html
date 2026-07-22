@@ -122,8 +122,8 @@
             <div class="map-overlay">▣ <strong>Polygons</strong> = FFIEC tracts<br>🔴 Low | 🟠 Moderate | 🔵 Middle<br>🖱️ Click polygon for details & streets</div>
         </div>
         <div class="sidebar">
-            <h3>🏘️ Real Listings For:</h3>
-            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:14px;margin-bottom:2px;">Search a city or county above</p>
+            
+            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:14px;margin-bottom:2px;"
             <small style="color:#8899aa;">💰 Price filter:</small>
             <div class="price-tags">
                 <span class="price-tag active" onclick="setPrice('', this)">All</span>
@@ -132,8 +132,8 @@
                 <span class="price-tag" onclick="setPrice(250000, this)">Under $250K</span>
             </div>
             <div class="listing-links">
-                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank">⭐ <strong>Realtor.com</strong> (Price filtered)</a>
-                <a href="#" class="listing-link zillow" id="zillowLink" target="_blank">🏘️ <strong>Zillow.com</strong></a>
+                <a href="#" class="listing-link realtor" id="realtorLink" target="_blank">⭐ <strong>Realtor.com</strong> (Price filtered city-wide listings)</a>
+                <a href="#" class="listing-link zillow" id="zillowLink" target="_blank">🏘️ <strong>Zillow.com</strong> (City-wide listings)</a>
             </div>
             <div class="legend-box">
                 <h4>📊 Income Levels</h4>
@@ -143,7 +143,7 @@
             </div>
             <div class="tract-list" id="tractList">
                 <h4>📍 Low-Moderate-Middle Tracts</h4>
-                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">👆 Search a city/county and click <strong>"Show FFIEC Tracts"</strong><br>to see official boundaries</p>
+                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">👆 Search a city/county and click <strong>"Show FFIEC Tracts"
             </div>
         </div>
     </div>
@@ -445,7 +445,7 @@
             updateTractList(displayTracts);
             document.getElementById('loadingBadge').style.display = 'none';
             document.getElementById('btnFFIEC').classList.add('active');
-            document.getElementById('btnFFIEC').textContent = '✅ FFIEC Tracts Visible (Click to Hide)';
+            document.getElementById('btnFFIEC').textContent = '✅ Show Income Level tracts (Click to Hide)';
             ffiecVisible = true;
             if (displayTracts.length > 0 && searchTerm) { var bounds = L.latLngBounds(displayTracts.map(function(t) { return [t.coords[0][0], t.coords[0][1]]; })); map.fitBounds(bounds.pad(0.2)); }
         }
