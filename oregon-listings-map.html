@@ -29,8 +29,7 @@
         .btn-ffiec { background: #10b981; color: white; }
         .btn-ffiec:hover { background: #059669; }
         .btn-ffiec.active { background: #047857; box-shadow: 0 0 12px rgba(16,185,129,0.5); }
-        .btn-hud { background: #8b5cf6; color: white; }
-        .btn-hud:hover { background: #7c3aed; }
+        
         .btn-ffiec-search { background: #006aff; color: white; }
         .btn-ffiec-search:hover { background: #0052cc; }
         .btn-usda { background: #166534; color: white; }
@@ -111,7 +110,7 @@
         <button class="btn btn-search" onclick="performSearch()">🔍 Search</button>
         <input type="number" id="maxPrice" placeholder="Max Price $" value="" onchange="updateLinks()">
         <button class="btn btn-ffiec" id="btnFFIEC" onclick="toggleFFIECTracts()">📊 Show FFIEC Tracts</button>
-        <button class="btn btn-hud" onclick="window.open('https://hudgis-hud.opendata.arcgis.com/datasets/HUD::low-to-moderate-income-population-by-tract/explore','_blank')">📋 HUD LMI</button>
+        
         <button class="btn btn-ffiec-search" onclick="window.open('https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx','_blank')">🔍 FFIEC Property Search</button>
         <button class="btn btn-usda" onclick="window.open('https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do','_blank')">🏠 USDA RD Eligibility</button>
         <button class="btn btn-reset" onclick="resetMap()">🔄 Reset</button>
