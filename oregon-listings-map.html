@@ -180,7 +180,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Complete Oregon cities and counties database
         var oregonCities = [
             "Portland","Salem","Eugene","Medford","Bend","Corvallis","Hillsboro","Beaverton",
             "Gresham","Grants Pass","Springfield","Albany","Ashland","Roseburg","Klamath Falls",
@@ -203,7 +202,7 @@
             "Tangent","Halsey","Shedd","Scio","Lyons","Gates","Idanha","Detroit",
             "Mount Angel","Scotts Mills","Molalla","Estacada","Eagle Creek","Boring",
             "Fairview","Troutdale","Wood Village","Maywood Park","King City","Durham",
-            "Rivergrove","Johnson City","Stafford","Aurora","Donald","Hubbard","St. Paul"
+            "Rivergrove","Johnson City","Stafford","Aurora","Donald","St. Paul"
         ];
         
         var oregonCounties = [
@@ -214,7 +213,6 @@
             "Sherman","Gilliam","Wheeler","Morrow"
         ];
         
-        // FFIEC 2026 Oregon Low & Moderate Income Census Tracts
         var ffiecTracts = [
             {tract:"000100", geoid:"41051000100", county:"Multnomah", city:"Portland", income:38500, msaIncome:96500, ratio:0.40, level:"Low",
                 streets:{N:"NE Columbia Blvd", S:"NE Lombard St", E:"NE 33rd Ave", W:"NE Martin Luther King Jr Blvd"},
@@ -329,7 +327,6 @@
                 coords:[[45.710,-121.525],[45.710,-121.515],[45.700,-121.515],[45.700,-121.525]]}
         ];
         
-        // Oregon city coordinates for map centering
         var oregonCityCoords = {
             "portland": [45.515, -122.678], "salem": [44.942, -123.035], "eugene": [44.052, -123.087],
             "medford": [42.326, -122.876], "bend": [44.058, -121.315], "corvallis": [44.564, -123.262],
@@ -351,7 +348,61 @@
             "cannon beach": [45.892, -123.961], "tillamook": [45.456, -123.843], "st helens": [45.864, -122.806],
             "ontario": [44.026, -116.963], "la grande": [45.325, -118.088], "baker city": [44.775, -117.834],
             "hermiston": [45.840, -119.289], "prineville": [44.300, -120.834], "madras": [44.633, -121.129],
-            "sisters": [44.291, -121.549], "burns": [43.586, -119.054], "john day": [44.416, -118.953]
+            "sisters": [44.291, -121.549], "burns": [43.586, -119.054], "john day": [44.416, -118.953],
+            "enterprise": [45.426, -117.279], "heppner": [45.353, -119.558], "condon": [45.234, -120.185],
+            "fossil": [44.998, -120.216], "gold beach": [42.407, -124.422], "port orford": [42.746, -124.497],
+            "myrtle creek": [43.020, -123.293], "sutherlin": [43.390, -123.313], "junction city": [44.219, -123.206],
+            "creswell": [43.918, -123.024], "cottage grove": [43.798, -123.060], "oakridge": [43.747, -122.461],
+            "veneta": [44.049, -123.351], "harrisburg": [44.274, -123.171], "brownsville": [44.393, -122.985],
+            "jefferson": [44.719, -123.010], "mill city": [44.754, -122.478], "aumsville": [44.841, -122.871],
+            "turner": [44.843, -122.953], "sublimity": [44.830, -122.794], "gervais": [45.108, -122.898],
+            "hubbard": [45.182, -122.808], "dundee": [45.278, -123.011], "carlton": [45.294, -123.177],
+            "lafayette": [45.244, -123.113], "amity": [45.116, -123.207], "sheridan": [45.099, -123.395],
+            "willamina": [45.079, -123.486], "toledo": [44.621, -123.938], "waldport": [44.427, -124.069],
+            "depoe bay": [44.808, -124.063], "rockaway beach": [45.613, -123.943], "garibaldi": [45.560, -123.911],
+            "bay city": [45.523, -123.889], "manzanita": [45.718, -123.935], "nehalem": [45.720, -123.894],
+            "clatskanie": [46.101, -123.207], "vernonia": [45.859, -123.193], "banks": [45.619, -123.114],
+            "north plains": [45.597, -122.993], "gaston": [45.436, -123.140], "yamhill": [45.341, -123.187],
+            "dayton": [45.221, -123.076], "riddle": [42.951, -123.364], "glide": [43.302, -123.101],
+            "winston": [43.122, -123.413], "drain": [43.659, -123.319], "elkton": [43.638, -123.568],
+            "yoncalla": [43.599, -123.283], "lowell": [43.918, -122.784], "dexter": [43.916, -122.823],
+            "coburg": [44.137, -123.066], "tangent": [44.541, -123.108], "halsey": [44.384, -123.110],
+            "scio": [44.705, -122.849], "lyons": [44.775, -122.615], "gates": [44.756, -122.417],
+            "mount angel": [45.068, -122.800], "scotts mills": [45.041, -122.667], "molalla": [45.147, -122.577],
+            "estacada": [45.290, -122.334], "eagle creek": [45.357, -122.359], "boring": [45.430, -122.374],
+            "fairview": [45.538, -122.434], "troutdale": [45.539, -122.387], "wood village": [45.534, -122.419],
+            "king city": [45.403, -122.804], "durham": [45.403, -122.753], "rivergrove": [45.384, -122.733],
+            "aurora": [45.231, -122.756], "donald": [45.222, -122.839], "st paul": [45.211, -122.977],
+            "rainier": [46.089, -122.936], "scappoose": [45.754, -122.878], "milton-freewater": [45.935, -118.388],
+            "boardman": [45.840, -119.701], "irrigon": [45.896, -119.491], "stanfield": [45.781, -119.217],
+            "umatilla": [45.917, -119.343], "athena": [45.812, -118.491], "weston": [45.814, -118.425],
+            "elgin": [45.565, -117.917], "union": [45.208, -117.865], "cove": [45.296, -117.808],
+            "north powder": [45.028, -117.920], "haines": [44.912, -117.939], "halfway": [44.881, -117.115],
+            "richland": [44.769, -117.169], "huntington": [44.351, -117.266], "vale": [43.982, -117.238],
+            "nyssa": [43.877, -116.995], "jordan valley": [42.974, -117.054], "adrian": [43.741, -117.072],
+            "canyon city": [44.390, -118.950], "prairie city": [44.463, -118.710], "seneca": [44.135, -118.972],
+            "hines": [43.564, -119.083], "drewsey": [43.807, -118.377], "frenchglen": [42.827, -118.914],
+            "fields": [42.264, -118.675], "diamond": [43.012, -118.666], "crane": [43.415, -118.578],
+            "plush": [42.412, -119.903], "adel": [42.177, -119.898], "silver lake": [43.128, -121.046],
+            "christmas valley": [43.236, -120.666], "fort rock": [43.357, -121.054], "spray": [44.834, -119.794],
+            "mitchell": [44.567, -120.153], "monument": [44.819, -119.421], "long creek": [44.714, -119.104],
+            "ukiah": [45.134, -118.933], "pilot rock": [45.483, -118.830], "echo": [45.742, -119.195],
+            "lexington": [45.445, -119.684], "ione": [45.501, -119.824], "arlington": [45.717, -120.201],
+            "wasco": [45.592, -120.698], "rufus": [45.695, -120.735], "grass valley": [45.360, -120.786],
+            "dufur": [45.453, -121.131], "maupin": [45.175, -121.082], "mosier": [45.684, -121.397],
+            "cascade locks": [45.670, -121.891], "government camp": [45.304, -121.755], "detroit": [44.734, -122.150],
+            "idanha": [44.703, -122.079], "millersburg": [44.681, -123.061], "adair village": [44.671, -123.218],
+            "falls city": [44.866, -123.436], "grand ronde": [45.060, -123.609], "siletz": [44.722, -123.919],
+            "yachats": [44.311, -124.105], "lakeside": [43.579, -124.175], "bandon": [43.119, -124.408],
+            "langlois": [42.923, -124.451], "sixes": [42.821, -124.481], "agness": [42.557, -124.069],
+            "galice": [42.570, -123.597], "merlin": [42.517, -123.420], "wolf creek": [42.695, -123.394],
+            "sunny valley": [42.638, -123.374], "cave junction": [42.163, -123.647], "selma": [42.279, -123.616],
+            "obrien": [42.067, -123.703], "takilma": [42.052, -123.619], "kerby": [42.194, -123.652],
+            "wilderville": [42.382, -123.467], "murphy": [42.348, -123.333], "applegate": [42.257, -123.168],
+            "ruch": [42.237, -123.042], "jacksonville": [42.313, -122.967], "phoenix": [42.275, -122.818],
+            "talent": [42.246, -122.789], "shady cove": [42.610, -122.816], "trail": [42.648, -122.811],
+            "prospect": [42.751, -122.489], "butte falls": [42.543, -122.566], "eagle point": [42.472, -122.803],
+            "white city": [42.437, -122.859], "gold hill": [42.432, -123.051], "rogue river": [42.436, -123.172]
         };
         
         var map = L.map('map').setView([44.0, -120.5], 7);
@@ -364,7 +415,6 @@
         var currentCity = null;
         var searchTimeout = null;
         
-        // Search functionality
         function onSearchInput() {
             clearTimeout(searchTimeout);
             var query = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -377,72 +427,54 @@
             
             searchTimeout = setTimeout(function() {
                 var results = [];
-                
-                // Search cities
                 oregonCities.forEach(function(city) {
                     if (city.toLowerCase().indexOf(query) >= 0) {
-                        results.push({name: city, type: 'City', match: city});
+                        results.push({name: city, type: 'City'});
                     }
                 });
-                
-                // Search counties
                 oregonCounties.forEach(function(county) {
                     if (county.toLowerCase().indexOf(query) >= 0) {
-                        results.push({name: county, type: 'County', match: county});
+                        results.push({name: county, type: 'County'});
                     }
                 });
-                
-                // Search tracts
                 ffiecTracts.forEach(function(tract) {
                     if (tract.city.toLowerCase().indexOf(query) >= 0 || 
                         tract.county.toLowerCase().indexOf(query) >= 0 ||
-                        tract.tract.indexOf(query) >= 0 ||
-                        tract.geoid.indexOf(query) >= 0) {
-                        results.push({name: tract.city + ' (Tract ' + tract.tract + ')', type: 'Tract', match: tract});
+                        tract.tract.indexOf(query) >= 0) {
+                        results.push({name: tract.city + ' (Tract ' + tract.tract + ')', type: 'Tract'});
                     }
                 });
-                
-                // Remove duplicates
                 var unique = [];
                 var seen = {};
                 results.forEach(function(r) {
-                    var key = r.name;
-                    if (!seen[key]) {
-                        seen[key] = true;
-                        unique.push(r);
-                    }
+                    if (!seen[r.name]) { seen[r.name] = true; unique.push(r); }
                 });
-                
                 displayDropdown(unique.slice(0, 20));
             }, 200);
         }
         
         function onSearchFocus() {
             var query = document.getElementById('searchInput').value.trim().toLowerCase();
-            if (query.length >= 2) {
-                onSearchInput();
-            }
+            if (query.length >= 2) onSearchInput();
         }
         
         function displayDropdown(results) {
             var dropdown = document.getElementById('searchDropdown');
             if (results.length === 0) {
                 dropdown.innerHTML = '<div class="search-item" style="color:#8899aa;">No results found</div>';
-                dropdown.classList.add('show');
-                return;
+            } else {
+                var html = '';
+                results.forEach(function(r) {
+                    var icon = r.type === 'County' ? '🏛️' : (r.type === 'Tract' ? '📊' : '🏙️');
+                    html += '<div class="search-item" onclick="selectSearchResult(\'' + r.name.replace(/'/g, "\\'") + '\')">' +
+                        icon + ' <strong>' + r.name + '</strong> <span class="match-type">(' + r.type + ')</span></div>';
+                });
+                dropdown.innerHTML = html;
             }
-            
-            var html = '';
-            results.forEach(function(r) {
-                var icon = r.type === 'County' ? '🏛️' : (r.type === 'Tract' ? '📊' : '🏙️');
-                html += '<div class="search-item" onclick="selectSearchResult(\'' + r.name.replace(/'/g, "\\'") + '\', \'' + r.type + '\')">' +
-                    icon + ' <strong>' + r.name + '</strong> <span class="match-type">(' + r.type + ')</span></div>';
-            });
-            dropdown.innerHTML = html;
             dropdown.classList.add('show');
         }
         
-        function selectSearchResult(name, type) {
+        function selectSearchResult(name) {
             document.getElementById('searchInput').value = name;
             document.getElementById('searchDropdown').classList.remove('show');
             performSearch();
@@ -451,83 +483,81 @@
         function performSearch() {
             var query = document.getElementById('searchInput').value.trim();
             if (!query) return;
-            
             document.getElementById('searchDropdown').classList.remove('show');
             
             var queryLower = query.toLowerCase();
             var foundTracts = [];
             var foundCoords = null;
-            
-            // Check if it's a city match
             var matchedCity = null;
-            oregonCities.forEach(function(city) {
-                if (city.toLowerCase() === queryLower || city.toLowerCase().indexOf(queryLower) >= 0) {
-                    matchedCity = city;
-                }
-            });
             
-            // Check if it's a county match
+            oregonCities.forEach(function(city) {
+                if (city.toLowerCase() === queryLower) matchedCity = city;
+            });
+            if (!matchedCity) {
+                oregonCities.forEach(function(city) {
+                    if (city.toLowerCase().indexOf(queryLower) >= 0 && !matchedCity) matchedCity = city;
+                });
+            }
+            
             var matchedCounty = null;
             oregonCounties.forEach(function(county) {
-                if (county.toLowerCase() === queryLower || county.toLowerCase().indexOf(queryLower) >= 0) {
-                    matchedCounty = county;
-                }
+                if (county.toLowerCase() === queryLower) matchedCounty = county;
             });
+            if (!matchedCounty) {
+                oregonCounties.forEach(function(county) {
+                    if (county.toLowerCase().indexOf(queryLower) >= 0 && !matchedCounty) matchedCounty = county;
+                });
+            }
             
-            // Find matching tracts
             if (matchedCity) {
                 currentCity = matchedCity;
-                foundTracts = ffiecTracts.filter(function(t) {
-                    return t.city.toLowerCase() === matchedCity.toLowerCase();
-                });
+                foundTracts = ffiecTracts.filter(function(t) { return t.city.toLowerCase() === matchedCity.toLowerCase(); });
                 if (oregonCityCoords[matchedCity.toLowerCase()]) {
                     foundCoords = oregonCityCoords[matchedCity.toLowerCase()];
+                } else if (foundTracts.length > 0) {
+                    foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
+                } else {
+                    geocodeAndZoom(matchedCity + ', Oregon');
+                    updateUI(query);
+                    return;
                 }
             } else if (matchedCounty) {
                 currentCity = matchedCounty + ' County';
-                foundTracts = ffiecTracts.filter(function(t) {
-                    return t.county.toLowerCase() === matchedCounty.toLowerCase();
-                });
+                foundTracts = ffiecTracts.filter(function(t) { return t.county.toLowerCase() === matchedCounty.toLowerCase(); });
                 if (foundTracts.length > 0) {
                     foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
+                } else {
+                    geocodeAndZoom(matchedCounty + ' County, Oregon');
+                    updateUI(query);
+                    return;
                 }
             } else {
-                // Fuzzy search across all tracts
                 foundTracts = ffiecTracts.filter(function(t) {
-                    return t.city.toLowerCase().indexOf(queryLower) >= 0 ||
-                           t.county.toLowerCase().indexOf(queryLower) >= 0 ||
-                           t.tract.indexOf(queryLower) >= 0;
+                    return t.city.toLowerCase().indexOf(queryLower) >= 0 || t.county.toLowerCase().indexOf(queryLower) >= 0 || t.tract.indexOf(queryLower) >= 0;
                 });
                 if (foundTracts.length > 0) {
                     currentCity = foundTracts[0].city;
                     foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
                 } else {
-                    // Try city coordinates lookup
+                    var bestMatch = null;
                     for (var city in oregonCityCoords) {
-                        if (city.indexOf(queryLower) >= 0 || queryLower.indexOf(city) >= 0) {
-                            foundCoords = oregonCityCoords[city];
-                            currentCity = city.charAt(0).toUpperCase() + city.slice(1);
-                            break;
-                        }
+                        if (city.indexOf(queryLower) >= 0 || queryLower.indexOf(city) >= 0) { bestMatch = city; break; }
+                    }
+                    if (bestMatch) {
+                        foundCoords = oregonCityCoords[bestMatch];
+                        currentCity = bestMatch.charAt(0).toUpperCase() + bestMatch.slice(1);
+                    } else {
+                        geocodeAndZoom(query + ', Oregon');
+                        updateUI(query);
+                        return;
                     }
                 }
             }
             
-            // Update UI
-            document.getElementById('selectedCityDisplay').textContent = currentCity || query;
-            document.getElementById('citySelect').value = '';
-            
-            // Zoom map
-            if (foundCoords) {
-                map.setView(foundCoords, 13);
-            } else if (foundTracts.length > 0) {
-                map.setView([foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]], 13);
-            }
-            
-            // Update links
+            updateUI(currentCity || query);
+            if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(currentCity || query);
             
-            // Reload FFIEC tracts if visible
             if (ffiecVisible) {
                 clearPolygons();
                 ffiecVisible = false;
@@ -535,14 +565,42 @@
                 document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts';
                 toggleFFIECTracts();
             }
-            
             updateTractList(foundTracts);
+            document.getElementById('searchInput').style.borderColor = foundTracts.length > 0 ? '#10b981' : '#f59e0b';
+        }
+        
+        function updateUI(displayName) {
+            document.getElementById('selectedCityDisplay').textContent = displayName;
+            document.getElementById('citySelect').value = '';
+        }
+        
+        function geocodeAndZoom(location) {
+            document.getElementById('loadingBadge').style.display = 'block';
+            document.getElementById('loadingBadge').textContent = '⏳ Locating ' + location + '...';
             
-            if (foundTracts.length > 0) {
-                document.getElementById('searchInput').style.borderColor = '#10b981';
-            } else {
-                document.getElementById('searchInput').style.borderColor = '#f59e0b';
-            }
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(location) + '&format=json&limit=1', {
+                headers: { 'User-Agent': 'OregonIncomeMap/1.0' }
+            })
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                document.getElementById('loadingBadge').style.display = 'none';
+                if (data && data.length > 0) {
+                    var lat = parseFloat(data[0].lat);
+                    var lon = parseFloat(data[0].lon);
+                    map.setView([lat, lon], 12);
+                    currentCity = data[0].display_name.split(',')[0];
+                    updateUI(currentCity);
+                    updateLinksForCity(currentCity);
+                    document.getElementById('searchInput').style.borderColor = '#f59e0b';
+                    updateTractList([]);
+                } else {
+                    alert('Location not found: ' + location + '\n\nTry a different spelling or a larger nearby city.');
+                }
+            })
+            .catch(function() {
+                document.getElementById('loadingBadge').style.display = 'none';
+                alert('Unable to locate: ' + location + '\n\nPlease check your internet connection and try again.');
+            });
         }
         
         function onCitySelect() {
@@ -564,31 +622,21 @@
             }
             
             document.getElementById('loadingBadge').style.display = 'block';
-            
             var query = document.getElementById('searchInput').value.trim().toLowerCase();
             var city = document.getElementById('citySelect').value.replace(/-/g, ' ').toLowerCase();
             var searchTerm = query || city || '';
-            
             var displayTracts = ffiecTracts;
+            
             if (searchTerm) {
                 displayTracts = ffiecTracts.filter(function(t) {
-                    return t.city.toLowerCase().indexOf(searchTerm) >= 0 ||
-                           t.county.toLowerCase().indexOf(searchTerm) >= 0 ||
-                           t.tract.indexOf(searchTerm) >= 0;
+                    return t.city.toLowerCase().indexOf(searchTerm) >= 0 || t.county.toLowerCase().indexOf(searchTerm) >= 0 || t.tract.indexOf(searchTerm) >= 0;
                 });
             }
             
             clearPolygons();
-            
             displayTracts.forEach(function(tract) {
-                var polygon = L.polygon(tract.coords, {
-                    color: levelColors[tract.level],
-                    fillColor: levelColors[tract.level],
-                    fillOpacity: 0.4,
-                    weight: 3
-                });
-                
-                var popupContent = 
+                var polygon = L.polygon(tract.coords, {color: levelColors[tract.level], fillColor: levelColors[tract.level], fillOpacity: 0.4, weight: 3});
+                polygon.bindPopup(
                     '<div style="font-size:12px;line-height:1.5;">' +
                     '<strong style="font-size:14px;">Census Tract ' + tract.tract + '</strong><br>' +
                     '<strong>GEOID:</strong> ' + tract.geoid + '<br>' +
@@ -603,10 +651,8 @@
                     '🡑 <strong>North:</strong> ' + tract.streets.N + '<br>' +
                     '🡓 <strong>South:</strong> ' + tract.streets.S + '<br>' +
                     '🡒 <strong>East:</strong> ' + tract.streets.E + '<br>' +
-                    '🡐 <strong>West:</strong> ' + tract.streets.W +
-                    '</div>';
-                
-                polygon.bindPopup(popupContent);
+                    '🡐 <strong>West:</strong> ' + tract.streets.W + '</div>'
+                );
                 polygon.on('click', function() { map.fitBounds(polygon.getBounds().pad(0.3)); });
                 polygon.addTo(map);
                 tractPolygons.push({layer: polygon, tract: tract});
@@ -632,15 +678,13 @@
                 var lowCount = tracts.filter(function(t) { return t.level === 'Low'; }).length;
                 var modCount = tracts.filter(function(t) { return t.level === 'Moderate'; }).length;
                 html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | <span class="results-count">' + tracts.length + ' total</span></p>';
-                
                 tracts.forEach(function(t) {
                     var lc = t.level.toLowerCase();
                     html += '<div class="tract-item ' + lc + '" onclick="focusTract(\'' + t.geoid + '\')">' +
                         '<span class="tract-id">Tract ' + t.tract + '</span> - ' + t.level + ' Income' +
                         '<span class="tract-income">$' + t.income.toLocaleString() + ' | ' + (t.ratio*100).toFixed(0) + '% of MSA</span>' +
                         '<span class="tract-streets">🡑 ' + t.streets.N + ' | 🡓 ' + t.streets.S + ' | 🡒 ' + t.streets.E + ' | 🡐 ' + t.streets.W + '</span>' +
-                        '<button class="copy-btn" onclick="event.stopPropagation();copyTract(\'' + t.geoid + '\')">📋 Copy</button>' +
-                        '</div>';
+                        '<button class="copy-btn" onclick="event.stopPropagation();copyTract(\'' + t.geoid + '\')">📋 Copy</button></div>';
                 });
             }
             document.getElementById('tractList').innerHTML = html;
@@ -648,53 +692,27 @@
         
         function focusTract(geoid) {
             var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; });
-            if (found) {
-                map.fitBounds(found.layer.getBounds().pad(0.3));
-                found.layer.openPopup();
-            }
+            if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); }
         }
         
         function copyTract(geoid) {
             var tract = ffiecTracts.find(function(t) { return t.geoid === geoid; });
             if (!tract) return;
-            var text = '=== FFIEC 2026 Census Tract ' + tract.tract + ' ===\n' +
-                'GEOID: ' + tract.geoid + '\n' +
-                'City: ' + tract.city + ', ' + tract.county + ' County\n' +
-                'FFIEC Level: ' + tract.level + ' INCOME\n' +
-                'Median HH Income: $' + tract.income.toLocaleString() + '\n' +
-                'MSA Median: $' + tract.msaIncome.toLocaleString() + '\n' +
-                'Ratio: ' + (tract.ratio*100).toFixed(0) + '%\n\n' +
-                '--- ZILLOW MAP BOUNDARIES ---\n' +
-                'North: ' + tract.streets.N + '\n' +
-                'South: ' + tract.streets.S + '\n' +
-                'East:  ' + tract.streets.E + '\n' +
-                'West:  ' + tract.streets.W;
-            navigator.clipboard.writeText(text).then(function() {
-                alert('✅ Tract ' + tract.tract + ' boundaries copied!');
-            });
+            var text = '=== FFIEC 2026 Census Tract ' + tract.tract + ' ===\nGEOID: ' + tract.geoid + '\nCity: ' + tract.city + ', ' + tract.county + ' County\nFFIEC Level: ' + tract.level + ' INCOME\nMedian HH Income: $' + tract.income.toLocaleString() + '\nMSA Median: $' + tract.msaIncome.toLocaleString() + '\nRatio: ' + (tract.ratio*100).toFixed(0) + '%\n\n--- ZILLOW MAP BOUNDARIES ---\nNorth: ' + tract.streets.N + '\nSouth: ' + tract.streets.S + '\nEast:  ' + tract.streets.E + '\nWest:  ' + tract.streets.W;
+            navigator.clipboard.writeText(text).then(function() { alert('✅ Tract ' + tract.tract + ' boundaries copied!'); });
         }
         
-        function clearPolygons() {
-            tractPolygons.forEach(function(p) { map.removeLayer(p.layer); });
-            tractPolygons = [];
-        }
+        function clearPolygons() { tractPolygons.forEach(function(p) { map.removeLayer(p.layer); }); tractPolygons = []; }
         
         function toggleLevel(level, el) {
             visibleLevels[level] = !visibleLevels[level];
             el.classList.toggle('active', visibleLevels[level]);
             tractPolygons.forEach(function(p) {
-                if (p.tract.level === level) {
-                    p.layer.setStyle({
-                        fillOpacity: visibleLevels[level] ? 0.4 : 0,
-                        weight: visibleLevels[level] ? 3 : 0
-                    });
-                }
+                if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0});
             });
         }
         
-        function updateLinks() {
-            updateLinksForCity(currentCity || '');
-        }
+        function updateLinks() { updateLinksForCity(currentCity || ''); }
         
         function updateLinksForCity(cityName) {
             if (!cityName) return;
@@ -726,11 +744,8 @@
             updateTractList([]);
         }
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-container')) {
-                document.getElementById('searchDropdown').classList.remove('show');
-            }
+            if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show');
         });
         
         window.toggleFFIECTracts = toggleFFIECTracts;
