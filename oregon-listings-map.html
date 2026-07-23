@@ -404,63 +404,62 @@
             }
         }
         
-                        function showUSDALayer(btn) {
+                               function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
             }
             
-            // Show all property keys from the first feature to debug
-            var firstFeature = usdaData.features[0];
-            var props = firstFeature.properties || {};
-            var propKeys = Object.keys(props);
-            var firstFewKeys = propKeys.slice(0, 10).join(', ');
-            var sampleValues = {};
-            propKeys.slice(0, 5).forEach(function(k) {
-                sampleValues[k] = props[k];
-            });
+            // Oregon bounding box: [lat min, lng min, lat max, lng max]
+            var oregonBounds = {
+                north: 46.3,
+                south: 42.0,
+                east: -116.5,
+                west: -124.6
+            };
             
-            alert('Total features: ' + usdaData.features.length + 
-                  '\n\nProperty keys: ' + firstFewKeys +
-                  '\n\nSample values: ' + JSON.stringify(sampleValues, null, 2));
-            
-            // Now try to find the state property and filter
-            var stateKey = null;
-            for (var i = 0; i < propKeys.length; i++) {
-                var key = propKeys[i];
-                var val = (props[key] + '').toUpperCase();
-                if (val === 'OR' || val === 'OREGON' || val === '41') {
-                    stateKey = key;
-                    break;
-                }
-            }
-            
-            if (!stateKey) {
-                // Try fuzzy matching
-                for (var j = 0; j < propKeys.length; j++) {
-                    var k = propKeys[j];
-                    var kLower = k.toLowerCase();
-                    if (kLower.indexOf('state') >= 0 || kLower.indexOf('st') >= 0) {
-                        stateKey = k;
-                        break;
+            // Filter features by geographic location (within Oregon bounds)
+            var oregonFeatures = usdaData.features.filter(function(feature) {
+                if (!feature.geometry) return false;
+                
+                // Get coordinates from the feature
+                var coords = [];
+                var geom = feature.geometry;
+                
+                function extractCoords(geometry) {
+                    if (geometry.type === 'Point') {
+                        coords.push(geometry.coordinates);
+                    } else if (geometry.type === 'MultiPoint' || geometry.type === 'LineString') {
+                        geometry.coordinates.forEach(function(c) { coords.push(c); });
+                    } else if (geometry.type === 'MultiLineString' || geometry.type === 'Polygon') {
+                        geometry.coordinates.forEach(function(ring) {
+                            ring.forEach(function(c) { coords.push(c); });
+                        });
+                    } else if (geometry.type === 'MultiPolygon') {
+                        geometry.coordinates.forEach(function(polygon) {
+                            polygon.forEach(function(ring) {
+                                ring.forEach(function(c) { coords.push(c); });
+                            });
+                        });
                     }
                 }
-            }
-            
-            if (!stateKey) {
-                alert('Could not find state property. Available keys: ' + propKeys.join(', '));
-                return;
-            }
-            
-            // Filter for Oregon
-            var oregonFeatures = usdaData.features.filter(function(feature) {
-                var p = feature.properties || {};
-                var val = (p[stateKey] + '').toUpperCase();
-                return val === 'OR' || val === 'OREGON' || val === '41';
+                
+                extractCoords(geom);
+                
+                // Check if any coordinate falls within Oregon bounds
+                for (var i = 0; i < coords.length; i++) {
+                    var lng = coords[i][0];
+                    var lat = coords[i][1];
+                    if (lat >= oregonBounds.south && lat <= oregonBounds.north &&
+                        lng >= oregonBounds.west && lng <= oregonBounds.east) {
+                        return true;
+                    }
+                }
+                return false;
             });
             
             if (oregonFeatures.length === 0) {
-                alert('No Oregon features found using key: ' + stateKey + '. Sample value: ' + props[stateKey]);
+                alert('No features found within Oregon bounds. Total features: ' + usdaData.features.length);
                 return;
             }
             
@@ -471,9 +470,9 @@
                     return { color: '#166534', fillColor: '#22c55e', fillOpacity: 0.25, weight: 2 };
                 },
                 onEachFeature: function(feature, layer) {
-                    var p = feature.properties || {};
-                    var name = p.NAME || p.name || p.DISTRICT || '';
-                    layer.bindPopup('<strong>🏠 USDA RD Eligibility Zone</strong><br>' + (name ? name + '<br>' : '') + '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>');
+                    var props = feature.properties || {};
+                    var name = props.NAME || props.name || props.objectid || '';
+                    layer.bindPopup('<strong>🏠 USDA RD Eligibility Zone</strong><br>' + (name ? 'ID: ' + name + '<br>' : '') + '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>');
                 }
             }).addTo(map);
             
