@@ -483,17 +483,6 @@
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }
-            // Update legend
-            var legendBox = document.querySelector('.legend-box');
-            if (legendBox) {
-                var existingUsdaLegend = document.getElementById('usdaLegendItem');
-                if (!existingUsdaLegend) {
-                    var usdaLegendItem = document.createElement('div');
-                    usdaLegendItem.id = 'usdaLegendItem';
-                    usdaLegendItem.className = 'legend-item';
-                    usdaLegendItem.innerHTML = '<div class="legend-swatch" style="background:#ef4444;border-style:dashed;"></div> 🚫 Ineligible (shaded)<br><small style="color:#22c55e;margin-left:22px;">✅ Eligible = outside shading</small>';
-                    legendBox.appendChild(usdaLegendItem);
-                }
-                  }</script>
+            </script>
 </body>
 </html>
