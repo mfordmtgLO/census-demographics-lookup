@@ -463,10 +463,12 @@
                 style: function(feature) {
                     return { color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
                 },
-                onEachFeature: function(feature, layer) {
+                                onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
                     var name = props.objectid || props.NAME || props.name || '';
-                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone ID: ' + name + '<br>' : '') + '<small style="color:#dc2626;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
+                    // Fix mislabeled regions
+                    if (name === 'Washington') name = 'Oregon (Portland Region)';
+                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#dc2626;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
                 }
             }).addTo(map);
             
