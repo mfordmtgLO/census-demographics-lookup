@@ -404,13 +404,12 @@
             }
         }
         
-                                                                       function showUSDALayer(btn) {
+                                                                                function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
             }
             
-            // Convert Web Mercator to WGS84 lat/lng
             function webMercatorToLatLng(x, y) {
                 var lng = (x / 20037508.34) * 180;
                 var lat = (y / 20037508.34) * 180;
@@ -418,11 +417,9 @@
                 return [lng, lat];
             }
             
-            // Filter features within Oregon bounds - expanded range for all of Oregon
             var oregonFeatures = usdaData.features.filter(function(feature) {
                 if (!feature.geometry || !feature.geometry.coordinates) return false;
                 var coords = JSON.stringify(feature.geometry.coordinates);
-                // Check for Oregon Y range: 4800000-5850000 (covers Brookings to Astoria)
                 var hasOregonY = false;
                 var matches = coords.match(/\d{7}/g);
                 if (matches) {
@@ -441,13 +438,10 @@
                 oregonFeatures = usdaData.features.slice(0, 50);
             }
             
-            // Convert coordinates for each feature
             var convertedFeatures = oregonFeatures.map(function(feature) {
                 var newFeature = JSON.parse(JSON.stringify(feature));
-                
                 function convertCoords(coords) {
-                    if (typeof coords[0] === 'number' && typeof coords[1] === 'number' && 
-                        Math.abs(coords[0]) > 180 && Math.abs(coords[1]) > 90) {
+                    if (typeof coords[0] === 'number' && typeof coords[1] === 'number' && Math.abs(coords[0]) > 180 && Math.abs(coords[1]) > 90) {
                         return webMercatorToLatLng(coords[0], coords[1]);
                     }
                     if (Array.isArray(coords[0])) {
@@ -455,40 +449,24 @@
                     }
                     return coords;
                 }
-                
                 if (newFeature.geometry && newFeature.geometry.coordinates) {
                     newFeature.geometry.coordinates = convertCoords(newFeature.geometry.coordinates);
                 }
-                
                 return newFeature;
             });
             
             var convertedData = {type: "FeatureCollection", features: convertedFeatures};
             
-            // Clear any existing USDA layer
             if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); }
             
-            // Create the USDA layer - red = INELIGIBLE areas
             usdaLayerGroup = L.geoJSON(convertedData, {
                 style: function(feature) {
-                    return { 
-                        color: '#dc2626', 
-                        fillColor: '#ef4444', 
-                        fillOpacity: 0.2, 
-                        weight: 2,
-                        dashArray: '5, 5'
-                    };
+                    return { color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
                 },
                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
                     var name = props.objectid || props.NAME || props.name || '';
-                    layer.bindPopup(
-                        '<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' +
-                        (name ? 'Zone ID: ' + name + '<br>' : '') +
-                        '<small style="color:#dc2626;">This shaded area is <strong>NOT eligible</strong> for USDA Rural Development programs</small><br>' +
-                        '<hr style="border-color:#444;margin:4px 0;">' +
-                        '<small style="color:#22c55e;">✅ Areas <strong>OUTSIDE</strong> the red shading ARE eligible</small>'
-                    );
+                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone ID: ' + name + '<br>' : '') + '<small style="color:#dc2626;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
                 }
             }).addTo(map);
             
@@ -498,7 +476,6 @@
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }
-            
             // Update legend
             var legendBox = document.querySelector('.legend-box');
             if (legendBox) {
