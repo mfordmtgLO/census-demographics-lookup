@@ -404,23 +404,63 @@
             }
         }
         
-                function showUSDALayer(btn) {
+                        function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
             }
             
-            // Filter for Oregon only
+            // Show all property keys from the first feature to debug
+            var firstFeature = usdaData.features[0];
+            var props = firstFeature.properties || {};
+            var propKeys = Object.keys(props);
+            var firstFewKeys = propKeys.slice(0, 10).join(', ');
+            var sampleValues = {};
+            propKeys.slice(0, 5).forEach(function(k) {
+                sampleValues[k] = props[k];
+            });
+            
+            alert('Total features: ' + usdaData.features.length + 
+                  '\n\nProperty keys: ' + firstFewKeys +
+                  '\n\nSample values: ' + JSON.stringify(sampleValues, null, 2));
+            
+            // Now try to find the state property and filter
+            var stateKey = null;
+            for (var i = 0; i < propKeys.length; i++) {
+                var key = propKeys[i];
+                var val = (props[key] + '').toUpperCase();
+                if (val === 'OR' || val === 'OREGON' || val === '41') {
+                    stateKey = key;
+                    break;
+                }
+            }
+            
+            if (!stateKey) {
+                // Try fuzzy matching
+                for (var j = 0; j < propKeys.length; j++) {
+                    var k = propKeys[j];
+                    var kLower = k.toLowerCase();
+                    if (kLower.indexOf('state') >= 0 || kLower.indexOf('st') >= 0) {
+                        stateKey = k;
+                        break;
+                    }
+                }
+            }
+            
+            if (!stateKey) {
+                alert('Could not find state property. Available keys: ' + propKeys.join(', '));
+                return;
+            }
+            
+            // Filter for Oregon
             var oregonFeatures = usdaData.features.filter(function(feature) {
-                var props = feature.properties || {};
-                var stusps = (props.STUSPS || props.stusps || '').toUpperCase();
-                var statefp = (props.STATEFP || props.statefp || '');
-                var stateName = (props['state name'] || props.STATE_NAME || props.state_name || '').toUpperCase();
-                return stusps === 'OR' || statefp === '41' || stateName === 'OREGON';
+                var p = feature.properties || {};
+                var val = (p[stateKey] + '').toUpperCase();
+                return val === 'OR' || val === 'OREGON' || val === '41';
             });
             
             if (oregonFeatures.length === 0) {
-                alert('No Oregon features found in USDA data. Found ' + usdaData.features.length + ' total features. First feature STUSPS: ' + (usdaData.features[0].properties.STUSPS || 'not found'));
+                alert('No Oregon features found using key: ' + stateKey + '. Sample value: ' + props[stateKey]);
                 return;
             }
             
@@ -428,21 +468,12 @@
             
             usdaLayerGroup = L.geoJSON(oregonData, {
                 style: function(feature) {
-                    return {
-                        color: '#166534',
-                        fillColor: '#22c55e',
-                        fillOpacity: 0.25,
-                        weight: 2
-                    };
+                    return { color: '#166534', fillColor: '#22c55e', fillOpacity: 0.25, weight: 2 };
                 },
                 onEachFeature: function(feature, layer) {
-                    var props = feature.properties || {};
-                    var name = props.NAME || props.name || props.DISTRICT || props['state name'] || '';
-                    layer.bindPopup(
-                        '<strong>🏠 USDA RD Eligibility Zone</strong><br>' +
-                        (name ? name + '<br>' : '') +
-                        '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>'
-                    );
+                    var p = feature.properties || {};
+                    var name = p.NAME || p.name || p.DISTRICT || '';
+                    layer.bindPopup('<strong>🏠 USDA RD Eligibility Zone</strong><br>' + (name ? name + '<br>' : '') + '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>');
                 }
             }).addTo(map);
             
@@ -450,11 +481,7 @@
             btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
             usdaLayerVisible = true;
             
-            try {
-                map.fitBounds(usdaLayerGroup.getBounds().pad(0.1));
-            } catch(e) {
-                map.setView([44.0, -120.5], 7);
-            }
+            try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }</script>
 </body>
 </html>
