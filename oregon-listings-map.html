@@ -404,7 +404,7 @@
             }
         }
         
-                                               function showUSDALayer(btn) {
+                                                       function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
@@ -418,19 +418,10 @@
                 return [lng, lat];
             }
             
-            // Oregon bounding box in Web Mercator (approximate)
-            var oregonBoundsWM = {
-                north: 5800000,
-                south: 5000000,
-                east: -12900000,
-                west: -13900000
-            };
-            
             // Filter features within Oregon bounds (in Web Mercator)
             var oregonFeatures = usdaData.features.filter(function(feature) {
                 if (!feature.geometry || !feature.geometry.coordinates) return false;
                 var coords = JSON.stringify(feature.geometry.coordinates);
-                // Check if any Oregon-latitude-range values exist in coordinates
                 return coords.indexOf('5000') >= 0 || coords.indexOf('5100') >= 0 || 
                        coords.indexOf('5200') >= 0 || coords.indexOf('5300') >= 0 ||
                        coords.indexOf('5400') >= 0 || coords.indexOf('5500') >= 0 ||
@@ -439,7 +430,6 @@
             
             if (oregonFeatures.length === 0) {
                 oregonFeatures = usdaData.features.slice(0, 100);
-                alert('Using first 100 features for testing. Found ' + oregonFeatures.length + ' features.');
             }
             
             // Convert coordinates for each feature
@@ -466,17 +456,26 @@
             
             var convertedData = {type: "FeatureCollection", features: convertedFeatures};
             
+            // Clear any existing USDA layer
+            if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); }
+            
+            // Create the USDA eligibility layer with reversed logic
             usdaLayerGroup = L.geoJSON(convertedData, {
                 style: function(feature) {
-                    return { color: '#166534', fillColor: '#22c55e', fillOpacity: 0.25, weight: 2 };
+                    return { 
+                        color: '#166534', 
+                        fillColor: '#22c55e', 
+                        fillOpacity: 0.25, 
+                        weight: 2 
+                    };
                 },
                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
                     var name = props.objectid || props.NAME || props.name || '';
                     layer.bindPopup(
-                        '<strong>🏠 USDA RD Eligibility Zone</strong><br>' +
-                        (name ? 'ID: ' + name + '<br>' : '') +
-                        '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>'
+                        '<strong>🏠 USDA RD Eligible Area</strong><br>' +
+                        (name ? 'Zone ID: ' + name + '<br>' : '') +
+                        '<small style="color:#166534;">This area IS eligible for USDA Rural Development programs</small>'
                     );
                 }
             }).addTo(map);
@@ -486,6 +485,11 @@
             usdaLayerVisible = true;
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+            
+            // Update the legend to clarify
+            document.getElementById('tractList').insertAdjacentHTML('afterbegin', 
+                '<div style="background:#0d2137;padding:6px 10px;margin-bottom:5px;border-radius:4px;border-left:3px solid #22c55e;">' +
+                '<small style="color:#22c55e;">🟢 <strong>USDA Eligible Areas</strong> shown in green</small></div>');
         }</script>
 </body>
 </html>
