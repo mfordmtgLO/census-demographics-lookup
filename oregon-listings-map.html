@@ -381,8 +381,7 @@
                 if (usdaBox) usdaBox.remove();
                 return;
             }
-            
-            if (!usdaDataLoaded) {
+                        if (!usdaDataLoaded) {
                 document.getElementById('loadingBadge').style.display = 'block';
                 document.getElementById('loadingBadge').textContent = '⏳ Loading USDA eligibility zones (1.8MB)...';
                 btn.disabled = true;
