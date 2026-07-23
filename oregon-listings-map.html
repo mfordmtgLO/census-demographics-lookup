@@ -132,7 +132,10 @@
         <div class="sidebar">
             <h3>🏘️ Active Listings Quick Links:</h3>
             <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:14px;margin-bottom:2px;">Search a city or county above</p>
-            <small style="color:#8899aa;">💰 Price filter:</small>
+                        <small style="color:#8899aa;">💰 Price filter:</small>
+            <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
+                <input type="number" id="maxPrice" placeholder="Max Price $" value="" onchange="updateLinks()" style="padding:4px 8px;border-radius:4px;border:1px solid #3a5a8c;background:#0d2137;color:white;font-size:10px;width:90px;flex:1;">
+            </div>
             <div class="price-tags">
                 <span class="price-tag active" onclick="setPrice('', this)">All</span>
                 <span class="price-tag" onclick="setPrice(500000, this)">Under $500K</span>
