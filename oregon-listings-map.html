@@ -404,7 +404,7 @@
             }
         }
         
-                                                               function showUSDALayer(btn) {
+                                                                       function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
@@ -418,18 +418,27 @@
                 return [lng, lat];
             }
             
-            // Filter features within Oregon bounds (in Web Mercator)
+            // Filter features within Oregon bounds - expanded range for all of Oregon
             var oregonFeatures = usdaData.features.filter(function(feature) {
                 if (!feature.geometry || !feature.geometry.coordinates) return false;
                 var coords = JSON.stringify(feature.geometry.coordinates);
-                return coords.indexOf('5000') >= 0 || coords.indexOf('5100') >= 0 || 
-                       coords.indexOf('5200') >= 0 || coords.indexOf('5300') >= 0 ||
-                       coords.indexOf('5400') >= 0 || coords.indexOf('5500') >= 0 ||
-                       coords.indexOf('5600') >= 0 || coords.indexOf('5700') >= 0;
+                // Check for Oregon Y range: 4800000-5850000 (covers Brookings to Astoria)
+                var hasOregonY = false;
+                var matches = coords.match(/\d{7}/g);
+                if (matches) {
+                    for (var i = 0; i < matches.length; i++) {
+                        var num = parseInt(matches[i]);
+                        if (num >= 4800000 && num <= 5850000) {
+                            hasOregonY = true;
+                            break;
+                        }
+                    }
+                }
+                return hasOregonY;
             });
             
             if (oregonFeatures.length === 0) {
-                oregonFeatures = usdaData.features.slice(0, 100);
+                oregonFeatures = usdaData.features.slice(0, 50);
             }
             
             // Convert coordinates for each feature
@@ -459,7 +468,7 @@
             // Clear any existing USDA layer
             if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); }
             
-            // Create the USDA layer - green = INELIGIBLE areas
+            // Create the USDA layer - red = INELIGIBLE areas
             usdaLayerGroup = L.geoJSON(convertedData, {
                 style: function(feature) {
                     return { 
@@ -488,6 +497,7 @@
             usdaLayerVisible = true;
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+        }
             
             // Update legend
             var legendBox = document.querySelector('.legend-box');
