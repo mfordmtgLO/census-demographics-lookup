@@ -372,11 +372,13 @@
         function toggleUSDALayer() {
             var btn = document.getElementById('btnUSDAToggle');
             
-            if (usdaLayerVisible) {
+                        if (usdaLayerVisible) {
                 if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
                 btn.classList.remove('active');
                 btn.textContent = '🗺️ USDA Zones';
                 usdaLayerVisible = false;
+                var usdaBox = document.getElementById('usdaLegendBox');
+                if (usdaBox) usdaBox.remove();
                 return;
             }
             
@@ -478,17 +480,21 @@
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }
-            // Update legend
-            var legendBox = document.querySelector('.legend-box');
-            if (legendBox) {
-                var existingUsdaLegend = document.getElementById('usdaLegendItem');
-                if (!existingUsdaLegend) {
-                    var usdaLegendItem = document.createElement('div');
-                    usdaLegendItem.id = 'usdaLegendItem';
-                    usdaLegendItem.className = 'legend-item';
-                    usdaLegendItem.innerHTML = '<div class="legend-swatch" style="background:#ef4444;border-style:dashed;"></div> 🚫 Ineligible (shaded)<br><small style="color:#22c55e;margin-left:22px;">✅ Eligible = outside shading</small>';
-                    legendBox.appendChild(usdaLegendItem);
-                }
+                       // Add or update USDA legend section in sidebar
+            var existingUsdaBox = document.getElementById('usdaLegendBox');
+            if (!existingUsdaBox) {
+                var usdaLegendBox = document.createElement('div');
+                usdaLegendBox.id = 'usdaLegendBox';
+                usdaLegendBox.className = 'legend-box';
+                usdaLegendBox.style.marginTop = '6px';
+                usdaLegendBox.innerHTML = '<h4>🚫 USDA RD Eligibility Zones</h4>' +
+                    '<div class="legend-item"><div class="legend-swatch" style="background:#ef4444;border:2px dashed #dc2626;"></div> 🚫 Ineligible (red shaded)</div>' +
+                    '<div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div> ✅ Eligible (outside shading)</div>' +
+                    '<div class="legend-item"><small style="color:#8899aa;">Click red areas to confirm</small></div>';
+                
+                var tractList = document.getElementById('tractList');
+                tractList.parentNode.insertBefore(usdaLegendBox, tractList);
+            }
                   }</script>
 </body>
 </html>
