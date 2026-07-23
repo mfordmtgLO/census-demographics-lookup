@@ -404,7 +404,7 @@
             }
         }
         
-                                                       function showUSDALayer(btn) {
+                                                               function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
@@ -459,23 +459,26 @@
             // Clear any existing USDA layer
             if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); }
             
-            // Create the USDA eligibility layer with reversed logic
+            // Create the USDA layer - green = INELIGIBLE areas
             usdaLayerGroup = L.geoJSON(convertedData, {
                 style: function(feature) {
                     return { 
-                        color: '#166534', 
-                        fillColor: '#22c55e', 
-                        fillOpacity: 0.25, 
-                        weight: 2 
+                        color: '#dc2626', 
+                        fillColor: '#ef4444', 
+                        fillOpacity: 0.2, 
+                        weight: 2,
+                        dashArray: '5, 5'
                     };
                 },
                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
                     var name = props.objectid || props.NAME || props.name || '';
                     layer.bindPopup(
-                        '<strong>🏠 USDA RD Eligible Area</strong><br>' +
+                        '<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' +
                         (name ? 'Zone ID: ' + name + '<br>' : '') +
-                        '<small style="color:#166534;">This area IS eligible for USDA Rural Development programs</small>'
+                        '<small style="color:#dc2626;">This shaded area is <strong>NOT eligible</strong> for USDA Rural Development programs</small><br>' +
+                        '<hr style="border-color:#444;margin:4px 0;">' +
+                        '<small style="color:#22c55e;">✅ Areas <strong>OUTSIDE</strong> the red shading ARE eligible</small>'
                     );
                 }
             }).addTo(map);
@@ -486,10 +489,18 @@
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
             
-            // Update the legend to clarify
-            document.getElementById('tractList').insertAdjacentHTML('afterbegin', 
-                '<div style="background:#0d2137;padding:6px 10px;margin-bottom:5px;border-radius:4px;border-left:3px solid #22c55e;">' +
-                '<small style="color:#22c55e;">🟢 <strong>USDA Eligible Areas</strong> shown in green</small></div>');
+            // Update legend
+            var legendBox = document.querySelector('.legend-box');
+            if (legendBox) {
+                var existingUsdaLegend = document.getElementById('usdaLegendItem');
+                if (!existingUsdaLegend) {
+                    var usdaLegendItem = document.createElement('div');
+                    usdaLegendItem.id = 'usdaLegendItem';
+                    usdaLegendItem.className = 'legend-item';
+                    usdaLegendItem.innerHTML = '<div class="legend-swatch" style="background:#ef4444;border-style:dashed;"></div> 🚫 Ineligible (shaded)<br><small style="color:#22c55e;margin-left:22px;">✅ Eligible = outside shading</small>';
+                    legendBox.appendChild(usdaLegendItem);
+                }
+            }
         }</script>
 </body>
 </html>
