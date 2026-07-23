@@ -404,83 +404,54 @@
             }
         }
         
-                               function showUSDALayer(btn) {
+                                       function showUSDALayer(btn) {
             if (!usdaData || !usdaData.features) {
                 alert('USDA data not properly loaded.');
                 return;
             }
             
-            // Oregon bounding box: [lat min, lng min, lat max, lng max]
-            var oregonBounds = {
-                north: 46.3,
-                south: 42.0,
-                east: -116.5,
-                west: -124.6
-            };
+            // Debug: examine first feature
+            var first = usdaData.features[0];
+            var geomType = first.geometry ? first.geometry.type : 'NO GEOMETRY';
+            var geomKeys = first.geometry ? Object.keys(first.geometry) : [];
+            var sampleCoords = '';
             
-            // Filter features by geographic location (within Oregon bounds)
-            var oregonFeatures = usdaData.features.filter(function(feature) {
-                if (!feature.geometry) return false;
-                
-                // Get coordinates from the feature
-                var coords = [];
-                var geom = feature.geometry;
-                
-                function extractCoords(geometry) {
-                    if (geometry.type === 'Point') {
-                        coords.push(geometry.coordinates);
-                    } else if (geometry.type === 'MultiPoint' || geometry.type === 'LineString') {
-                        geometry.coordinates.forEach(function(c) { coords.push(c); });
-                    } else if (geometry.type === 'MultiLineString' || geometry.type === 'Polygon') {
-                        geometry.coordinates.forEach(function(ring) {
-                            ring.forEach(function(c) { coords.push(c); });
-                        });
-                    } else if (geometry.type === 'MultiPolygon') {
-                        geometry.coordinates.forEach(function(polygon) {
-                            polygon.forEach(function(ring) {
-                                ring.forEach(function(c) { coords.push(c); });
-                            });
-                        });
-                    }
+            if (first.geometry && first.geometry.coordinates) {
+                try {
+                    sampleCoords = JSON.stringify(first.geometry.coordinates).substring(0, 300);
+                } catch(e) {
+                    sampleCoords = 'Error getting coordinates';
                 }
-                
-                extractCoords(geom);
-                
-                // Check if any coordinate falls within Oregon bounds
-                for (var i = 0; i < coords.length; i++) {
-                    var lng = coords[i][0];
-                    var lat = coords[i][1];
-                    if (lat >= oregonBounds.south && lat <= oregonBounds.north &&
-                        lng >= oregonBounds.west && lng <= oregonBounds.east) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-            
-            if (oregonFeatures.length === 0) {
-                alert('No features found within Oregon bounds. Total features: ' + usdaData.features.length);
-                return;
             }
             
-            var oregonData = {type: "FeatureCollection", features: oregonFeatures};
+            // Check if coordinates are in [lat,lng] or [lng,lat] format
+            // Oregon center is roughly 44.0, -120.5
+            var foundOregon = false;
+            var testCount = 0;
             
-            usdaLayerGroup = L.geoJSON(oregonData, {
-                style: function(feature) {
-                    return { color: '#166534', fillColor: '#22c55e', fillOpacity: 0.25, weight: 2 };
-                },
-                onEachFeature: function(feature, layer) {
-                    var props = feature.properties || {};
-                    var name = props.NAME || props.name || props.objectid || '';
-                    layer.bindPopup('<strong>🏠 USDA RD Eligibility Zone</strong><br>' + (name ? 'ID: ' + name + '<br>' : '') + '<small style="color:#166534;">Eligible for USDA Rural Development programs</small>');
+            for (var i = 0; i < Math.min(100, usdaData.features.length); i++) {
+                var feature = usdaData.features[i];
+                if (!feature.geometry || !feature.geometry.coordinates) continue;
+                
+                var coords = JSON.stringify(feature.geometry.coordinates);
+                // Check for Oregon-related numbers in the coordinates
+                if (coords.indexOf('44.') >= 0 || coords.indexOf('45.') >= 0 || coords.indexOf('43.') >= 0 ||
+                    coords.indexOf('-120') >= 0 || coords.indexOf('-121') >= 0 || coords.indexOf('-122') >= 0 ||
+                    coords.indexOf('-123') >= 0 || coords.indexOf('-124') >= 0 || coords.indexOf('-117') >= 0 ||
+                    coords.indexOf('-118') >= 0 || coords.indexOf('-119') >= 0) {
+                    foundOregon = true;
+                    testCount++;
+                    if (testCount <= 3) {
+                        sampleCoords += '\n\nFeature ' + i + ' coords preview: ' + coords.substring(0, 200);
+                    }
                 }
-            }).addTo(map);
+            }
             
-            btn.classList.add('active');
-            btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
-            usdaLayerVisible = true;
-            
-            try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+            alert('Geometry type: ' + geomType +
+                  '\nGeometry keys: ' + geomKeys.join(', ') +
+                  '\n\nFirst feature coords: ' + sampleCoords +
+                  '\n\nFound Oregon-like coords: ' + (foundOregon ? 'YES (' + testCount + ' features)' : 'NO') +
+                  '\n\nTry searching for: lat 44-46, lng -116 to -124');
         }</script>
 </body>
 </html>
