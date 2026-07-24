@@ -412,7 +412,7 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
                 document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong>';
             }
         }
-                        function setPrice(price, el) {
+                               function setPrice(price, el) {
             document.getElementById('maxPrice').value = price || '';
             document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
             el.classList.add('active');
