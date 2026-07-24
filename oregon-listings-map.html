@@ -319,7 +319,8 @@
             }
             updateUI(currentCity || query);
             if (foundCoords) map.setView(foundCoords, 13);
-            updateLinksForCity(currentCity || query);
+            updateLinksForCity(updateLinksForCity(currentCity || ''); 
+        }
             if (ffiecVisible) { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; toggleFFIECTracts(); }
             updateTractList(foundTracts);
             document.getElementById('searchInput').style.borderColor = foundTracts.length > 0 ? '#10b981' : '#f59e0b';
@@ -412,16 +413,11 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
                 document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong>';
             }
         }
-                function setPrice(price, el) {
+                        function setPrice(price, el) {
             document.getElementById('maxPrice').value = price || '';
             document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
             el.classList.add('active');
             updateLinks();
-            // Force refresh links
-            var realtorLink = document.getElementById('realtorLink');
-            var zillowLink = document.getElementById('zillowLink');
-            if (realtorLink.getAttribute('data-url')) realtorLink.href = realtorLink.getAttribute('data-url') + '&t=' + Date.now();
-            if (zillowLink.getAttribute('data-url')) zillowLink.href = zillowLink.getAttribute('data-url') + '?t=' + Date.now();
         }
         function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
         document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
