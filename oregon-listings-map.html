@@ -370,7 +370,14 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
         function clearPolygons() { tractPolygons.forEach(function(p) { map.removeLayer(p.layer); }); tractPolygons = []; }
         function toggleLevel(level, el) { visibleLevels[level] = !visibleLevels[level]; el.classList.toggle('active', visibleLevels[level]); tractPolygons.forEach(function(p) { if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0}); }); }
         function updateLinks() { updateLinksForCity(currentCity || ''); }
-        function updateLinksForCity(cityName) { if (!cityName) return; var maxPrice = document.getElementById('maxPrice').value || ''; var citySlug = cityName.toLowerCase().replace(/\s+/g, '-').replace('county', '').trim(); document.getElementById('realtorLink').href = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR' + (maxPrice ? '/price-na-' + maxPrice : ''); document.getElementById('zillowLink').href = 'https://www.zillow.com/' + citySlug + '-or/houses/'; }
+                function updateLinksForCity(cityName) {
+            if (!cityName) return;
+            var maxPrice = document.getElementById('maxPrice').value || '';
+            var cleanName = cityName.replace(/county/gi, '').trim();
+            var citySlug = cleanName.toLowerCase().replace(/\s+/g, '-').replace(/-+$/, '');
+            document.getElementById('realtorLink').href = 'https://www.realtor.com/realestateandhomes-search/' + citySlug + '_OR' + (maxPrice ? '/price-na-' + maxPrice : '');
+            document.getElementById('zillowLink').href = 'https://www.zillow.com/' + citySlug + '-or/houses/';
+        }
         function setPrice(price, el) { document.getElementById('maxPrice').value = price || ''; document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); }); el.classList.add('active'); updateLinks(); }
         function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
         document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
