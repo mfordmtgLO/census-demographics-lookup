@@ -320,7 +320,7 @@
             updateUI(currentCity || query);
             if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(updateLinksForCity(currentCity || ''); 
-        }
+        
             if (ffiecVisible) { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; toggleFFIECTracts(); }
             updateTractList(foundTracts);
             document.getElementById('searchInput').style.borderColor = foundTracts.length > 0 ? '#10b981' : '#f59e0b';
