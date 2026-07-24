@@ -374,7 +374,7 @@ html += '<p style="color:#8899aa;font-size:9px;">ðŸ”´ ' + lowCount + ' Low | ðŸŸ
         function clearPolygons() { tractPolygons.forEach(function(p) { map.removeLayer(p.layer); }); tractPolygons = []; }
         function toggleLevel(level, el) { visibleLevels[level] = !visibleLevels[level]; el.classList.toggle('active', visibleLevels[level]); tractPolygons.forEach(function(p) { if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0}); }); }
         
-                        function updateLinksForCity(cityName) {
+                                function updateLinksForCity(cityName) {
             if (!cityName) return;
             var maxPrice = document.getElementById('maxPrice').value || '';
             var cleanName = cityName.replace(/county/gi, '').trim();
@@ -382,22 +382,20 @@ html += '<p style="color:#8899aa;font-size:9px;">ðŸ”´ ' + lowCount + ' Low | ðŸŸ
             
             var searchTerm;
             if (isCounty) {
-                searchTerm = cleanName + ' County OR';
+                searchTerm = cleanName + '-County-OR';
             } else {
-                searchTerm = cityName + ' OR';
+                searchTerm = cityName.replace(/\s+/g, '-') + '-OR';
             }
             
-            var encodedSearch = encodeURIComponent(searchTerm);
-            
-            // Realtor.com with county/city search
-            var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + encodedSearch;
+            // Realtor.com with county/city search and price filter
+            var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + searchTerm;
             if (maxPrice) {
                 realtorUrl += '/price-na-' + maxPrice;
             }
             document.getElementById('realtorLink').href = realtorUrl;
             
             // Zillow with county/city search
-            var zillowSearch = searchTerm.replace(/\s+/g, '-').toLowerCase();
+            var zillowSearch = searchTerm.toLowerCase();
             document.getElementById('zillowLink').href = 'https://www.zillow.com/' + zillowSearch + '/houses/';
             
             // Update link labels
