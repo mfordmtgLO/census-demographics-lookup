@@ -374,7 +374,7 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
         function clearPolygons() { tractPolygons.forEach(function(p) { map.removeLayer(p.layer); }); tractPolygons = []; }
         function toggleLevel(level, el) { visibleLevels[level] = !visibleLevels[level]; el.classList.toggle('active', visibleLevels[level]); tractPolygons.forEach(function(p) { if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0}); }); }
         
-                                function updateLinksForCity(cityName) {
+                                        function updateLinksForCity(cityName) {
             if (!cityName) return;
             var maxPrice = document.getElementById('maxPrice').value || '';
             var cleanName = cityName.replace(/county/gi, '').trim();
@@ -392,22 +392,37 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             if (maxPrice) {
                 realtorUrl += '/price-na-' + maxPrice;
             }
+            // Force fresh URL with timestamp
             document.getElementById('realtorLink').href = realtorUrl;
+            document.getElementById('realtorLink').setAttribute('data-url', realtorUrl);
             
             // Zillow with county/city search
             var zillowSearch = searchTerm.toLowerCase();
-            document.getElementById('zillowLink').href = 'https://www.zillow.com/' + zillowSearch + '/houses/';
+            var zillowUrl = 'https://www.zillow.com/' + zillowSearch + '/houses/';
+            document.getElementById('zillowLink').href = zillowUrl;
+            document.getElementById('zillowLink').setAttribute('data-url', zillowUrl);
             
             // Update link labels
+            var priceLabel = maxPrice ? ' (Max $' + parseInt(maxPrice).toLocaleString() + ')' : '';
             if (isCounty) {
-                document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong> (' + cleanName + ' County)';
+                document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong> (' + cleanName + ' County' + priceLabel + ')';
                 document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong> (' + cleanName + ' County)';
             } else {
-                document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong> (Price filtered)';
+                document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong>' + (maxPrice ? ' (Max $' + parseInt(maxPrice).toLocaleString() + ')' : '');
                 document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong>';
             }
         }
-        function setPrice(price, el) { document.getElementById('maxPrice').value = price || ''; document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); }); el.classList.add('active'); updateLinks(); }
+                function setPrice(price, el) {
+            document.getElementById('maxPrice').value = price || '';
+            document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
+            el.classList.add('active');
+            updateLinks();
+            // Force refresh links
+            var realtorLink = document.getElementById('realtorLink');
+            var zillowLink = document.getElementById('zillowLink');
+            if (realtorLink.getAttribute('data-url')) realtorLink.href = realtorLink.getAttribute('data-url') + '&t=' + Date.now();
+            if (zillowLink.getAttribute('data-url')) zillowLink.href = zillowLink.getAttribute('data-url') + '?t=' + Date.now();
+        }
         function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
         document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
             var usdaLayerGroup = null;
