@@ -369,7 +369,7 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
         function copyTract(geoid) { var tract = ffiecTracts.find(function(t) { return t.geoid === geoid; }); if (!tract) return; var text = '=== FFIEC 2024-2026 Census Tract ' + tract.tract + ' ===\nGEOID: ' + tract.geoid + '\nCity: ' + tract.city + ', ' + tract.county + ' County\nFFIEC Level: ' + tract.level + ' INCOME\nMedian HH Income: $' + tract.income.toLocaleString() + '\nMSA Median: $' + tract.msaIncome.toLocaleString() + '\nRatio: ' + (tract.ratio*100).toFixed(0) + '%\n\n--- ZILLOW MAP BOUNDARIES ---\nNorth: ' + tract.streets.N + '\nSouth: ' + tract.streets.S + '\nEast:  ' + tract.streets.E + '\nWest:  ' + tract.streets.W; navigator.clipboard.writeText(text).then(function() { alert('✅ Tract ' + tract.tract + ' boundaries copied!'); }); }
         function clearPolygons() { tractPolygons.forEach(function(p) { map.removeLayer(p.layer); }); tractPolygons = []; }
         function toggleLevel(level, el) { visibleLevels[level] = !visibleLevels[level]; el.classList.toggle('active', visibleLevels[level]); tractPolygons.forEach(function(p) { if (p.tract.level === level) p.layer.setStyle({fillOpacity: visibleLevels[level] ? 0.4 : 0, weight: visibleLevels[level] ? 3 : 0}); }); }
-        function updateLinks() { updateLinksForCity(currentCity || ''); }
+        
                 function updateLinksForCity(cityName) {
             if (!cityName) return;
             var maxPrice = document.getElementById('maxPrice').value || '';
