@@ -418,6 +418,17 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             el.classList.add('active');
             updateLinks();
         }
+                function updateLinks() {
+            var city = currentCity || '';
+            if (!city) {
+                var searchInput = document.getElementById('searchInput').value.trim();
+                var citySelect = document.getElementById('citySelect').value.replace(/-/g, ' ');
+                city = searchInput || citySelect || '';
+            }
+            if (city) {
+                updateLinksForCity(city);
+            }
+        }
         function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
         document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
             var usdaLayerGroup = null;
