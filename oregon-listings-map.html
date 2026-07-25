@@ -546,4 +546,522 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
         }
             </script>
 </body>
+    <!-- ================================================================= -->
+<!-- OREGON FIRST-TIME HOMEBUYER & CENSUS TRACT LOAN HEADER PLUGIN     -->
+<!-- ================================================================= -->
+<div class="or-loan-header-plugin" id="orLoanHeader">
+  <!-- Dynamic Canvas Background (Simulates Video Animation Loop) -->
+  <canvas id="headerBgCanvas"></canvas>
+  <div class="header-overlay"></div>
+
+  <!-- Header Content Viewport -->
+  <div class="header-viewport">
+    
+    <!-- SLIDE 1: Oregon First-Time Homebuyer Products -->
+    <div class="header-slide active" data-type="product">
+      <div class="slide-badge"><span class="pulse-dot"></span> OREGON HOUSING PROGRAMS</div>
+      <h2 class="slide-title">First-Time Homebuyer Assistance in <span class="highlight">Oregon</span></h2>
+      <p class="slide-desc">OHCS Oregon Bond Residential Loan & Cash Advantage: Get up to 3% down payment assistance with below-market fixed interest rates.</p>
+      <div class="slide-tags">
+        <span class="tag">RateAdvantage</span>
+        <span class="tag">Cash Advantage</span>
+        <span class="tag">Flex Lending</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: ATTENTION CTA 1 (Fixed Interval Interrupt) -->
+    <div class="header-slide cta-slide" data-type="cta">
+      <div class="cta-alert-badge">⚡ OREGON BUYER ATTENTION</div>
+      <h2 class="slide-title cta-heading">Do You Qualify For <span class="gold-text">$15,000+</span> In Down Payment Grants?</h2>
+      <p class="slide-desc">Income-qualified buyers in Oregon low-to-moderate income tracts can get down payment & closing cost grants.</p>
+      <div class="cta-action-group">
+        <a href="#prequalify" class="btn-cta-primary pulse-btn">Check Address Eligibility &rarr;</a>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Geographical & Census Tract Boundaries -->
+    <div class="header-slide" data-type="geo">
+      <div class="slide-badge badge-geo">📍 GEOGRAPHIC TARGETING</div>
+      <h2 class="slide-title">Targeted <span class="highlight-blue">Oregon Census Tract</span> Loans</h2>
+      <p class="slide-desc">Relaxed income limits & reduced interest rates in HUD-designated targeted census tracts across Multnomah, Lane, Marion, Jackson, & Rural Oregon counties.</p>
+      <div class="slide-tags">
+        <span class="tag tag-geo">Multnomah</span>
+        <span class="tag tag-geo">Lane</span>
+        <span class="tag tag-geo">Marion</span>
+        <span class="tag tag-geo">Deschutes</span>
+        <span class="tag tag-geo">Rural Oregon</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: LMI & CRA Special Loan Products -->
+    <div class="header-slide" data-type="product">
+      <div class="slide-badge">🏡 LOW-TO-MODERATE INCOME (LMI)</div>
+      <h2 class="slide-title">Community Reinvestment Act <span class="highlight">100% Financing</span></h2>
+      <p class="slide-desc">Special CRA loans designed for LMI borrowers in Oregon: $0 Down options, NO Private Mortgage Insurance (PMI), and flexible credit score guidelines.</p>
+      <div class="slide-tags">
+        <span class="tag">0% Down Options</span>
+        <span class="tag">No PMI Required</span>
+        <span class="tag">LMI Qualified</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: ATTENTION CTA 2 (Fixed Interval Interrupt) -->
+    <div class="header-slide cta-slide" data-type="cta">
+      <div class="cta-alert-badge badge-gold">📍 OREGON CENSUS MAP LOOKUP</div>
+      <h2 class="slide-title cta-heading">Find Your Property's <span class="gold-text">Census Tract Status</span></h2>
+      <p class="slide-desc">Enter any Oregon address to instantly see applicable loan products, rate discounts, and local grant options.</p>
+      <div class="cta-action-group">
+        <a href="#check-tract" class="btn-cta-gold pulse-btn">Scan Oregon Tract Map Now &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Progress Bar Timer -->
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+
+  <!-- Navigation Dots & Indicators -->
+  <div class="header-controls">
+    <div class="dots-wrapper" id="dotsWrapper"></div>
+    <div class="slide-counter" id="slideCounter">01 / 05</div>
+  </div>
+</div>
+
+<style>
+/* ================================================================= */
+/* STYLES: FULL-LENGTH ANIMATED HEADER STRIP                         */
+/* ================================================================= */
+.or-loan-header-plugin {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  background-color: #060d19;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+/* Canvas background creating dynamic grid motion (simulated video) */
+#headerBgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+/* Gradient overlay for readability */
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(6,13,25,0.95) 0%, rgba(6,13,25,0.7) 50%, rgba(6,13,25,0.9) 100%);
+  z-index: 2;
+}
+
+/* Viewport and Slide Styling */
+.header-viewport {
+  position: relative;
+  z-index: 3;
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+}
+
+.header-slide {
+  position: absolute;
+  width: calc(100% - 60px);
+  max-width: 1140px;
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.header-slide.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Badges & Tags */
+.slide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10b981;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.badge-geo {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+}
+
+.cta-alert-badge {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.badge-gold {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 1.5s infinite;
+}
+
+/* Typography */
+.slide-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.cta-heading {
+  font-size: 2rem;
+}
+
+.highlight { color: #34d399; }
+.highlight-blue { color: #60a5fa; }
+.gold-text { color: #f59e0b; }
+
+.slide-desc {
+  font-size: 0.98rem;
+  color: #94a3b8;
+  max-width: 750px;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.slide-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.tag-geo {
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #93c5fd;
+}
+
+/* Call to Action Buttons */
+.cta-action-group {
+  margin-top: 15px;
+}
+
+.btn-cta-primary {
+  display: inline-block;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 26px;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-cta-gold {
+  display: inline-block;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 26px;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pulse-btn {
+  animation: pulseBtn 2s infinite;
+}
+
+.btn-cta-primary:hover, .btn-cta-gold:hover {
+  transform: translateY(-2px);
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 4;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #10b981, #f59e0b);
+}
+
+/* Controls & Dots */
+.header-controls {
+  position: absolute;
+  right: 30px;
+  bottom: 20px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.dots-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.dot.active {
+  background: #10b981;
+  transform: scale(1.3);
+}
+
+.dot.cta-dot.active {
+  background: #f59e0b;
+}
+
+.slide-counter {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 1px;
+}
+
+/* Keyframe Animations */
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulseBtn {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .or-loan-header-plugin { height: 320px; }
+  .slide-title { font-size: 1.35rem; }
+  .cta-heading { font-size: 1.45rem; }
+  .slide-desc { font-size: 0.88rem; }
+  .header-controls { bottom: 15px; right: 20px; }
+}
+</style>
+
+<script>
+// =================================================================
+// JAVASCRIPT: ROTATION ROTATOR & CANVAS VIDEO-EFFECT GENERATOR
+// =================================================================
+(function() {
+  const SLIDE_INTERVAL = 5500; // Time in ms per slide (5.5 sec)
+  let currentSlide = 0;
+  let slideTimer = null;
+  let progressInterval = null;
+  let progress = 0;
+
+  const header = document.getElementById('orLoanHeader');
+  const slides = header.querySelectorAll('.header-slide');
+  const progressFill = document.getElementById('progressFill');
+  const dotsWrapper = document.getElementById('dotsWrapper');
+  const slideCounter = document.getElementById('slideCounter');
+
+  // 1. Build Navigation Dots
+  slides.forEach((slide, idx) => {
+    const dot = document.createElement('div');
+    dot.classList.add('dot');
+    if (slide.classList.contains('cta-slide')) dot.classList.add('cta-dot');
+    if (idx === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToSlide(idx));
+    dotsWrapper.appendChild(dot);
+  });
+
+  const dots = dotsWrapper.querySelectorAll('.dot');
+
+  // 2. Slide Navigation Logic
+  function goToSlide(index) {
+    slides[currentSlide].classList.remove('active');
+    dots[currentSlide].classList.remove('active');
+
+    currentSlide = index;
+
+    slides[currentSlide].classList.add('active');
+    dots[currentSlide].classList.add('active');
+
+    // Update Counter
+    const formattedIdx = String(currentSlide + 1).padStart(2, '0');
+    const formattedTotal = String(slides.length).padStart(2, '0');
+    slideCounter.textContent = `${formattedIdx} / ${formattedTotal}`;
+
+    resetTimer();
+  }
+
+  function nextSlide() {
+    const nextIdx = (currentSlide + 1) % slides.length;
+    goToSlide(nextIdx);
+  }
+
+  function resetTimer() {
+    clearInterval(slideTimer);
+    clearInterval(progressInterval);
+    progress = 0;
+    progressFill.style.width = '0%';
+
+    // Progress bar ticker
+    const stepTime = 50; 
+    const increment = (stepTime / SLIDE_INTERVAL) * 100;
+
+    progressInterval = setInterval(() => {
+      progress += increment;
+      progressFill.style.width = `${Math.min(progress, 100)}%`;
+    }, stepTime);
+
+    slideTimer = setInterval(nextSlide, SLIDE_INTERVAL);
+  }
+
+  // Pause on hover
+  header.addEventListener('mouseenter', () => {
+    clearInterval(slideTimer);
+    clearInterval(progressInterval);
+  });
+
+  header.addEventListener('mouseleave', () => {
+    resetTimer();
+  });
+
+  // Start Slide Cycle
+  resetTimer();
+
+  // =================================================================
+  // CANVAS BACKGROUND: DYNAMIC DIGITAL OREGON TOPOLOGY/CENSUS GRID
+  // Creates a lightweight "video" motion effect without heavy external MP4s
+  // =================================================================
+  const canvas = document.getElementById('headerBgCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = header.offsetWidth;
+    canvas.height = header.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Generate Census Grid Nodes
+  const nodes = [];
+  const nodeCount = 35;
+
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      radius: Math.random() * 2 + 1
+    });
+  }
+
+  function drawCanvasVideoEffect() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Census Tract Grid Lines
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 130) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw moving map nodes
+    nodes.forEach(node => {
+      node.x += node.vx;
+      node.y += node.vy;
+
+      if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+      if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(52, 211, 153, 0.4)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(drawCanvasVideoEffect);
+  }
+
+  drawCanvasVideoEffect();
+})();
+</script>
 </html>
