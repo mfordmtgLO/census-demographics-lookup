@@ -469,6 +469,9 @@
         .btn-ffiec-search:hover { background: #0052cc; }
         .btn-usda { background: #166534; color: white; }
         .btn-usda:hover { background: #14532d; }
+        .btn-oz { background: #7c3aed; color: white; }
+.btn-oz:hover { background: #6d28d9; }
+.btn-oz.active { background: #8b5cf6; box-shadow: 0 0 12px rgba(124,58,237,0.5); }
         .btn-reset { background: #ef4444; color: white; }.btn-usda-toggle { background: #166534; color: white; }
 .btn-usda-toggle:hover { background: #14532d; }
 .btn-usda-toggle.active { background: #22c55e; color: #1a1a1a; box-shadow: 0 0 12px rgba(34,197,94,0.5); }
@@ -634,6 +637,7 @@
         <button class="btn btn-ffiec-search" onclick="window.open('https://geomap.ffiec.gov/FFIECGeocMap/GeocodeMap1.aspx','_blank')">🔍 FFIEC Property Search</button>
         <button class="btn btn-usda" onclick="window.open('https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do','_blank')">🏠 USDA RD SFHG Property+Income Eligibility Lookup</button>
         <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ Show USDA RD Zones</button>
+        <button class="btn btn-oz" id="btnOZ" onclick="toggleOpportunityZones()">💎 Show Opportunity Zones</button>
         <button class="btn btn-reset" onclick="resetMap()">🔄 Reset</button>
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -674,6 +678,10 @@
                 <h4>🚫 USDA RD Eligibility Zones</h4>
                 <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;border:2px dashed #dc2626;"></div> 🚫 Ineligible (red shaded)</div>
                 <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div> ✅ Eligible (outside shading)</div>
+            </div>
+                        <div class="legend-box" style="margin-top:6px;">
+                <h4>💎 Opportunity Zones</h4>
+                <div class="legend-item"><div class="legend-swatch" style="background:#8b5cf6;"></div> Designated Opportunity Zone</div>
             </div>
             <div class="tract-list" id="tractList">
                 <h4>📍 FFIEC Tracts: Low · Moderate · Middle</h4>
@@ -1062,7 +1070,118 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }
-            </script>
+                    var ozLayerGroup = null;
+        var ozLayerVisible = false;
+        var ozDataLoaded = false;
+
+        function toggleOpportunityZones() {
+            var btn = document.getElementById('btnOZ');
+            
+            if (ozLayerVisible) {
+                if (ozLayerGroup) { map.removeLayer(ozLayerGroup); ozLayerGroup = null; }
+                btn.classList.remove('active');
+                btn.textContent = '💎 Opportunity Zones';
+                ozLayerVisible = false;
+                return;
+            }
+            
+            if (!ozDataLoaded) {
+                document.getElementById('loadingBadge').style.display = 'block';
+                document.getElementById('loadingBadge').textContent = '⏳ Loading Opportunity Zone data...';
+                btn.disabled = true;
+                
+                var script = document.createElement('script');
+                script.src = 'oregon-oz.js';
+                script.onload = function() {
+                    document.getElementById('loadingBadge').style.display = 'none';
+                    ozDataLoaded = true;
+                    btn.disabled = false;
+                    showOZLayer(btn);
+                };
+                script.onerror = function() {
+                    document.getElementById('loadingBadge').style.display = 'none';
+                    btn.disabled = false;
+                    alert('Could not load Opportunity Zone data. Make sure oregon-oz.js is uploaded.');
+                };
+                document.body.appendChild(script);
+            } else {
+                showOZLayer(btn);
+            }
+        }
+        
+        function showOZLayer(btn) {
+            if (!ozData || !ozData.features) {
+                alert('Opportunity Zone data not properly loaded.');
+                return;
+            }
+            
+            function webMercatorToLatLng(x, y) {
+                var lng = (x / 20037508.34) * 180;
+                var lat = (y / 20037508.34) * 180;
+                lat = 180 / Math.PI * (2 * Math.atan(Math.exp(lat * Math.PI / 180)) - Math.PI / 2);
+                return [lng, lat];
+            }
+            
+            // Filter for Oregon
+            var oregonFeatures = ozData.features.filter(function(feature) {
+                if (!feature.geometry || !feature.geometry.coordinates) return false;
+                var coords = JSON.stringify(feature.geometry.coordinates);
+                var hasOregonY = false;
+                var matches = coords.match(/\d{7}/g);
+                if (matches) {
+                    for (var i = 0; i < matches.length; i++) {
+                        var num = parseInt(matches[i]);
+                        if (num >= 4800000 && num <= 5850000) {
+                            hasOregonY = true;
+                            break;
+                        }
+                    }
+                }
+                return hasOregonY;
+            });
+            
+            if (oregonFeatures.length === 0) {
+                oregonFeatures = ozData.features.slice(0, 50);
+            }
+            
+            var convertedFeatures = oregonFeatures.map(function(feature) {
+                var newFeature = JSON.parse(JSON.stringify(feature));
+                function convertCoords(coords) {
+                    if (typeof coords[0] === 'number' && typeof coords[1] === 'number' && Math.abs(coords[0]) > 180 && Math.abs(coords[1]) > 90) {
+                        return webMercatorToLatLng(coords[0], coords[1]);
+                    }
+                    if (Array.isArray(coords[0])) {
+                        return coords.map(function(c) { return convertCoords(c); });
+                    }
+                    return coords;
+                }
+                if (newFeature.geometry && newFeature.geometry.coordinates) {
+                    newFeature.geometry.coordinates = convertCoords(newFeature.geometry.coordinates);
+                }
+                return newFeature;
+            });
+            
+            var convertedData = {type: "FeatureCollection", features: convertedFeatures};
+            
+            if (ozLayerGroup) { map.removeLayer(ozLayerGroup); }
+            
+            ozLayerGroup = L.geoJSON(convertedData, {
+                style: function(feature) {
+                    return { color: '#7c3aed', fillColor: '#8b5cf6', fillOpacity: 0.3, weight: 2 };
+                },
+                onEachFeature: function(feature, layer) {
+                    var props = feature.properties || {};
+                    var name = props.NAME || props.name || props.GEOID || props.objectid || '';
+                    layer.bindPopup('<strong>💎 Opportunity Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#7c3aed;">Designated Opportunity Zone census tract</small>');
+                }
+            }).addTo(map);
+            
+            btn.classList.add('active');
+            btn.textContent = '✅ Opportunity Zones Visible (Click to Hide)';
+            ozLayerVisible = true;
+            
+            try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+        }</script>
 </body>
     <!-- ================================================================= -->
 <!-- OREGON FIRST-TIME HOMEBUYER & CENSUS TRACT LOAN HEADER PLUGIN     -->
