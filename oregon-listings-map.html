@@ -467,6 +467,9 @@
         
         .btn-ffiec-search { background: #006aff; color: white; }
         .btn-ffiec-search:hover { background: #0052cc; }
+        .btn-ffiec-shapes { background: #0891b2; color: white; }
+.btn-ffiec-shapes:hover { background: #0e7490; }
+.btn-ffiec-shapes.active { background: #06b6d4; color: #1a1a1a; box-shadow: 0 0 12px rgba(8,145,178,0.5); }
         .btn-usda { background: #166534; color: white; }
         .btn-usda:hover { background: #14532d; }
         .btn-oz { background: #7c3aed; color: white; }
@@ -638,6 +641,7 @@
         <button class="btn btn-usda" onclick="window.open('https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do','_blank')">🏠 USDA RD SFHG Property+Income Eligibility Lookup</button>
         <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ Show USDA RD Zones</button>
         <button class="btn btn-oz" id="btnOZ" onclick="toggleOpportunityZones()">💎 Show Opportunity Zones</button>
+        <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()">📊 FFIEC LMI Tracts</button>
         <button class="btn btn-reset" onclick="resetMap()">🔄 Reset</button>
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -1181,6 +1185,93 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             ozLayerVisible = true;
             
             try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+        }        var ffiecShapeLayer = null;
+        var ffiecShapesVisible = false;
+        var ffiecShapesData = null;
+
+        function toggleFFIECShapes() {
+            var btn = document.getElementById('btnFFIECShapes');
+            
+            if (ffiecShapesVisible) {
+                if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
+                btn.classList.remove('active');
+                btn.textContent = '📊 FFIEC LMI Tracts';
+                ffiecShapesVisible = false;
+                return;
+            }
+            
+            if (!ffiecShapesData) {
+                document.getElementById('loadingBadge').style.display = 'block';
+                document.getElementById('loadingBadge').textContent = '⏳ Loading FFIEC LMI tract data...';
+                btn.disabled = true;
+                
+                fetch('ffiec-shapes.json')
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        document.getElementById('loadingBadge').style.display = 'none';
+                        ffiecShapesData = data;
+                        btn.disabled = false;
+                        showFFIECShapes(btn);
+                    })
+                    .catch(function(err) {
+                        document.getElementById('loadingBadge').style.display = 'none';
+                        btn.disabled = false;
+                        alert('Could not load FFIEC data: ' + err.message);
+                    });
+            } else {
+                showFFIECShapes(btn);
+            }
+        }
+        
+        function showFFIECShapes(btn) {
+            if (!ffiecShapesData) {
+                alert('FFIEC shape data not properly loaded.');
+                return;
+            }
+            
+            if (ffiecShapesData.type === 'Topology') {
+                if (typeof topojson !== 'undefined') {
+                    var objectsKey = Object.keys(ffiecShapesData.objects)[0];
+                    var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
+                    renderFFIECLayer(geojsonData, btn);
+                } else {
+                    document.getElementById('loadingBadge').style.display = 'block';
+                    document.getElementById('loadingBadge').textContent = '⏳ Loading converter...';
+                    var script = document.createElement('script');
+                    script.src = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
+                    script.onload = function() {
+                        document.getElementById('loadingBadge').style.display = 'none';
+                        var objectsKey = Object.keys(ffiecShapesData.objects)[0];
+                        var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
+                        renderFFIECLayer(geojsonData, btn);
+                    };
+                    document.body.appendChild(script);
+                    return;
+                }
+            } else {
+                renderFFIECLayer(ffiecShapesData, btn);
+            }
+        }
+        
+        function renderFFIECLayer(geojsonData, btn) {
+            if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
+            
+            ffiecShapeLayer = L.geoJSON(geojsonData, {
+                style: function(feature) {
+                    return { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.3, weight: 1 };
+                },
+                onEachFeature: function(feature, layer) {
+                    var props = feature.properties || {};
+                    var tractId = props.TRACT || props.GEOID || props.FIPS || '';
+                    layer.bindPopup('<strong>📊 FFIEC Tract ' + tractId + '</strong>');
+                }
+            }).addTo(map);
+            
+            btn.classList.add('active');
+            btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
+            ffiecShapesVisible = true;
+            
+            try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }</script>
 </body>
     <!-- ================================================================= -->
