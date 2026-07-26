@@ -442,7 +442,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; overflow-y: auto; overflow-x: hidden; }
         .header { background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 100%); padding: 8px 16px; border-bottom: 3px solid #f59e0b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
         .header h1 { font-size: 15px; color: #f59e0b; }
         .header p { font-size: 9px; color: #a0c4ff; }
@@ -479,7 +479,7 @@
         .income-toggle.moderate { color: #f59e0b; }
         .income-toggle.middle { color: #3b82f6; }
         .income-toggle.active { background: #1a2d4a; border-color: currentColor; }
-        .main-container { display: flex; height: calc(100vh - 78px); }
+        .main-container { display: flex; height: calc(100vh - 360px); min-height: 500px; }
         .map-panel { flex: 1; position: relative; }
         .sidebar { width: 360px; background: #16213e; overflow-y: auto; padding: 8px; border-left: 2px solid #0d2137; }
         #map { width: 100%; height: 100%; }
