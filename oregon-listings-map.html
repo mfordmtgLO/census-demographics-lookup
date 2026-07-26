@@ -1253,17 +1253,76 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             }
         }
         
-        function renderFFIECLayer(geojsonData, btn) {
+                function renderFFIECLayer(geojsonData, btn) {
             if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
             
-            ffiecShapeLayer = L.geoJSON(geojsonData, {
+            // Filter for Oregon features only
+            var allFeatures = geojsonData.features || [];
+            var oregonFeatures = allFeatures.filter(function(feature) {
+                var props = feature.properties || {};
+                // Check multiple possible state properties
+                var state = (props.STATE || props.STATE_NAME || props.state || props.STUSPS || '').toString().toUpperCase();
+                var statefp = (props.STATEFP || props.statefp || '').toString();
+                return state === 'OR' || state === 'OREGON' || statefp === '41';
+            });
+            
+            // If no Oregon filter worked, filter by coordinates
+            if (oregonFeatures.length === 0) {
+                oregonFeatures = allFeatures.filter(function(feature) {
+                    if (!feature.geometry || !feature.geometry.coordinates) return false;
+                    var coords = JSON.stringify(feature.geometry.coordinates);
+                    var matches = coords.match(/\d{7}/g);
+                    if (matches) {
+                        for (var i = 0; i < matches.length; i++) {
+                            var num = parseInt(matches[i]);
+                            if (num >= 4800000 && num <= 5850000) return true;
+                        }
+                    }
+                    // Also check for standard lat/lng Oregon range
+                    if (coords.indexOf('44.') >= 0 || coords.indexOf('45.') >= 0 || coords.indexOf('43.') >= 0 || coords.indexOf('42.') >= 0) return true;
+                    return false;
+                });
+            }
+            
+            // If still nothing, use all features as fallback
+            var featuresToShow = oregonFeatures.length > 0 ? oregonFeatures : allFeatures.slice(0, 100);
+            
+            // Determine income level color
+            function getLevelColor(props) {
+                var mfi = parseFloat(props.TRACT_MFI || props.MFI || props.tract_mfi || 0);
+                var msaMfi = parseFloat(props.MSA_MFI || props.msa_mfi || 1);
+                if (!mfi || !msaMfi) return '#888888';
+                var ratio = mfi / msaMfi;
+                if (ratio < 0.50) return '#ef4444';      // Low - red
+                if (ratio < 0.80) return '#f59e0b';      // Moderate - orange
+                if (ratio <= 1.20) return '#3b82f6';     // Middle - blue
+                return '#10b981';                          // Upper - green
+            }
+            
+            ffiecShapeLayer = L.geoJSON({type: "FeatureCollection", features: featuresToShow}, {
                 style: function(feature) {
-                    return { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.3, weight: 1 };
+                    var color = getLevelColor(feature.properties || {});
+                    return { color: color, fillColor: color, fillOpacity: 0.35, weight: 1.5 };
                 },
                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
-                    var tractId = props.TRACT || props.GEOID || props.FIPS || '';
-                    layer.bindPopup('<strong>📊 FFIEC Tract ' + tractId + '</strong>');
+                    var tractId = props.TRACT || props.GEOID || props.FIPS || props.tract || '';
+                    var mfi = props.TRACT_MFI || props.MFI || '';
+                    var msaMfi = props.MSA_MFI || '';
+                    var level = 'Unknown';
+                    if (mfi && msaMfi) {
+                        var ratio = parseFloat(mfi) / parseFloat(msaMfi);
+                        if (ratio < 0.50) level = 'Low';
+                        else if (ratio < 0.80) level = 'Moderate';
+                        else if (ratio <= 1.20) level = 'Middle';
+                        else level = 'Upper';
+                    }
+                    layer.bindPopup(
+                        '<strong>📊 FFIEC Census Tract ' + tractId + '</strong><br>' +
+                        'Level: <strong>' + level + ' Income</strong><br>' +
+                        (mfi ? 'Tract MFI: $' + parseInt(mfi).toLocaleString() + '<br>' : '') +
+                        (msaMfi ? 'MSA MFI: $' + parseInt(msaMfi).toLocaleString() : '')
+                    );
                 }
             }).addTo(map);
             
