@@ -982,7 +982,28 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
                 updateLinksForCity(city);
             }
         }
-        function resetMap() { clearPolygons(); ffiecVisible = false; document.getElementById('btnFFIEC').classList.remove('active'); document.getElementById('btnFFIEC').textContent = '📊 Show FFIEC Tracts'; document.getElementById('citySelect').value = ''; document.getElementById('searchInput').value = ''; document.getElementById('searchInput').style.borderColor = '#f59e0b'; document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above'; document.getElementById('searchDropdown').classList.remove('show'); currentCity = null; map.setView([44.0, -120.5], 7); updateTractList([]); }
+                function resetMap() {
+            if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
+            ffiecShapesVisible = false;
+            var btn = document.getElementById('btnFFIECShapes');
+            if (btn) { btn.classList.remove('active'); btn.textContent = '📊 FFIEC LMI Tracts'; }
+            if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
+            usdaLayerVisible = false;
+            var usdaBtn = document.getElementById('btnUSDAToggle');
+            if (usdaBtn) { usdaBtn.classList.remove('active'); usdaBtn.textContent = 'Show USDA RD Zones'; }
+            if (ozLayerGroup) { map.removeLayer(ozLayerGroup); ozLayerGroup = null; }
+            ozLayerVisible = false;
+            var ozBtn = document.getElementById('btnOZ');
+            if (ozBtn) { ozBtn.classList.remove('active'); ozBtn.textContent = '💎 Opportunity Zones'; }
+            document.getElementById('citySelect').value = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInput').style.borderColor = '#f59e0b';
+            document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above';
+            document.getElementById('searchDropdown').classList.remove('show');
+            currentCity = null;
+            map.setView([44.0, -120.5], 7);
+            updateTractList([]);
+        }
         document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
             var usdaLayerGroup = null;
         var usdaLayerVisible = false;
