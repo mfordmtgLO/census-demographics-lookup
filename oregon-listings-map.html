@@ -1424,7 +1424,30 @@
                         alert('Could not load FFIEC lookup data: ' + err.message);
                     });
             }
-        }</script>
+        }        function focusFFIECTract(geoid) {
+            if (ffiecShapeLayer) {
+                ffiecShapeLayer.eachLayer(function(layer) {
+                    if (layer.feature && layer.feature.properties && layer.feature.properties.GEOID === geoid) {
+                        map.fitBounds(layer.getBounds().pad(0.3));
+                        layer.openPopup();
+                    }
+                });
+            }
+        }
+        
+        function copyFFIECTract(geoid) {
+            if (!ffiecLookupData || !ffiecLookupData[geoid]) return;
+            var d = ffiecLookupData[geoid];
+            var text = 'FFIEC Census Tract ' + geoid + '\n' +
+                'Income Level: ' + d.level + '\n' +
+                'Tract MFI: $' + d.tractMfi.toLocaleString() + '\n' +
+                'MSA MFI: $' + d.msaMfi.toLocaleString() + '\n' +
+                'Ratio: ' + (d.tractMfi/d.msaMfi*100).toFixed(1) + '% of MSA';
+            navigator.clipboard.writeText(text).then(function() {
+                alert('✅ Tract ' + geoid + ' data copied!');
+            });
+        }
+    </script>
 </body>
     <!-- ================================================================= -->
 <!-- OREGON FIRST-TIME HOMEBUYER & CENSUS TRACT LOAN HEADER PLUGIN     -->
