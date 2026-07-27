@@ -500,7 +500,9 @@
         .price-tag { padding: 2px 6px; background: #0d2137; border-radius: 5px; font-size: 8px; cursor: pointer; color: #8899aa; border: 1px solid #3a5a8c; }
         .price-tag:hover { background: #f59e0b; color: #1a1a1a; }
         .price-tag.active { background: #f59e0b; color: #1a1a1a; }
-        .tract-list { background: #0d2137; border-radius: 5px; padding: 8px; max-height: 400px; overflow-y: auto; overflow-x: hidden; word-wrap: break-word; }
+        .tract-list { background: #0d2137; border-radius: 5px; padding: 8px; max-height: 400px; display: flex; flex-direction: column; }
+.tract-list-header { position: sticky; top: 0; background: #0d2137; padding: 8px; margin: -8px -8px 8px -8px; z-index: 10; border-radius: 5px 5px 0 0; }
+.tract-list-scroll { overflow-y: auto; overflow-x: hidden; max-height: 340px; flex: 1; }
         .tract-item { padding: 5px 7px; margin-bottom: 2px; background: #1a2d4a; border-radius: 3px; font-size: 9px; cursor: pointer; border-left: 3px solid #3b82f6; transition: all 0.2s; }
         .tract-item:hover { background: #243b5e; transform: translateX(2px); }
         .tract-item.low { border-left-color: #ef4444; }
@@ -689,9 +691,9 @@
                 <h4>💎 Opportunity Zones</h4>
                 <div class="legend-item"><div class="legend-swatch" style="background:#8b5cf6;"></div> Designated Opportunity Zone</div>
             </div>
-                        <div class="tract-list" id="tractList">
-                <h4 style="position:sticky;top:0;background:#0d2137;padding:8px;margin:-8px -8px 8px -8px;z-index:10;border-radius:5px 5px 0 0;">📍 FFIEC Low · Moderate · Middle Tracts</h4>
-                <div id="tractListContent" style="max-height:350px;overflow-y:auto;">
+                                    <div class="tract-list" id="tractList">
+                <h4 class="tract-list-header">📍 FFIEC Low · Moderate · Middle Tracts</h4>
+                <div class="tract-list-scroll" id="tractListContent">
                     <p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>
                 </div>
             </div>
