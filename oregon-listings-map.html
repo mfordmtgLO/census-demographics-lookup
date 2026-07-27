@@ -1325,24 +1325,17 @@ html += '<p style="color:#8899aa;font-size:9px;">ðŸ”´ ' + lowCount + ' Low | ðŸŸ
                             alert('JSON keys: ' + keys + '\n\nFirst row: ' + sampleRow);
                         }
                         
-                        data.forEach(function(row) {
-                            // Try multiple possible key names
-                            var fips = row["FIPS code"] || row["FIPS"] || row["fips"] || row["FIPS Code"] || '';
-                            if (!fips) {
-                                // Search all keys for one containing 'fips'
-                                Object.keys(row).forEach(function(k) {
-                                    if (k.toLowerCase().indexOf('fips') >= 0) fips = row[k];
-                                });
-                            }
+                                               data.forEach(function(row) {
+                            var fips = row["FIPS code"] || '';
                             if (fips) {
-                                var msaMfi = 0, tractMfi = 0, level = 'Middle';
-                                // Find MSA MFI
-                                Object.keys(row).forEach(function(k) {
-                                    if (k.indexOf('MSA') >= 0 && k.indexOf('MFI') >= 0) msaMfi = parseInt(row[k]) || 0;
-                                    if (k.indexOf('Tract') >= 0 && k.indexOf('MFI') >= 0) tractMfi = parseInt(row[k]) || 0;
-                                    if (k.toLowerCase().indexOf('level') >= 0) level = row[k] || 'Middle';
-                                    if (k.toLowerCase().indexOf('income') >= 0 && k.toLowerCase().indexOf('percentage') < 0) level = row[k] || level;
-                                });
+                                // MSA/MD MFI is nested inside the MSA object
+                                var msaMfi = 0;
+                                if (row.MSA && row.MSA["MD MFI"]) {
+                                    msaMfi = parseInt(row.MSA["MD MFI"]) || 0;
+                                }
+                                var tractMfi = parseInt(row["Tract MFI"]) || 0;
+                                var level = row["Tract income level"] || 'Middle';
+                                
                                 ffiecLookupData[fips] = {
                                     msaMfi: msaMfi,
                                     tractMfi: tractMfi,
