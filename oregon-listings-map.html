@@ -698,7 +698,36 @@
         var oregonCities = ["Portland","Salem","Eugene","Medford","Bend","Corvallis","Hillsboro","Beaverton","Gresham","Grants Pass","Springfield","Albany","Ashland","Roseburg","Klamath Falls","Coos Bay","Pendleton","Astoria","McMinnville","Hood River","The Dalles","Newport","Lincoln City","Redmond","Oregon City","Tigard","Tualatin","Lake Oswego","West Linn","Wilsonville","Canby","Milwaukie","Happy Valley","Forest Grove","Cornelius","Sherwood","Newberg","Woodburn","Keizer","Dallas","Independence","Monmouth","Silverton","Lebanon","Sweet Home","Philomath","Florence","Coquille","Brookings","North Bend","Seaside","Cannon Beach","Tillamook","St. Helens","Scappoose","Ontario","La Grande","Baker City","Hermiston","Prineville","Madras","Sisters","Burns","John Day","Enterprise","Heppner","Condon","Fossil","Gold Beach","Port Orford","Myrtle Creek","Sutherlin","Junction City","Creswell","Cottage Grove","Oakridge","Veneta"];
         var oregonCounties = ["Multnomah","Washington","Clackamas","Marion","Lane","Jackson","Deschutes","Benton","Linn","Douglas","Josephine","Klamath","Coos","Umatilla","Clatsop","Yamhill","Lincoln","Hood River","Wasco","Columbia","Polk","Tillamook","Curry","Union","Baker","Malheur","Grant","Harney","Lake","Wallowa","Jefferson","Crook","Sherman","Gilliam","Wheeler","Morrow"];
 
-        
+                var oregonCityData = [
+            {city:"Portland", county:"Multnomah", lat:45.515, lng:-122.678},
+            {city:"Salem", county:"Marion", lat:44.942, lng:-123.035},
+            {city:"Eugene", county:"Lane", lat:44.052, lng:-123.087},
+            {city:"Medford", county:"Jackson", lat:42.326, lng:-122.876},
+            {city:"Bend", county:"Deschutes", lat:44.058, lng:-121.315},
+            {city:"Corvallis", county:"Benton", lat:44.564, lng:-123.262},
+            {city:"Hillsboro", county:"Washington", lat:45.523, lng:-122.990},
+            {city:"Beaverton", county:"Washington", lat:45.487, lng:-122.804},
+            {city:"Gresham", county:"Multnomah", lat:45.500, lng:-122.431},
+            {city:"Grants Pass", county:"Josephine", lat:42.439, lng:-123.328},
+            {city:"Springfield", county:"Lane", lat:44.046, lng:-123.022},
+            {city:"Albany", county:"Linn", lat:44.636, lng:-123.106},
+            {city:"Ashland", county:"Jackson", lat:42.194, lng:-122.709},
+            {city:"Roseburg", county:"Douglas", lat:43.216, lng:-123.342},
+            {city:"Klamath Falls", county:"Klamath", lat:42.225, lng:-121.782},
+            {city:"Coos Bay", county:"Coos", lat:43.366, lng:-124.218},
+            {city:"Pendleton", county:"Umatilla", lat:45.672, lng:-118.788},
+            {city:"Astoria", county:"Clatsop", lat:46.188, lng:-123.831},
+            {city:"McMinnville", county:"Yamhill", lat:45.210, lng:-123.194},
+            {city:"Hood River", county:"Hood River", lat:45.705, lng:-121.521},
+            {city:"The Dalles", county:"Wasco", lat:45.594, lng:-121.179},
+            {city:"Newport", county:"Lincoln", lat:44.637, lng:-124.053},
+            {city:"Lincoln City", county:"Lincoln", lat:44.958, lng:-124.018},
+            {city:"Redmond", county:"Deschutes", lat:44.273, lng:-121.174},
+            {city:"Oregon City", county:"Clackamas", lat:45.357, lng:-122.607},
+            {city:"Prineville", county:"Crook", lat:44.300, lng:-120.834},
+            {city:"Madras", county:"Jefferson", lat:44.633, lng:-121.129},
+            {city:"Lebanon", county:"Linn", lat:44.533, lng:-122.907}
+        ];
 
         var oregonCityCoords = {
             "portland": [45.515, -122.678], "salem": [44.942, -123.035], "eugene": [44.052, -123.087],
@@ -724,9 +753,9 @@
         var map = L.map('map').setView([44.0, -120.5], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
         var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6","Upper":"#10b981"};
-       
+        var tractPolygons = [];
         var visibleLevels = {"Low":true,"Moderate":true,"Middle":true,"Upper":true};
-        
+        var ffiecVisible = false;
         var currentCity = null;
         var searchTimeout = null;
 
@@ -754,34 +783,86 @@
         }
         function selectSearchResult(name) { document.getElementById('searchInput').value = name; document.getElementById('searchDropdown').classList.remove('show'); performSearch(); }
 
-        function performSearch() {
+                function performSearch() {
             var query = document.getElementById('searchInput').value.trim();
             if (!query) return;
             document.getElementById('searchDropdown').classList.remove('show');
+            
             var queryLower = query.toLowerCase(), foundTracts = [], foundCoords = null, matchedCity = null;
-            oregonCities.forEach(function(city) { if (city.toLowerCase() === queryLower) matchedCity = city; });
-            if (!matchedCity) oregonCities.forEach(function(city) { if (city.toLowerCase().indexOf(queryLower) >= 0 && !matchedCity) matchedCity = city; });
+            
+            // Check for city match in oregonCityData
+            for (var i = 0; i < oregonCityData.length; i++) {
+                if (oregonCityData[i].city.toLowerCase() === queryLower) {
+                    matchedCity = oregonCityData[i].city;
+                    foundCoords = [oregonCityData[i].lat, oregonCityData[i].lng];
+                    break;
+                }
+            }
+            if (!matchedCity) {
+                for (var i = 0; i < oregonCityData.length; i++) {
+                    if (oregonCityData[i].city.toLowerCase().indexOf(queryLower) >= 0) {
+                        matchedCity = oregonCityData[i].city;
+                        foundCoords = [oregonCityData[i].lat, oregonCityData[i].lng];
+                        break;
+                    }
+                }
+            }
+            
+            // Check for county match
             var matchedCounty = null;
-            oregonCounties.forEach(function(county) { if (county.toLowerCase() === queryLower) matchedCounty = county; });
-            if (!matchedCounty) oregonCounties.forEach(function(county) { if (county.toLowerCase().indexOf(queryLower) >= 0 && !matchedCounty) matchedCounty = county; });
+            oregonCounties.forEach(function(county) {
+                if (county.toLowerCase() === queryLower) matchedCounty = county;
+            });
+            if (!matchedCounty) {
+                oregonCounties.forEach(function(county) {
+                    if (county.toLowerCase().indexOf(queryLower) >= 0 && !matchedCounty) matchedCounty = county;
+                });
+            }
+            
             if (matchedCity) {
                 currentCity = matchedCity;
-                foundTracts = ffiecTracts.filter(function(t) { return t.city.toLowerCase() === matchedCity.toLowerCase(); });
-                if (oregonCityCoords[matchedCity.toLowerCase()]) foundCoords = oregonCityCoords[matchedCity.toLowerCase()];
-                else if (foundTracts.length > 0) foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
-                else { geocodeAndZoom(matchedCity + ', Oregon'); updateUI(query); return; }
+                updateUI(currentCity);
+                if (foundCoords) map.setView(foundCoords, 13);
+                updateLinksForCity(currentCity);
+                document.getElementById('searchInput').style.borderColor = '#10b981';
             } else if (matchedCounty) {
                 currentCity = matchedCounty + ' County';
-                foundTracts = ffiecTracts.filter(function(t) { return t.county.toLowerCase() === matchedCounty.toLowerCase(); });
-                if (foundTracts.length > 0) foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]];
-                else { geocodeAndZoom(matchedCounty + ' County, Oregon'); updateUI(query); return; }
+                updateUI(currentCity);
+                // Find first city in this county for coordinates
+                var countyCity = null;
+                for (var i = 0; i < oregonCityData.length; i++) {
+                    if (oregonCityData[i].county.toLowerCase() === matchedCounty.toLowerCase()) {
+                        countyCity = oregonCityData[i];
+                        break;
+                    }
+                }
+                if (countyCity) {
+                    map.setView([countyCity.lat, countyCity.lng], 11);
+                } else {
+                    geocodeAndZoom(matchedCounty + ' County, Oregon');
+                }
+                updateLinksForCity(currentCity);
+                document.getElementById('searchInput').style.borderColor = '#10b981';
             } else {
-                foundTracts = ffiecTracts.filter(function(t) { return t.city.toLowerCase().indexOf(queryLower) >= 0 || t.county.toLowerCase().indexOf(queryLower) >= 0 || t.tract.indexOf(queryLower) >= 0; });
-                if (foundTracts.length > 0) { currentCity = foundTracts[0].city; foundCoords = [foundTracts[0].coords[0][0], foundTracts[0].coords[0][1]]; }
-                else { var bestMatch = null; for (var city in oregonCityCoords) { if (city.indexOf(queryLower) >= 0 || queryLower.indexOf(city) >= 0) { bestMatch = city; break; } }
-                    if (bestMatch) { foundCoords = oregonCityCoords[bestMatch]; currentCity = bestMatch.charAt(0).toUpperCase() + bestMatch.slice(1); }
-                    else { geocodeAndZoom(query + ', Oregon'); updateUI(query); return; } }
+                // Try fuzzy match in oregonCityData
+                var found = false;
+                for (var i = 0; i < oregonCityData.length; i++) {
+                    if (oregonCityData[i].city.toLowerCase().indexOf(queryLower) >= 0) {
+                        currentCity = oregonCityData[i].city;
+                        map.setView([oregonCityData[i].lat, oregonCityData[i].lng], 13);
+                        updateUI(currentCity);
+                        updateLinksForCity(currentCity);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    geocodeAndZoom(query + ', Oregon');
+                    updateUI(query);
+                }
+                document.getElementById('searchInput').style.borderColor = found ? '#10b981' : '#f59e0b';
             }
+        }
             updateUI(currentCity || query);
             if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(currentCity || query);
