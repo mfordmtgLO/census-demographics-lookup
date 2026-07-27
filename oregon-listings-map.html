@@ -689,12 +689,14 @@
                 <h4>💎 Opportunity Zones</h4>
                 <div class="legend-item"><div class="legend-swatch" style="background:#8b5cf6;"></div> Designated Opportunity Zone</div>
             </div>
-            <div class="tract-list" id="tractList">
-                <h4>📍 FFIEC Tracts: Low · Moderate · Middle</h4>
-                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">👆 Search a city/county and click <strong>"Show FFIEC Tracts"</strong><br>to see official boundaries</p>
+                        <div class="tract-list" id="tractList">
+                <h4 style="position:sticky;top:0;background:#0d2137;padding:8px;margin:-8px -8px 8px -8px;z-index:10;border-radius:5px 5px 0 0;">📍 FFIEC Low · Moderate · Middle Tracts</h4>
+                <div id="tractListContent" style="max-height:350px;overflow-y:auto;">
+                    <p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>
+                </div>
             </div>
-        </div>
-    </div>
+        
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         var oregonCities = ["Portland","Salem","Eugene","Medford","Bend","Corvallis","Hillsboro","Beaverton","Gresham","Grants Pass","Springfield","Albany","Ashland","Roseburg","Klamath Falls","Coos Bay","Pendleton","Astoria","McMinnville","Hood River","The Dalles","Newport","Lincoln City","Redmond","Oregon City","Tigard","Tualatin","Lake Oswego","West Linn","Wilsonville","Canby","Milwaukie","Happy Valley","Forest Grove","Cornelius","Sherwood","Newberg","Woodburn","Keizer","Dallas","Independence","Monmouth","Silverton","Lebanon","Sweet Home","Philomath","Florence","Coquille","Brookings","North Bend","Seaside","Cannon Beach","Tillamook","St. Helens","Scappoose","Ontario","La Grande","Baker City","Hermiston","Prineville","Madras","Sisters","Burns","John Day","Enterprise","Heppner","Condon","Fossil","Gold Beach","Port Orford","Myrtle Creek","Sutherlin","Junction City","Creswell","Cottage Grove","Oakridge","Veneta"];
@@ -925,7 +927,7 @@
                         '<button class="copy-btn" onclick="event.stopPropagation();copyFFIECTract(\'' + (t.geoid || '') + '\')">📋</button></div>';
                 });
             }
-            document.getElementById('tractList').innerHTML = html;
+                        document.getElementById('tractListContent').innerHTML = html;
         }
         
         function focusTract(geoid) { var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; }); if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); } }
