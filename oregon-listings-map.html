@@ -1304,7 +1304,7 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
                 btn.classList.add('active');
                 btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
                 ffiecShapesVisible = true;
-                alert('Loaded ' + matchedFeatures.length + ' FFIEC-matched Oregon tracts');
+                
                 try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
             }
             
