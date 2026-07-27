@@ -902,13 +902,32 @@
         }
         function onCitySelect() { var city = document.getElementById('citySelect').value; if (city) { document.getElementById('searchInput').value = city.replace(/-/g, ' '); performSearch(); } }
         
-        function updateTractList(tracts) {
-            var html = '<h4>📍 FFIEC Tracts: Low · Moderate · Middle</h4>';
-            if (tracts.length === 0) html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Search a city or county to see tracts</p>';
-            else { var lowCount = tracts.filter(function(t) { return t.level === 'Low'; }).length, modCount = tracts.filter(function(t) { return t.level === 'Moderate'; }).length; var midCount = tracts.filter(function(t) { return t.level === 'Middle'; }).length;
-html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | <span class="results-count">' + tracts.length + ' total</span></p>'; tracts.forEach(function(t) { var lc = t.level.toLowerCase(); html += '<div class="tract-item ' + lc + '" onclick="focusTract(\'' + t.geoid + '\')"><span class="tract-id">Tract ' + t.tract + '</span> - ' + t.level + ' Income<span class="tract-income">$' + t.income.toLocaleString() + ' | ' + (t.ratio*100).toFixed(0) + '% of MSA</span><span class="tract-streets">🡑 ' + t.streets.N + ' | 🡓 ' + t.streets.S + ' | 🡒 ' + t.streets.E + ' | 🡐 ' + t.streets.W + '</span><button class="copy-btn" onclick="event.stopPropagation();copyTract(\'' + t.geoid + '\')">📋 Copy</button></div>'; }); }
+                function updateTractList(tracts) {
+            var html = '<h4>📍 FFIEC Low · Moderate · Middle Tracts</h4>';
+            if (tracts.length === 0) {
+                html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>';
+            } else {
+                var lowCount = tracts.filter(function(t) { return t.level === 'Low'; }).length;
+                var modCount = tracts.filter(function(t) { return t.level === 'Moderate'; }).length;
+                var midCount = tracts.filter(function(t) { return t.level === 'Middle'; }).length;
+                html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | <span class="results-count">' + tracts.length + ' total</span></p>';
+                
+                tracts.sort(function(a, b) {
+                    var order = {Low:0, Moderate:1, Middle:2};
+                    return (order[a.level] || 3) - (order[b.level] || 3);
+                });
+                
+                tracts.forEach(function(t) {
+                    var lc = (t.level || '').toLowerCase();
+                    html += '<div class="tract-item ' + lc + '" onclick="focusFFIECTract(\'' + (t.geoid || '') + '\')">' +
+                        '<span class="tract-id">Tract ' + (t.tract || 'N/A') + '</span> - ' + (t.level || '') + ' Income' +
+                        '<span class="tract-income">$' + (t.tractMfi || 0).toLocaleString() + ' | ' + (t.ratio || 0).toFixed(1) + '% of MSA</span>' +
+                        '<button class="copy-btn" onclick="event.stopPropagation();copyFFIECTract(\'' + (t.geoid || '') + '\')">📋</button></div>';
+                });
+            }
             document.getElementById('tractList').innerHTML = html;
         }
+        
         function focusTract(geoid) { var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; }); if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); } }
         function copyTract(geoid) { var tract = ffiecTracts.find(function(t) { return t.geoid === geoid; }); if (!tract) return; var text = '=== FFIEC 2024-2026 Census Tract ' + tract.tract + ' ===\nGEOID: ' + tract.geoid + '\nCity: ' + tract.city + ', ' + tract.county + ' County\nFFIEC Level: ' + tract.level + ' INCOME\nMedian HH Income: $' + tract.income.toLocaleString() + '\nMSA Median: $' + tract.msaIncome.toLocaleString() + '\nRatio: ' + (tract.ratio*100).toFixed(0) + '%\n\n--- ZILLOW MAP BOUNDARIES ---\nNorth: ' + tract.streets.N + '\nSouth: ' + tract.streets.S + '\nEast:  ' + tract.streets.E + '\nWest:  ' + tract.streets.W; navigator.clipboard.writeText(text).then(function() { alert('✅ Tract ' + tract.tract + ' boundaries copied!'); }); }
         
@@ -1346,6 +1365,19 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
                         );
                     }
                 }).addTo(map);
+                            // Update sidebar tract list
+            var tractListData = matchedFeatures.map(function(f) {
+                return {
+                    tract: f.properties.TRACT || f.properties.GEOID || '',
+                    geoid: f.properties.GEOID || '',
+                    level: f._ffiecLevel || 'Middle',
+                    tractMfi: f._tractMfi || 0,
+                    msaMfi: f._msaMfi || 0,
+                    ratio: f._tractMfi && f._msaMfi ? (f._tractMfi / f._msaMfi * 100) : 0
+                };
+            });
+            updateTractList(tractListData);
+                
                 
                 btn.classList.add('active');
                 btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
