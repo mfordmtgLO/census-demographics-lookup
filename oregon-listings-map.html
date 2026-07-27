@@ -1253,47 +1253,73 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             }
         }
         
-                        function renderFFIECLayer(geojsonData, btn) {
+                               function renderFFIECLayer(geojsonData, btn) {
             if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
             
             var allFeatures = geojsonData.features || [];
             
-            // Show first feature properties for debugging
-            if (allFeatures.length > 0) {
-                var firstProps = allFeatures[0].properties || {};
-                var propKeys = Object.keys(firstProps).slice(0, 20).join(', ');
-                var sampleVals = JSON.stringify(firstProps).substring(0, 500);
-                alert('Property keys: ' + propKeys + '\n\nSample values: ' + sampleVals);
-            }
-            
-            // Filter for Oregon by coordinates
+            // Filter for Oregon only (STATE code 41)
             var oregonFeatures = allFeatures.filter(function(feature) {
-                if (!feature.geometry || !feature.geometry.coordinates) return false;
-                var coords = JSON.stringify(feature.geometry.coordinates);
-                // Check for Oregon lat/lng range (42-46 N, -116 to -124 W)
-                var hasOregonLat = coords.indexOf('44.') >= 0 || coords.indexOf('45.') >= 0 || 
-                                   coords.indexOf('43.') >= 0 || coords.indexOf('42.') >= 0 || 
-                                   coords.indexOf('46.') >= 0;
-                var hasOregonLng = coords.indexOf('-120') >= 0 || coords.indexOf('-121') >= 0 ||
-                                   coords.indexOf('-122') >= 0 || coords.indexOf('-123') >= 0 ||
-                                   coords.indexOf('-124') >= 0 || coords.indexOf('-117') >= 0 ||
-                                   coords.indexOf('-118') >= 0 || coords.indexOf('-119') >= 0;
-                return hasOregonLat && hasOregonLng;
+                var props = feature.properties || {};
+                return props.STATE === '41';
             });
             
+            // Fallback: filter by coordinates if state filter returns nothing
             if (oregonFeatures.length === 0) {
-                alert('No Oregon features found by coordinates. Showing first 20 features as test.');
-                oregonFeatures = allFeatures.slice(0, 20);
+                oregonFeatures = allFeatures.filter(function(feature) {
+                    if (!feature.geometry || !feature.geometry.coordinates) return false;
+                    var coords = JSON.stringify(feature.geometry.coordinates);
+                    var hasOregonLat = coords.indexOf('44.') >= 0 || coords.indexOf('45.') >= 0 || 
+                                       coords.indexOf('43.') >= 0 || coords.indexOf('42.') >= 0 || 
+                                       coords.indexOf('46.') >= 0;
+                    var hasOregonLng = coords.indexOf('-120') >= 0 || coords.indexOf('-121') >= 0 ||
+                                       coords.indexOf('-122') >= 0 || coords.indexOf('-123') >= 0 ||
+                                       coords.indexOf('-124') >= 0 || coords.indexOf('-117') >= 0 ||
+                                       coords.indexOf('-118') >= 0 || coords.indexOf('-119') >= 0;
+                    return hasOregonLat && hasOregonLng;
+                });
+            }
+            
+            if (oregonFeatures.length === 0) {
+                alert('No Oregon features found. Showing first 10 as test.');
+                oregonFeatures = allFeatures.slice(0, 10);
+            }
+            
+            // Color by LMI percentage
+            function getLevelColor(props) {
+                var pct = parseFloat(props.LOWMODPCT) || 0;
+                if (pct >= 51) return '#ef4444';      // Majority LMI - red
+                if (pct >= 30) return '#f59e0b';      // Significant LMI - orange
+                if (pct > 0) return '#3b82f6';        // Some LMI - blue
+                return '#888888';                       // No LMI data - gray
+            }
+            
+            function getLevelLabel(props) {
+                var pct = parseFloat(props.LOWMODPCT) || 0;
+                if (pct >= 51) return 'Majority Low-Moderate Income';
+                if (pct >= 30) return 'Significant Low-Moderate Income';
+                if (pct > 0) return 'Some Low-Moderate Income';
+                return 'No LMI Data';
             }
             
             ffiecShapeLayer = L.geoJSON({type: "FeatureCollection", features: oregonFeatures}, {
                 style: function(feature) {
-                    return { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.35, weight: 1.5 };
+                    var color = getLevelColor(feature.properties || {});
+                    return { color: color, fillColor: color, fillOpacity: 0.35, weight: 1.5 };
                 },
                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
-                    var tractId = props.TRACT || props.GEOID || props.FIPS || props.tract || props.TRACTCE || '';
-                    layer.bindPopup('<strong>📊 FFIEC Tract ' + tractId + '</strong>');
+                    var tractId = props.TRACT || props.GEOID || '';
+                    var pct = parseFloat(props.LOWMODPCT) || 0;
+                    var lmiPop = parseInt(props.LOWMOD) || 0;
+                    var totalPop = parseInt(props.LOWMODUNIV) || 0;
+                    layer.bindPopup(
+                        '<strong>📊 FFIEC Census Tract ' + tractId + '</strong><br>' +
+                        'GEOID: ' + (props.GEOID || 'N/A') + '<br>' +
+                        'LMI Population: ' + lmiPop.toLocaleString() + ' / ' + totalPop.toLocaleString() + '<br>' +
+                        'LMI Percentage: <strong>' + pct.toFixed(1) + '%</strong><br>' +
+                        'Level: <strong>' + getLevelLabel(props) + '</strong>'
+                    );
                 }
             }).addTo(map);
             
@@ -1301,6 +1327,7 @@ html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | �
             btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
             ffiecShapesVisible = true;
             
+            alert('Loaded ' + oregonFeatures.length + ' Oregon FFIEC LMI tracts');
             try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
         }</script>
 </body>
