@@ -655,11 +655,11 @@
         <div class="map-panel">
             <div id="map"></div>
             <div class="loading-badge" id="loadingBadge">⏳ Loading FFIEC tract boundaries...</div>
-            <div class="map-overlay">▣ <strong>FFIEC Census Tracts Income Levels (LMI)</strong>🔴 Low | 🟠 Moderate | 🔵 Middle<br>🖱️ Click polygons for details</div>
+            <div class="map-overlay">▣ <strong>Polygons</strong> = FFIEC tracts<br>🔴 Low | 🟠 Moderate | 🔵 Middle<br>🖱️ Click polygons for details</div>
         </div>
         <div class="sidebar">
             <h3>🏘️ Active Listings Quick Links:</h3>
-            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:14px;margin-bottom:2px;"
+            <p id="selectedCityDisplay" style="color:#f59e0b;font-weight:bold;font-size:14px;margin-bottom:2px;">Search a city or county above</p>
                         <small style="color:#8899aa;">💰 Price filter:</small>
             <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
                 <input type="number" id="maxPrice" placeholder="Max Price $" value="" onchange="updateLinks()" style="padding:4px 8px;border-radius:4px;border:1px solid #3a5a8c;background:#0d2137;color:white;font-size:10px;width:90px;flex:1;">
@@ -691,7 +691,7 @@
             </div>
             <div class="tract-list" id="tractList">
                 <h4>📍 FFIEC Tracts: Low · Moderate · Middle</h4>
-                <p style="color:#556;font-size:9px;text-align:center;padding:10px;"
+                <p style="color:#556;font-size:9px;text-align:center;padding:10px;">👆 Search a city/county and click <strong>"Show FFIEC Tracts"</strong><br>to see official boundaries</p>
             </div>
         </div>
     </div>
