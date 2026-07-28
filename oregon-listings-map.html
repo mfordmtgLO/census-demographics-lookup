@@ -395,7 +395,7 @@
         }
         function onCitySelect() { var city = document.getElementById('citySelect').value; if (city) { document.getElementById('searchInput').value = city.replace(/-/g, ' '); performSearch(); } }
         
-                function updateTractList(tracts) {
+                        function updateTractList(tracts) {
             var html = '';
             if (tracts.length === 0) {
                 html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>';
@@ -405,20 +405,25 @@
                 var midCount = tracts.filter(function(t) { return t.level === 'Middle'; }).length;
                 html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | <span class="results-count">' + tracts.length + ' total</span></p>';
                 
+                // Sort by level
+                var levelOrder = {Low: 0, Moderate: 1, Middle: 2};
                 tracts.sort(function(a, b) {
-                    var order = {Low:0, Moderate:1, Middle:2};
-                    return (order[a.level] || 3) - (order[b.level] || 3);
+                    return (levelOrder[a.level] || 3) - (levelOrder[b.level] || 3);
                 });
                 
                 tracts.forEach(function(t) {
                     var lc = (t.level || '').toLowerCase();
+                    var tractMfi = parseInt(t.tractMfi) || 0;
+                    var msaMfi = parseInt(t.msaMfi) || 1;
+                    var ratio = msaMfi > 0 ? (tractMfi / msaMfi * 100) : 0;
+                    
                     html += '<div class="tract-item ' + lc + '" onclick="focusFFIECTract(\'' + (t.geoid || '') + '\')">' +
                         '<span class="tract-id">Tract ' + (t.tract || 'N/A') + '</span> - ' + (t.level || '') + ' Income' +
-                        '<span class="tract-income">$' + (t.tractMfi || 0).toLocaleString() + ' | ' + (t.ratio || 0).toFixed(1) + '% of MSA</span>' +
+                        '<span class="tract-income">$' + tractMfi.toLocaleString() + ' | ' + ratio.toFixed(1) + '% of MSA</span>' +
                         '<button class="copy-btn" onclick="event.stopPropagation();copyFFIECTract(\'' + (t.geoid || '') + '\')">📋</button></div>';
                 });
             }
-                        document.getElementById('tractListContent').innerHTML = html;
+            document.getElementById('tractListContent').innerHTML = html;
         }
         
         function focusTract(geoid) { var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; }); if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); } }
