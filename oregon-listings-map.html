@@ -400,9 +400,13 @@
             if (tracts.length === 0) {
                 html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>';
             } else {
-                var lowCount = tracts.filter(function(t) { return t.level === 'Low'; }).length;
-                var modCount = tracts.filter(function(t) { return t.level === 'Moderate'; }).length;
-                var midCount = tracts.filter(function(t) { return t.level === 'Middle'; }).length;
+               var lowCount = 0, modCount = 0, midCount = 0;
+tracts.forEach(function(t) {
+    var lvl = (t.level || '').trim();
+    if (lvl === 'Low') lowCount++;
+    else if (lvl === 'Moderate') modCount++;
+    else if (lvl === 'Middle') midCount++;
+});
                 html += '<p style="color:#8899aa;font-size:9px;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | <span class="results-count">' + tracts.length + ' total</span></p>';
                 
                 // Sort by level
