@@ -756,8 +756,12 @@ tracts.forEach(function(t) {
         var ffiecShapesVisible = false;
         var ffiecShapesData = null;
 
-        function toggleFFIECShapes() {
+                function toggleFFIECShapes() {
             var btn = document.getElementById('btnFFIECShapes');
+            
+            // Force fresh data reload to get city/county fields
+            ffiecLookupData = null;
+            ffiecShapesData = null;
             
             if (ffiecShapesVisible) {
                 if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
