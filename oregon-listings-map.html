@@ -439,7 +439,7 @@
                     }
                 });
                 
-                var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
+                var searchTerm = (currentCity || '').replace(/county/gi, '').replace(/-/g, ' ').trim().toLowerCase();
                 if (searchTerm) {
                                         var cityToCounty = {
                         "portland": "multnomah", "salem": "marion", "eugene": "lane",
@@ -498,6 +498,13 @@
             .catch(function() { document.getElementById('loadingBadge').style.display = 'none'; alert('Unable to locate: ' + location); });
         }
         function onCitySelect() { var city = document.getElementById('citySelect').value; if (city) { document.getElementById('searchInput').value = city.replace(/-/g, ' '); performSearch(); } }
+    var city = document.getElementById('citySelect').value;
+            if (city) {
+                document.getElementById('searchInput').value = city.replace(/-/g, ' ');
+                performSearch();
+            }
+        }
+            
         
                         function updateTractList(tracts) {
             var html = '';
