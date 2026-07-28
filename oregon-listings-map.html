@@ -374,6 +374,51 @@
             updateUI(currentCity || query);
             if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(currentCity || query);
+                       // Update tract list if FFIEC layer is visible
+            if (ffiecShapesVisible && ffiecShapeLayer) {
+                var tractListData = [];
+                ffiecShapeLayer.eachLayer(function(layer) {
+                    if (layer.feature) {
+                        var props = layer.feature.properties || {};
+                        var geoid = props.GEOID || '';
+                        var lookup = ffiecLookupData[geoid] || {};
+                        tractListData.push({
+                            tract: props.TRACT || geoid || '',
+                            geoid: geoid,
+                            level: lookup.level || 'Middle',
+                            tractMfi: lookup.tractMfi || 0,
+                            msaMfi: lookup.msaMfi || 0,
+                            ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0,
+                            county: lookup.county || '',
+                            city: lookup.city || ''
+                        });
+                    }
+                });
+                
+                var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
+                if (searchTerm) {
+                    var cityToCounty = {
+                        "portland": "multnomah", "salem": "marion", "eugene": "lane",
+                        "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
+                        "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
+                        "grants pass": "josephine", "springfield": "lane", "albany": "linn",
+                        "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
+                        "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
+                        "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
+                        "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
+                        "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
+                        "lebanon": "linn"
+                    };
+                    var targetCounty = cityToCounty[searchTerm] || searchTerm;
+                    var filtered = tractListData.filter(function(t) {
+                        return t.county.toLowerCase().indexOf(targetCounty) >= 0 || 
+                               t.city.toLowerCase().indexOf(searchTerm) >= 0;
+                    });
+                    if (filtered.length > 0) tractListData = filtered;
+                }
+                
+                updateTractList(tractListData);
+            }
             
             
             document.getElementById('searchInput').style.borderColor = foundTracts.length > 0 ? '#10b981' : '#f59e0b';
