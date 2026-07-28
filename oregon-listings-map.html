@@ -859,6 +859,12 @@
                     }
                 }).addTo(map);
                                         // Update sidebar tract list
+                           // Diagnostic: check first few matched features
+            if (matchedFeatures.length > 0) {
+                var sampleGeoid = matchedFeatures[0].properties.GEOID;
+                var sampleLookup = ffiecLookupData[sampleGeoid];
+                alert('Sample GEOID: ' + sampleGeoid + '\nLookup data: ' + JSON.stringify(sampleLookup));
+            }
             var tractListData = matchedFeatures.map(function(f) {
                 var props = f.properties || {};
                 var geoid = props.GEOID || '';
