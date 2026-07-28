@@ -889,13 +889,28 @@ tracts.forEach(function(t) {
                 };
             });
             
-            // Filter by current city/county
+                       // Map cities to their counties
+            var cityToCounty = {
+                "portland": "multnomah", "salem": "marion", "eugene": "lane",
+                "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
+                "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
+                "grants pass": "josephine", "springfield": "lane", "albany": "linn",
+                "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
+                "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
+                "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
+                "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
+                "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
+                "lebanon": "linn"
+            };
+            
             var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
+            var targetCounty = cityToCounty[searchTerm] || searchTerm;
+            
             if (searchTerm) {
                 var filtered = tractListData.filter(function(t) {
+                    var countyMatch = t.county.toLowerCase().indexOf(targetCounty) >= 0;
                     var cityMatch = t.city.toLowerCase().indexOf(searchTerm) >= 0;
-                    var countyMatch = t.county.toLowerCase().indexOf(searchTerm) >= 0;
-                    return cityMatch || countyMatch;
+                    return countyMatch || cityMatch;
                 });
                 if (filtered.length > 0) {
                     tractListData = filtered;
