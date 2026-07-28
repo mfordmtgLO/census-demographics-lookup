@@ -397,7 +397,7 @@
                 
                 var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
                 if (searchTerm) {
-                    var cityToCounty = {
+                                        var cityToCounty = {
                         "portland": "multnomah", "salem": "marion", "eugene": "lane",
                         "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
                         "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
@@ -407,7 +407,22 @@
                         "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
                         "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
                         "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
-                        "lebanon": "linn"
+                        "lebanon": "linn", "tigard": "washington", "tualatin": "washington",
+                        "lake oswego": "clackamas", "west linn": "clackamas", "wilsonville": "clackamas",
+                        "canby": "clackamas", "milwaukie": "clackamas", "happy valley": "clackamas",
+                        "forest grove": "washington", "cornelius": "washington", "sherwood": "washington",
+                        "newberg": "yamhill", "woodburn": "marion", "keizer": "marion",
+                        "dallas": "polk", "independence": "polk", "monmouth": "polk",
+                        "silverton": "marion", "stayton": "marion", "sweet home": "linn",
+                        "philomath": "benton", "florence": "lane", "coquille": "coos",
+                        "brookings": "curry", "north bend": "coos", "seaside": "clatsop",
+                        "cannon beach": "clatsop", "tillamook": "tillamook", "st helens": "columbia",
+                        "scappoose": "columbia", "ontario": "malheur", "la grande": "union",
+                        "baker city": "baker", "hermiston": "umatilla", "milton-freewater": "umatilla",
+                        "sisters": "deschutes", "burns": "harney", "john day": "grant",
+                        "enterprise": "wallowa", "gold beach": "curry", "port orford": "curry",
+                        "sutherlin": "douglas", "junction city": "lane", "creswell": "lane",
+                        "cottage grove": "lane", "oakridge": "lane", "veneta": "lane"
                     };
                     var targetCounty = cityToCounty[searchTerm] || searchTerm;
                     var filtered = tractListData.filter(function(t) {
