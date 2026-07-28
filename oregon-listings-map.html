@@ -416,6 +416,7 @@
                     else { geocodeAndZoom(query + ', Oregon'); updateUI(query); return; } }
             }
             updateUI(currentCity || query);
+           alert('currentCity: ' + currentCity + '\nsearchTerm: ' + (currentCity || '').replace(/county/gi, '').replace(/-/g, ' ').trim().toLowerCase());
             if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(currentCity || query);
                        // Update tract list if FFIEC layer is visible
