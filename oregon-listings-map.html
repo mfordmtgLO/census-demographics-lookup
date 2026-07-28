@@ -439,7 +439,7 @@
                     }
                 });
                 
-                var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
+               var searchTerm = (currentCity || '').replace(/county/gi, '').replace(/-/g, ' ').trim().toLowerCase();
                 if (searchTerm) {
                                         var cityToCounty = {
                         "portland": "multnomah", "salem": "marion", "eugene": "lane",
