@@ -442,32 +442,32 @@
                var searchTerm = (currentCity || '').replace(/county/gi, '').replace(/-/g, ' ').trim().toLowerCase();
                 if (searchTerm) {
                                         var cityToCounty = {
-                        "portland": "multnomah", "salem": "marion", "eugene": "lane",
-                        "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
-                        "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
-                        "grants pass": "josephine", "springfield": "lane", "albany": "linn",
-                        "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
-                        "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
-                        "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
-                        "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
-                        "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
-                        "lebanon": "linn", "tigard": "washington", "tualatin": "washington",
-                        "lake oswego": "clackamas", "west linn": "clackamas", "wilsonville": "clackamas",
-                        "canby": "clackamas", "milwaukie": "clackamas", "happy valley": "clackamas",
-                        "forest grove": "washington", "cornelius": "washington", "sherwood": "washington",
-                        "newberg": "yamhill", "woodburn": "marion", "keizer": "marion",
-                        "dallas": "polk", "independence": "polk", "monmouth": "polk",
-                        "silverton": "marion", "stayton": "marion", "sweet home": "linn",
-                        "philomath": "benton", "florence": "lane", "coquille": "coos",
-                        "brookings": "curry", "north bend": "coos", "seaside": "clatsop",
-                        "cannon beach": "clatsop", "tillamook": "tillamook", "st helens": "columbia",
-                        "scappoose": "columbia", "ontario": "malheur", "la grande": "union",
-                        "baker city": "baker", "hermiston": "umatilla", "milton-freewater": "umatilla",
-                        "sisters": "deschutes", "burns": "harney", "john day": "grant",
-                        "enterprise": "wallowa", "gold beach": "curry", "port orford": "curry",
-                        "sutherlin": "douglas", "junction city": "lane", "creswell": "lane",
-                        "cottage grove": "lane", "oakridge": "lane", "veneta": "lane"
-                    };
+    "portland": "multnomah", "salem": "marion", "eugene": "lane",
+    "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
+    "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
+    "grants pass": "josephine", "springfield": "lane", "albany": "linn",
+    "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
+    "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
+    "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
+    "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
+    "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
+    "lebanon": "linn", "tigard": "washington", "tualatin": "washington",
+    "lake oswego": "clackamas", "west linn": "clackamas", "wilsonville": "clackamas",
+    "canby": "clackamas", "milwaukie": "clackamas", "happy valley": "clackamas",
+    "forest grove": "washington", "cornelius": "washington", "sherwood": "washington",
+    "newberg": "yamhill", "woodburn": "marion", "keizer": "marion",
+    "dallas": "polk", "independence": "polk", "monmouth": "polk",
+    "silverton": "marion", "stayton": "marion", "sweet home": "linn",
+    "philomath": "benton", "florence": "lane", "coquille": "coos",
+    "brookings": "curry", "north bend": "coos", "seaside": "clatsop",
+    "cannon beach": "clatsop", "tillamook": "tillamook", "st helens": "columbia",
+    "scappoose": "columbia", "ontario": "malheur", "la grande": "union",
+    "baker city": "baker", "hermiston": "umatilla", "milton-freewater": "umatilla",
+    "sisters": "deschutes", "burns": "harney", "john day": "grant",
+    "enterprise": "wallowa", "gold beach": "curry", "port orford": "curry",
+    "sutherlin": "douglas", "junction city": "lane", "creswell": "lane",
+    "cottage grove": "lane", "oakridge": "lane", "veneta": "lane"
+};
                     var targetCounty = cityToCounty[searchTerm] || searchTerm;
                     var filtered = tractListData.filter(function(t) {
                         return t.county.toLowerCase().indexOf(targetCounty) >= 0 || 
@@ -994,29 +994,33 @@ tracts.forEach(function(t) {
             });
             
                        // Map cities to their counties
-            var cityToCounty = {
-                "portland": "multnomah", "salem": "marion", "eugene": "lane",
-                "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
-                "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
-                "grants pass": "josephine", "springfield": "lane", "albany": "linn",
-                "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
-                "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
-                "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
-                "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
-                "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
-                "lebanon": "linn", "monmouth": "polk", "independence": "polk", "stayton": "marion",
-"milton-freewater": "umatilla", "port orford": "curry", "cannon beach": "clatsop",
-"scappoose": "columbia", "st helens": "columbia", "north bend": "coos",
-"coquille": "coos", "sweet home": "linn", "philomath": "benton",
-"creswell": "lane", "cottage grove": "lane", "oakridge": "lane",
-"veneta": "lane", "sutherlin": "douglas", "junction city": "lane",
-"florence": "lane", "brookings": "curry", "gold beach": "curry",
-"seaside": "clatsop", "tillamook": "tillamook", "ontario": "malheur",
-"la grande": "union", "baker city": "baker", "hermiston": "umatilla",
-"sisters": "deschutes", "burns": "harney", "john day": "grant",
-"enterprise": "wallowa", "woodburn": "marion", "keizer": "marion",
-"silverton": "marion", "dallas": "polk"
-            };
+           var cityToCounty = {
+    "portland": "multnomah", "salem": "marion", "eugene": "lane",
+    "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
+    "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
+    "grants pass": "josephine", "springfield": "lane", "albany": "linn",
+    "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
+    "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
+    "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
+    "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
+    "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
+    "lebanon": "linn", "tigard": "washington", "tualatin": "washington",
+    "lake oswego": "clackamas", "west linn": "clackamas", "wilsonville": "clackamas",
+    "canby": "clackamas", "milwaukie": "clackamas", "happy valley": "clackamas",
+    "forest grove": "washington", "cornelius": "washington", "sherwood": "washington",
+    "newberg": "yamhill", "woodburn": "marion", "keizer": "marion",
+    "dallas": "polk", "independence": "polk", "monmouth": "polk",
+    "silverton": "marion", "stayton": "marion", "sweet home": "linn",
+    "philomath": "benton", "florence": "lane", "coquille": "coos",
+    "brookings": "curry", "north bend": "coos", "seaside": "clatsop",
+    "cannon beach": "clatsop", "tillamook": "tillamook", "st helens": "columbia",
+    "scappoose": "columbia", "ontario": "malheur", "la grande": "union",
+    "baker city": "baker", "hermiston": "umatilla", "milton-freewater": "umatilla",
+    "sisters": "deschutes", "burns": "harney", "john day": "grant",
+    "enterprise": "wallowa", "gold beach": "curry", "port orford": "curry",
+    "sutherlin": "douglas", "junction city": "lane", "creswell": "lane",
+    "cottage grove": "lane", "oakridge": "lane", "veneta": "lane"
+};
             
             var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
             var targetCounty = cityToCounty[searchTerm] || searchTerm;
