@@ -396,7 +396,7 @@
         function onCitySelect() { var city = document.getElementById('citySelect').value; if (city) { document.getElementById('searchInput').value = city.replace(/-/g, ' '); performSearch(); } }
         
                 function updateTractList(tracts) {
-            
+            var html = '<h4>📍 FFIEC Low · Moderate · Middle Tracts</h4>';
             if (tracts.length === 0) {
                 html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>';
             } else {
