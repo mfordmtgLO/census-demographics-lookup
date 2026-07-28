@@ -883,6 +883,10 @@
                     ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0
                 };
             });
+                           // Diagnostic
+            var sampleTract = tractListData[0];
+            alert('Sample tract data:\nLevel: ' + sampleTract.level + '\nTract MFI: ' + sampleTract.tractMfi + '\nMSA MFI: ' + sampleTract.msaMfi + '\nRatio: ' + sampleTract.ratio);
+            updateTractList(tractListData);
             updateTractList(tractListData);
                 
                 
