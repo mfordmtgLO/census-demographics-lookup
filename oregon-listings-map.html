@@ -858,15 +858,18 @@
                         );
                     }
                 }).addTo(map);
-                            // Update sidebar tract list
+                                        // Update sidebar tract list
             var tractListData = matchedFeatures.map(function(f) {
+                var props = f.properties || {};
+                var geoid = props.GEOID || '';
+                var lookup = ffiecLookupData[geoid] || {};
                 return {
-                    tract: f.properties.TRACT || f.properties.GEOID || '',
-                    geoid: f.properties.GEOID || '',
-                    level: f._ffiecLevel || 'Middle',
-                    tractMfi: f._tractMfi || 0,
-                    msaMfi: f._msaMfi || 0,
-                    ratio: f._tractMfi && f._msaMfi ? (f._tractMfi / f._msaMfi * 100) : 0
+                    tract: props.TRACT || geoid || '',
+                    geoid: geoid,
+                    level: lookup.level || f._ffiecLevel || 'Middle',
+                    tractMfi: lookup.tractMfi || f._tractMfi || 0,
+                    msaMfi: lookup.msaMfi || f._msaMfi || 0,
+                    ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0
                 };
             });
             updateTractList(tractListData);
