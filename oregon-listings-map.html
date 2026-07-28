@@ -828,52 +828,47 @@ tracts.forEach(function(t) {
             var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6","Upper":"#10b981"};
             var allFeatures = geojsonData.features || [];
             
-            function applyFFIECLayer() {
-                var matchedFeatures = [];
-                allFeatures.forEach(function(feature) {
-                    var props = feature.properties || {};
-                    var geoid = props.GEOID || props.geoid || '';
-                    if (ffiecLookupData[geoid]) {
-                        var lookup = ffiecLookupData[geoid];
-                        feature._ffiecLevel = lookup.level;
-                        feature._tractMfi = lookup.tractMfi;
-                        feature._msaMfi = lookup.msaMfi;
-                        matchedFeatures.push(feature);
-                    }
-                });
-                
-                if (matchedFeatures.length === 0) {
-                    alert('No FFIEC-matched tracts found. Check GEOID matching.');
-                    return;
+                    function applyFFIECLayer() {
+            var matchedFeatures = [];
+            allFeatures.forEach(function(feature) {
+                var props = feature.properties || {};
+                var geoid = props.GEOID || props.geoid || '';
+                if (ffiecLookupData[geoid]) {
+                    var lookup = ffiecLookupData[geoid];
+                    feature._ffiecLevel = lookup.level;
+                    feature._tractMfi = lookup.tractMfi;
+                    feature._msaMfi = lookup.msaMfi;
+                    matchedFeatures.push(feature);
                 }
-                
-                ffiecShapeLayer = L.geoJSON({type:"FeatureCollection",features:matchedFeatures}, {
-                    style: function(feature) {
-                        var level = feature._ffiecLevel || 'Middle';
-                        return {color:levelColors[level], fillColor:levelColors[level], fillOpacity:0.4, weight:1.5};
-                    },
-                    onEachFeature: function(feature, layer) {
-                        var props = feature.properties || {};
-                        var tractId = props.TRACT || props.GEOID || '';
-                        var level = feature._ffiecLevel || 'Unknown';
-                        var tractMfi = feature._tractMfi || 0;
-                        var msaMfi = feature._msaMfi || 0;
-                        layer.bindPopup(
-                            '<strong>📊 FFIEC Census Tract ' + tractId + '</strong><br>' +
-                            'Level: <strong style="color:'+levelColors[level]+';">' + level + ' Income</strong><br>' +
-                            'Tract MFI: $' + parseInt(tractMfi).toLocaleString() + '<br>' +
-                            'MSA MFI: $' + parseInt(msaMfi).toLocaleString() + '<br>' +
-                            'Ratio: ' + (tractMfi/msaMfi*100).toFixed(1) + '% of MSA'
-                        );
-                    }
-                }).addTo(map);
-                                        // Update sidebar tract list
-                           // Diagnostic: check first few matched features
-            if (matchedFeatures.length > 0) {
-                var sampleGeoid = matchedFeatures[0].properties.GEOID;
-                var sampleLookup = ffiecLookupData[sampleGeoid];
-                alert('Sample GEOID: ' + sampleGeoid + '\nLookup data: ' + JSON.stringify(sampleLookup));
+            });
+            
+            if (matchedFeatures.length === 0) {
+                alert('No FFIEC-matched tracts found.');
+                return;
             }
+            
+            ffiecShapeLayer = L.geoJSON({type:"FeatureCollection",features:matchedFeatures}, {
+                style: function(feature) {
+                    var level = feature._ffiecLevel || 'Middle';
+                    return {color:levelColors[level], fillColor:levelColors[level], fillOpacity:0.4, weight:1.5};
+                },
+                onEachFeature: function(feature, layer) {
+                    var props = feature.properties || {};
+                    var tractId = props.TRACT || props.GEOID || '';
+                    var level = feature._ffiecLevel || 'Unknown';
+                    var tractMfi = feature._tractMfi || 0;
+                    var msaMfi = feature._msaMfi || 0;
+                    layer.bindPopup(
+                        '<strong>📊 FFIEC Census Tract ' + tractId + '</strong><br>' +
+                        'Level: <strong style="color:'+levelColors[level]+';">' + level + ' Income</strong><br>' +
+                        'Tract MFI: $' + parseInt(tractMfi).toLocaleString() + '<br>' +
+                        'MSA MFI: $' + parseInt(msaMfi).toLocaleString() + '<br>' +
+                        'Ratio: ' + (tractMfi/msaMfi*100).toFixed(1) + '% of MSA'
+                    );
+                }
+            }).addTo(map);
+            
+            // Build tract list data
             var tractListData = matchedFeatures.map(function(f) {
                 var props = f.properties || {};
                 var geoid = props.GEOID || '';
@@ -881,25 +876,36 @@ tracts.forEach(function(t) {
                 return {
                     tract: props.TRACT || geoid || '',
                     geoid: geoid,
-                    level: lookup.level || f._ffiecLevel || 'Middle',
-                    tractMfi: lookup.tractMfi || f._tractMfi || 0,
-                    msaMfi: lookup.msaMfi || f._msaMfi || 0,
-                    ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0
+                    level: lookup.level || 'Middle',
+                    tractMfi: lookup.tractMfi || 0,
+                    msaMfi: lookup.msaMfi || 0,
+                    ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0,
+                    county: lookup.county || '',
+                    city: lookup.city || ''
                 };
             });
-                           // Diagnostic
-            var sampleTract = tractListData[0];
-            alert('Sample tract data:\nLevel: ' + sampleTract.level + '\nTract MFI: ' + sampleTract.tractMfi + '\nMSA MFI: ' + sampleTract.msaMfi + '\nRatio: ' + sampleTract.ratio);
-            updateTractList(tractListData);
-            updateTractList(tractListData);
-                
-                
-                btn.classList.add('active');
-                btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
-                ffiecShapesVisible = true;
-                
-                try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+            
+            // Filter by current city/county
+            var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
+            if (searchTerm) {
+                var filtered = tractListData.filter(function(t) {
+                    var cityMatch = t.city.toLowerCase().indexOf(searchTerm) >= 0;
+                    var countyMatch = t.county.toLowerCase().indexOf(searchTerm) >= 0;
+                    return cityMatch || countyMatch;
+                });
+                if (filtered.length > 0) {
+                    tractListData = filtered;
+                }
             }
+            
+            updateTractList(tractListData);
+            
+            btn.classList.add('active');
+            btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
+            ffiecShapesVisible = true;
+            
+            try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+        }
             
             if (ffiecLookupData) {
                 applyFFIECLayer();
@@ -924,11 +930,13 @@ tracts.forEach(function(t) {
                                 var tractMfi = parseInt(row["Tract MFI"]) || 0;
                                 var level = row["Tract income level"] || 'Middle';
                                 
-                                ffiecLookupData[fips] = {
-                                    msaMfi: msaMfi,
-                                    tractMfi: tractMfi,
-                                    level: level
-                                };
+                               ffiecLookupData[fips] = {
+    msaMfi: msaMfi,
+    tractMfi: tractMfi,
+    level: level,
+    city: row["MSA/MD name"] || '',
+    county: row["County name"] || ''
+};
                             }
                         });
                         document.getElementById('loadingBadge').style.display = 'none';
