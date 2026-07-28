@@ -943,6 +943,10 @@ tracts.forEach(function(t) {
 };
                             }
                         });
+                                               // Diagnostic - check first entry for city/county
+                        var firstKey = Object.keys(ffiecLookupData)[0];
+                        var firstEntry = ffiecLookupData[firstKey];
+                        alert('First lookup entry:\nFIPS: ' + firstKey + '\nCity: ' + firstEntry.city + '\nCounty: ' + firstEntry.county + '\nLevel: ' + firstEntry.level);
                         document.getElementById('loadingBadge').style.display = 'none';
                         applyFFIECLayer();
                     })
