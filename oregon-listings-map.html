@@ -474,7 +474,7 @@
     "sutherlin": "douglas", "junction city": "lane", "creswell": "lane",
     "cottage grove": "lane", "oakridge": "lane", "veneta": "lane"
 };
-                   alert('Search term: ' + searchTerm + '\nTarget county: ' + targetCounty + '\nFirst tract county: ' + (tractListData[0] ? tractListData[0].county : 'none'));
+                  
                     var targetCounty = cityToCounty[searchTerm] || searchTerm;
                     var filtered = tractListData.filter(function(t) {
                         return t.county.toLowerCase().indexOf(targetCounty) >= 0 || 
