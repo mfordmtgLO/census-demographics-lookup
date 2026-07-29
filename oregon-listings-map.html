@@ -527,17 +527,14 @@ tracts.forEach(function(t) {
                 });
                 
                 tracts.forEach(function(t) {
-                    var lc = (t.level || '').toLowerCase();
-                    var tractMfi = parseInt(t.tractMfi) || 0;
-                    var msaMfi = parseInt(t.msaMfi) || 1;
-                    var ratio = msaMfi > 0 ? (tractMfi / msaMfi * 100) : 0;
-                    
-                    html += '<div class="tract-item ' + lc + '" onclick="focusFFIECTract(\'' + (t.geoid || '') + '\')">' +
-                        '<span class="tract-id">Tract ' + (t.tract || 'N/A') + '</span> - ' + (t.level || '') + ' Income' +
-                        '<span class="tract-income">$' + tractMfi.toLocaleString() + ' | ' + ratio.toFixed(1) + '% of MSA</span>' +
-                        '<button class="copy-btn" onclick="event.stopPropagation();copyFFIECTract(\'' + (t.geoid || '') + '\')">📋</button></div>';
-                });
-            }
+    var lc = (t.level || '').toLowerCase();
+    var mapIcon = t.onMap ? '✅' : '⚠️';
+    html += '<div class="tract-item ' + lc + '" onclick="focusFFIECTract(\'' + (t.geoid || '') + '\')">' +
+        '<span class="tract-id">' + mapIcon + ' Tract ' + (t.tract || 'N/A') + '</span> - ' + (t.level || '') + ' Income' +
+        '<span class="tract-income">$' + (t.tractMfi || 0).toLocaleString() + ' | ' + (t.ratio || 0).toFixed(1) + '% of MSA</span>' +
+        '<button class="copy-btn" onclick="event.stopPropagation();copyFFIECTract(\'' + (t.geoid || '') + '\')">📋</button></div>';
+});
+               }
             document.getElementById('tractListContent').innerHTML = html;
         }
         
