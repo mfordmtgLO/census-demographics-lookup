@@ -425,26 +425,30 @@
             if (foundCoords) map.setView(foundCoords, 13);
             updateLinksForCity(currentCity || query);
                        // Update tract list if FFIEC layer is visible
-            if (ffiecShapesVisible && ffiecShapeLayer) {
+                        if (ffiecShapesVisible && ffiecShapeLayer) {
                 var tractListData = [];
-                ffiecShapeLayer.eachLayer(function(layer) {
-                    if (layer.feature) {
-                        var props = layer.feature.properties || {};
-                        var geoid = props.GEOID || '';
-                        var lookup = ffiecLookupData[geoid] || {};
-                        tractListData.push({
-                            tract: props.TRACT || geoid || '',
-                            geoid: geoid,
-                            level: lookup.level || 'Middle',
-                            tractMfi: lookup.tractMfi || 0,
-                            msaMfi: lookup.msaMfi || 0,
-                            ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0,
-                            county: lookup.county || '',
-                            city: lookup.city || ''
-                        });
-                    }
+                // Use ALL lookup data, not just shapefile features
+                Object.keys(ffiecLookupData).forEach(function(geoid) {
+                    var lookup = ffiecLookupData[geoid];
+                    var isOnMap = false;
+                    ffiecShapeLayer.eachLayer(function(layer) {
+                        if (layer.feature && (layer.feature.properties.GEOID === geoid || layer.feature.properties.geoid === geoid)) {
+                            isOnMap = true;
+                        }
+                    });
+                    tractListData.push({
+                        tract: geoid.slice(-6) || geoid,
+                        geoid: geoid,
+                        level: lookup.level || 'Middle',
+                        tractMfi: lookup.tractMfi || 0,
+                        msaMfi: lookup.msaMfi || 0,
+                        ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0,
+                        county: lookup.county || '',
+                        city: lookup.city || '',
+                        onMap: isOnMap
+                    });
                 });
-                
+                                                     }
                var searchTerm = (currentCity || '').replace(/county/gi, '').replace(/-/g, ' ').trim().toLowerCase();
                 if (searchTerm) {
                                         var cityToCounty = {
