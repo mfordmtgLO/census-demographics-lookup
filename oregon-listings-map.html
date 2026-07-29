@@ -1074,7 +1074,8 @@ tracts.forEach(function(t) {
                                 }
                                 var tractMfi = parseInt(row["Tract MFI"]) || 0;
                                 var level = row["Tract income level"] || 'Middle';
-                                
+
+                               console.log('Loading FIPS: ' + fips + ' Level: ' + level);
                                ffiecLookupData[fips] = {
     msaMfi: msaMfi,
     tractMfi: tractMfi,
