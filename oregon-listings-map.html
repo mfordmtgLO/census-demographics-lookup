@@ -1091,15 +1091,12 @@ Object.values(ffiecLookupData).forEach(function(v) {
     if (v.level === 'Moderate') modCount++;
     if (v.level === 'Middle') midCount++;
 });
-alert('Lookup data loaded: ' + totalLookup + ' tracts\nLow: ' + lowCount + '\nModerate: ' + modCount + '\nMiddle: ' + midCount);
+
                             }
                         });
                        
                        
-                                               // Diagnostic - check first entry for city/county
-                        var firstKey = Object.keys(ffiecLookupData)[0];
-                        var firstEntry = ffiecLookupData[firstKey];
-                        alert('First lookup entry:\nFIPS: ' + firstKey + '\nCity: ' + firstEntry.city + '\nCounty: ' + firstEntry.county + '\nLevel: ' + firstEntry.level);
+                                               
                         document.getElementById('loadingBadge').style.display = 'none';
                         applyFFIECLayer();
                     })
