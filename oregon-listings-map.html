@@ -522,7 +522,7 @@ tracts.forEach(function(t) {
     else if (lvl === 'Moderate') modCount++;
     else if (lvl === 'Middle') midCount++;
 });
-                html += '<p style="color:#8899aa;font-size:9px;position:sticky;top:30px;background:#0d2137;padding:4px 0;z-index:5;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | <span class="results-count">' + tracts.length + ' total</span></p>';
+                html += '<p style="color:#8899aa;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | <span class="results-count">' + tracts.length + ' total</span></p>';
                 
                 // Sort by level
                 var levelOrder = {Low: 0, Moderate: 1, Middle: 2};
