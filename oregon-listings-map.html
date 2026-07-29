@@ -1064,24 +1064,32 @@ tracts.forEach(function(t) {
                         ffiecLookupData = {};
                                                                       
                         
-                                               data.forEach(function(row) {
-                            var fips = row["FIPS code"] || '';
-                            if (fips) {
-                                // MSA/MD MFI is nested inside the MSA object
-                                var msaMfi = 0;
-                                if (row.MSA && row.MSA["MD MFI"]) {
-                                    msaMfi = parseInt(row.MSA["MD MFI"]) || 0;
+                                                                      var count = 0;
+                        data.forEach(function(row, index) {
+                            try {
+                                var fips = row["FIPS code"] || '';
+                                if (fips) {
+                                    var msaMfi = 0;
+                                    if (row.MSA && row.MSA["MD MFI"]) {
+                                        msaMfi = parseInt(row.MSA["MD MFI"]) || 0;
+                                    }
+                                    var tractMfi = parseInt(row["Tract MFI"]) || 0;
+                                    var level = row["Tract income level"] || 'Middle';
+                                    
+                                    ffiecLookupData[fips] = {
+                                        msaMfi: msaMfi,
+                                        tractMfi: tractMfi,
+                                        level: level,
+                                        city: row["MSA/MD name"] || '',
+                                        county: row["County name"] || ''
+                                    };
+                                    count++;
                                 }
-                                var tractMfi = parseInt(row["Tract MFI"]) || 0;
-                                var level = row["Tract income level"] || 'Middle';
-                                
-                               ffiecLookupData[fips] = {
-    msaMfi: msaMfi,
-    tractMfi: tractMfi,
-    level: level,
-    city: row["MSA/MD name"] || '',
-    county: row["County name"] || ''
-};
+                            } catch(e) {
+                                // skip bad rows
+                            }
+                        });
+                        alert('Loaded ' + count + ' tracts from ' + data.length + ' rows');
                                                        
                                var totalLookup = Object.keys(ffiecLookupData).length;
 var lowCount = 0, modCount = 0, midCount = 0;
