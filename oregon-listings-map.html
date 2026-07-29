@@ -983,21 +983,24 @@ tracts.forEach(function(t) {
                 }
             }).addTo(map);
             
-            // Build tract list data
-            var tractListData = matchedFeatures.map(function(f) {
-                var props = f.properties || {};
-                var geoid = props.GEOID || '';
-                var lookup = ffiecLookupData[geoid] || {};
-                return {
-                    tract: props.TRACT || geoid || '',
+                        // Build tract list from ALL lookup data (not just matched features)
+            var tractListData = [];
+            Object.keys(ffiecLookupData).forEach(function(geoid) {
+                var lookup = ffiecLookupData[geoid];
+                var isOnMap = matchedFeatures.some(function(f) {
+                    return (f.properties.GEOID || f.properties.geoid || '') === geoid;
+                });
+                tractListData.push({
+                    tract: geoid.slice(-6) || geoid,
                     geoid: geoid,
                     level: lookup.level || 'Middle',
                     tractMfi: lookup.tractMfi || 0,
                     msaMfi: lookup.msaMfi || 0,
                     ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0,
                     county: lookup.county || '',
-                    city: lookup.city || ''
-                };
+                    city: lookup.city || '',
+                    onMap: isOnMap
+                });
             });
             
                        // Map cities to their counties
