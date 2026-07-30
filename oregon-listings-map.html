@@ -239,7 +239,7 @@
                                     <div class="tract-list" id="tractList">
                 <h4 class="tract-list-header">📍 FFIEC Low · Moderate · Middle Tracts</h4>
                 <div class="tract-list-scroll" id="tractListContent">
-                    <p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>
+                    <p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"Census Tract Income Levels"</strong> to load official boundaries</p>
                 </div>
             </div>
         
@@ -525,7 +525,7 @@
                         function updateTractList(tracts) {
             var html = '';
             if (tracts.length === 0) {
-                html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>';
+                html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"Census Tract Income Levels"</strong> to load official boundaries</p>';
             } else {
                var lowCount = 0, modCount = 0, midCount = 0;
 tracts.forEach(function(t) {
@@ -633,7 +633,7 @@ tracts.forEach(function(t) {
             if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
             ffiecShapesVisible = false;
             var btn = document.getElementById('btnFFIECShapes');
-            if (btn) { btn.classList.remove('active'); btn.textContent = '📊 FFIEC LMI Tracts'; }
+            if (btn) { btn.classList.remove('active'); btn.textContent = '📊 btn.textContent = '📊 Census Tract Income Levels'; }
             if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
             usdaLayerVisible = false;
             var usdaBtn = document.getElementById('btnUSDAToggle');
@@ -764,7 +764,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
+            btn.textContent = '✅ Click to hide USDA RD Ineligible Zones';
             usdaLayerVisible = true;
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -876,7 +876,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Opportunity Zones Visible (Click to Hide)';
+            btn.textContent = '✅ Click to hide Opportunity Zones';
             ozLayerVisible = true;
             
             try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -894,7 +894,7 @@ tracts.forEach(function(t) {
             if (ffiecShapesVisible) {
                 if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
                 btn.classList.remove('active');
-                btn.textContent = '📊 FFIEC LMI Tracts';
+                btn.textContent = '📊 Census Tract Income Levels';
                 ffiecShapesVisible = false;
                 return;
             }
@@ -1066,7 +1066,7 @@ tracts.forEach(function(t) {
             updateTractList(tractListData);
             
             btn.classList.add('active');
-            btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
+            btn.textContent = '✅ Click to hide Income Levels';
             ffiecShapesVisible = true;
             
             try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -1208,7 +1208,7 @@ Object.values(ffiecLookupData).forEach(function(v) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Trifecta Visible (Click to Hide)';
+            btn.textContent = '✅ Click to hide Trifecta Zones';
             trifectaVisible = true;
             
             try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
