@@ -1165,7 +1165,7 @@ Object.values(ffiecLookupData).forEach(function(v) {
                 document.getElementById('loadingBadge').textContent = '⏳ Loading Trifecta Investment zones...';
                 btn.disabled = true;
                 
-                fetch('oregon oz trifecta only.json')
+                fetch('oregon-oz-trifecta-only.json')
                     .then(function(resp) { return resp.json(); })
                     .then(function(data) {
                         document.getElementById('loadingBadge').style.display = 'none';
