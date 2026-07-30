@@ -756,7 +756,7 @@ tracts.forEach(function(t) {
                     var name = props.objectid || props.NAME || props.name || '';
                     // Fix mislabeled regions
                     if (name === 'Washington') name = 'Oregon (Portland Region)';
-                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#374151;">Shaded = NOT eligible</small>'<br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
+                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color;">Shaded = NOT eligible</small>'<br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
                 }
             }).addTo(map);
             
