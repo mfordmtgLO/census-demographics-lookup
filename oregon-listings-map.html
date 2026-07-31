@@ -46,9 +46,9 @@
         .btn-oz { background: #7c3aed; color: white; }
 .btn-oz:hover { background: #6d28d9; }
 .btn-oz.active { background: #8b5cf6; box-shadow: 0 0 12px rgba(124,58,237,0.5); }
-        .btn-reset { background: #ef4444; color: white; }.btn-usda-toggle { background: #166534; color: white; }
-.btn-usda-toggle:hover { background: #14532d; }
-.btn-usda-toggle.active { background: #22c55e; color: #1a1a1a; box-shadow: 0 0 12px rgba(34,197,94,0.5); }
+        .btn-reset { background: #ef4444; color: white; }.btn-usda-toggle { background: #4b5563; color: white; }
+.btn-usda-toggle:hover { background: #374151; }
+.btn-usda-toggle.active { background: #6b7280; color: white; box-shadow: 0 0 12px rgba(107,114,128,0.5); }
         .btn-reset:hover { background: #dc2626; }
         .income-toggles { display: flex; gap: 3px; margin-left: auto; }
         .income-toggle { padding: 3px 7px; border-radius: 8px; font-size: 8px; cursor: pointer; border: 2px solid transparent; font-weight: 600; background: #0d2137; }
@@ -181,7 +181,10 @@
         <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ Show USDA RD Zones</button>
         <button class="btn btn-oz" id="btnOZ" onclick="toggleOpportunityZones()">💎 Show Opportunity Zones</button>
        <button class="btn btn-trifecta" id="btnTrifecta" onclick="toggleTrifecta()">🟢 Trifecta Investment</button>
-        <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()">📊 Show FFIEC Income Level Tracts</button>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+    <small style="color:#8899aa;font-size:8px;line-height:1;">🔴 Low &nbsp;|&nbsp; 🟠 Moderate &nbsp;|&nbsp; 🔵 Middle</small>
+    <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()" style="font-size:9px;">📊 Census Tract Income Levels</button>
+</div>
         
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -221,7 +224,7 @@
             </div>
             <div class="legend-box" style="margin-top:6px;">
                 <h4>🚫 USDA RD Eligibility Zones</h4>
-                <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;border:2px dashed #dc2626;"></div> 🚫 Ineligible (red shaded)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#6b7280;border:2px dashed #374151;"></div> 🚫 Ineligible (grey shaded)</div>
                 <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div> ✅ Eligible (outside shading)</div>
             </div>
                         <div class="legend-box" style="margin-top:6px;">
@@ -749,14 +752,14 @@ tracts.forEach(function(t) {
             
             usdaLayerGroup = L.geoJSON(convertedData, {
                 style: function(feature) {
-                    return { color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
+                    return { color: '#374151', fillColor: '#6b7280', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
                 },
                                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
                     var name = props.objectid || props.NAME || props.name || '';
                     // Fix mislabeled regions
                     if (name === 'Washington') name = 'Oregon (Portland Region)';
-                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#dc2626;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
+                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#374151;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
                 }
             }).addTo(map);
             
