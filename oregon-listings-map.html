@@ -46,9 +46,9 @@
         .btn-oz { background: #7c3aed; color: white; }
 .btn-oz:hover { background: #6d28d9; }
 .btn-oz.active { background: #8b5cf6; box-shadow: 0 0 12px rgba(124,58,237,0.5); }
-        .btn-reset { background: #ef4444; color: white; }.btn-usda-toggle { background: #4b5563; color: white; }
-.btn-usda-toggle:hover { background: #374151; }
-.btn-usda-toggle.active { background: #6b7280; color: white; box-shadow: 0 0 12px rgba(107,114,128,0.5); }
+        .btn-reset { background: #ef4444; color: white; }.btn-usda-toggle { background: #166534; color: white; }
+.btn-usda-toggle:hover { background: #14532d; }
+.btn-usda-toggle.active { background: #22c55e; color: #1a1a1a; box-shadow: 0 0 12px rgba(34,197,94,0.5); }
         .btn-reset:hover { background: #dc2626; }
         .income-toggles { display: flex; gap: 3px; margin-left: auto; }
         .income-toggle { padding: 3px 7px; border-radius: 8px; font-size: 8px; cursor: pointer; border: 2px solid transparent; font-weight: 600; background: #0d2137; }
@@ -181,10 +181,7 @@
         <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ Show USDA RD Zones</button>
         <button class="btn btn-oz" id="btnOZ" onclick="toggleOpportunityZones()">💎 Show Opportunity Zones</button>
        <button class="btn btn-trifecta" id="btnTrifecta" onclick="toggleTrifecta()">🟢 Trifecta Investment</button>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-    <small style="color:#8899aa;font-size:8px;line-height:1;">🔴 Low &nbsp;|&nbsp; 🟠 Moderate &nbsp;|&nbsp; 🔵 Middle</small>
-    <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()" style="font-size:9px;">📊 Census Tract Income Levels</button>
-</div>
+        <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()">📊 Show FFIEC Income Level Tracts</button>
         
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -224,7 +221,7 @@
             </div>
             <div class="legend-box" style="margin-top:6px;">
                 <h4>🚫 USDA RD Eligibility Zones</h4>
-                <div class="legend-item"><div class="legend-swatch" style="background:#6b7280;border:2px dashed #374151;"></div> 🚫 Ineligible (grey shaded)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;border:2px dashed #dc2626;"></div> 🚫 Ineligible (red shaded)</div>
                 <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div> ✅ Eligible (outside shading)</div>
             </div>
                         <div class="legend-box" style="margin-top:6px;">
@@ -239,7 +236,7 @@
                                     <div class="tract-list" id="tractList">
                 <h4 class="tract-list-header">📍 FFIEC Low · Moderate · Middle Tracts</h4>
                 <div class="tract-list-scroll" id="tractListContent">
-                    <p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"Census Tract Income Levels"</strong> to load official boundaries</p>
+                    <p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>
                 </div>
             </div>
         
@@ -525,7 +522,7 @@
                         function updateTractList(tracts) {
             var html = '';
             if (tracts.length === 0) {
-                html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"Census Tract Income Levels"</strong> to load official boundaries</p>';
+                html += '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"FFIEC LMI Tracts"</strong> to load official boundaries</p>';
             } else {
                var lowCount = 0, modCount = 0, midCount = 0;
 tracts.forEach(function(t) {
@@ -633,7 +630,7 @@ tracts.forEach(function(t) {
             if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
             ffiecShapesVisible = false;
             var btn = document.getElementById('btnFFIECShapes');
-            if (btn) { btn.classList.remove('active'); btn.textContent = '📊 btn.textContent = '📊 Census Tract Income Levels'; }
+            if (btn) { btn.classList.remove('active'); btn.textContent = '📊 FFIEC LMI Tracts'; }
             if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
             usdaLayerVisible = false;
             var usdaBtn = document.getElementById('btnUSDAToggle');
@@ -752,19 +749,19 @@ tracts.forEach(function(t) {
             
             usdaLayerGroup = L.geoJSON(convertedData, {
                 style: function(feature) {
-                    return { color: '#374151', fillColor: '#6b7280', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
+                    return { color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
                 },
                                 onEachFeature: function(feature, layer) {
                     var props = feature.properties || {};
                     var name = props.objectid || props.NAME || props.name || '';
                     // Fix mislabeled regions
                     if (name === 'Washington') name = 'Oregon (Portland Region)';
-                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#374151;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
+                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#dc2626;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
                 }
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Click to hide USDA RD Ineligible Zones';
+            btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
             usdaLayerVisible = true;
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -876,7 +873,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Click to hide Opportunity Zones';
+            btn.textContent = '✅ Opportunity Zones Visible (Click to Hide)';
             ozLayerVisible = true;
             
             try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -894,7 +891,7 @@ tracts.forEach(function(t) {
             if (ffiecShapesVisible) {
                 if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
                 btn.classList.remove('active');
-                btn.textContent = '📊 Census Tract Income Levels';
+                btn.textContent = '📊 FFIEC LMI Tracts';
                 ffiecShapesVisible = false;
                 return;
             }
@@ -1066,7 +1063,7 @@ tracts.forEach(function(t) {
             updateTractList(tractListData);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Click to hide Income Levels';
+            btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
             ffiecShapesVisible = true;
             
             try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -1208,7 +1205,7 @@ Object.values(ffiecLookupData).forEach(function(v) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Click to hide Trifecta Zones';
+            btn.textContent = '✅ Trifecta Visible (Click to Hide)';
             trifectaVisible = true;
             
             try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
