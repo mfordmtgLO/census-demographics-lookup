@@ -1202,14 +1202,14 @@ Object.values(ffiecLookupData).forEach(function(v) {
                         'Convergence of:<br>' +
                         '✅ USDA RD Eligible<br>' +
                         '✅ Opportunity Zone<br>' +
-                        '✅ FFIEC LMI Tract<br><br>' +
-                        '<small style="color:#15803d;">Tax incentives + CRA benefits + First-time homebuyer programs available</small>'
+                        '✅ Low or Moderate Income Level Tract<br><br>' +
+                        '<small style="color:#15803d;">Investor/Financing tax advantages + Homebuyer Specialized "Affordable Lending" Programs</small>'
                     );
                 }
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Trifecta Visible (Click to Hide)';
+            btn.textContent = '✅ Hide Trifecta Zones';
             trifectaVisible = true;
             
             try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
