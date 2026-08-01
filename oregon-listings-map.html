@@ -877,7 +877,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Hide Opportunity Zones';
+            btn.textContent = '✅ Hide OZ's';
             ozLayerVisible = true;
             
             try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
