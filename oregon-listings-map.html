@@ -181,11 +181,13 @@
         <button class="btn btn-usda-toggle" id="btnUSDAToggle" onclick="toggleUSDALayer()">🗺️ Show USDA RD Zones</button>
         <button class="btn btn-oz" id="btnOZ" onclick="toggleOpportunityZones()">💎 Show Opportunity Zones</button>
        <button class="btn btn-trifecta" id="btnTrifecta" onclick="toggleTrifecta()">🟢 Trifecta Investment</button>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;">
-    <small style="color:#8899aa;font-size:8px;line-height:1;white-space:nowrap;">🔴 Low | 🟠 Moderate | 🔵 Middle</small>
-    <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()">📊 Census Tract Income Levels</button>
-</div>
         
+                <div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;">
+            <small style="color:#8899aa;font-size:8px;line-height:1;white-space:nowrap;">🔴 Low | 🟠 Moderate | 🔵 Middle</small>
+            <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()">📊 Census Tract Income Levels</button>
+        </div>
+        <div class="income-toggles">
+            <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
         <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
             <span class="income-toggle moderate active" onclick="toggleLevel('Moderate', this)">🟠 Mod</span>
