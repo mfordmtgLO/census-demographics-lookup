@@ -765,7 +765,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ USDA Zones Visible (Click to Hide)';
+            btn.textContent = '✅ Hide USDA RD Zones';
             usdaLayerVisible = true;
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
@@ -877,7 +877,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Opportunity Zones Visible (Click to Hide)';
+            btn.textContent = '✅ Hide Opportunity Zones';
             ozLayerVisible = true;
             
             try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
