@@ -185,7 +185,7 @@
         
          <div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;">
             <small style="color:#8899aa;font-size:8px;line-height:1;white-space:nowrap;">🔴 Low | 🟠 Moderate | 🔵 Middle</small>
-            <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()">📊 Census Tract Income Levels</button>
+           <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()" style="white-space:nowrap;">📊 Census Tract Inc. Levels</button>
         </div>
        <div class="income-toggles">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
@@ -895,7 +895,7 @@ tracts.forEach(function(t) {
             if (ffiecShapesVisible) {
                 if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
                 btn.classList.remove('active');
-                btn.textContent = '📊 FFIEC LMI Tracts';
+                btn.textContent = '📊 Tract Income Level';
                 ffiecShapesVisible = false;
                 return;
             }
@@ -1067,7 +1067,7 @@ tracts.forEach(function(t) {
             updateTractList(tractListData);
             
             btn.classList.add('active');
-            btn.textContent = '✅ FFIEC LMI Tracts Visible (Click to Hide)';
+            btn.textContent = '✅ Hide Income Levels';
             ffiecShapesVisible = true;
             
             try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
