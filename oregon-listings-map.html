@@ -1203,6 +1203,7 @@ Object.values(ffiecLookupData).forEach(function(v) {
             });
         }
               
+    
     var trifectaLayer = null;
 var trifectaVisible = false;
 var trifectaData = null;
@@ -1222,30 +1223,51 @@ function toggleTrifecta() {
         return;
     }
     
-    if (!trifectaData) {
-        var loadingBadge = document.getElementById('loadingBadge');
-        if (loadingBadge) {
-            loadingBadge.style.display = 'block';
-            loadingBadge.textContent = '⏳ Loading Trifecta Investment zones...';
-        }
-        if (btn) btn.disabled = true;
-        
-        fetch('oregon-oz-trifecta-only.json')
-            .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                if (loadingBadge) loadingBadge.style.display = 'none';
-                trifectaData = data;
-                if (btn) btn.disabled = false;
-                showTrifectaLayer(btn);
-            })
-            .catch(function(err) {
-                if (loadingBadge) loadingBadge.style.display = 'none';
-                if (btn) btn.disabled = false;
-                alert('Could not load Trifecta data: ' + err.message);
-            });
-    } else {
-        showTrifectaLayer(btn);
+    var loadingBadge = document.getElementById('loadingBadge');
+    if (loadingBadge) {
+        loadingBadge.style.display = 'block';
+        loadingBadge.textContent = '⏳ Loading Trifecta zones & income metrics...';
     }
+    if (btn) btn.disabled = true;
+
+    // Ensure FFIEC Lookup Data is loaded for exact MFI figures
+    var loadLookup = (!ffiecLookupData) 
+        ? fetch('ffiec-lookup.json').then(function(r){ return r.json(); }).then(function(data){
+            ffiecLookupData = {};
+            data.forEach(function(row) {
+                var fips = row["FIPS code"] || '';
+                if (fips) {
+                    var msaMfi = (row.MSA && row.MSA["MD MFI"]) ? parseInt(row.MSA["MD MFI"]) || 0 : 0;
+                    var tractMfi = parseInt(row["Tract MFI"]) || 0;
+                    var level = row["Tract income level"] || 'Low or Moderate';
+                    ffiecLookupData[fips] = {
+                        msaMfi: msaMfi,
+                        tractMfi: tractMfi,
+                        level: level,
+                        city: row["MSA/MD name"] || '',
+                        county: row["County name"] || ''
+                    };
+                }
+            });
+        })
+        : Promise.resolve();
+
+    // Ensure Trifecta GeoJSON Data is loaded
+    var loadTrifecta = (!trifectaData)
+        ? fetch('oregon-oz-trifecta-only.json').then(function(r){ return r.json(); }).then(function(data){ trifectaData = data; })
+        : Promise.resolve();
+
+    Promise.all([loadLookup, loadTrifecta])
+        .then(function() {
+            if (loadingBadge) loadingBadge.style.display = 'none';
+            if (btn) btn.disabled = false;
+            showTrifectaLayer(btn);
+        })
+        .catch(function(err) {
+            if (loadingBadge) loadingBadge.style.display = 'none';
+            if (btn) btn.disabled = false;
+            alert('Could not load Trifecta or FFIEC data: ' + err.message);
+        });
 }
 
 function showTrifectaLayer(btn) {
@@ -1260,20 +1282,30 @@ function showTrifectaLayer(btn) {
         },
         onEachFeature: function(feature, layer) {
             var props = feature.properties || {};
-            var geoid = props.GEOID || props.geoid || props.TRACT || 'Unknown';
-            var county = props.COUNTY || props.county || props.County || 'Oregon';
-            var city = props.CITY || props.city || 'Local Area';
-            var tractMfi = props.tractMfi || 38500;
-            var msaMfi = props.msaMfi || 94727;
-            var level = props.level || 'Low or Moderate';
+            var geoid = props.GEOID || props.geoid || props.TRACT || '';
             
+            // Cross-reference with FFIEC Lookup Data
+            var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
+            
+            var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || 'Oregon');
+            var city = (lookup && lookup.city) ? lookup.city : (props.CITY || props.city || 'Local Area');
+            var tractMfi = (lookup && lookup.tractMfi) ? lookup.tractMfi : (props.tractMfi || props.income || 0);
+            var msaMfi = (lookup && lookup.msaMfi) ? lookup.msaMfi : (props.msaMfi || props.msaIncome || 0);
+            var level = (lookup && lookup.level) ? lookup.level : (props.level || 'Low or Moderate');
+            
+            var ratioStr = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) + '%' : 'LMI Ratio';
+            var mfiFormatted = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
+
             var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
                 '<strong>Tract GEOID:</strong> ' + geoid + '<br>' +
+                '<strong>Income Level:</strong> ' + level + ' (' + ratioStr + ')<br>' +
+                '<strong>Tract MFI:</strong> ' + mfiFormatted + '<br>' +
+                '<strong>County:</strong> ' + county + '<br><br>' +
                 '<strong>Convergence Checklist:</strong><br>' +
                 '✅ USDA RD Eligible<br>' +
                 '✅ Opportunity Zone Tax Deferral<br>' +
                 '✅ LMI Tract (OHCS Flex Lending Ready)<br><br>' +
-                '<button class="btn-factsheet" onclick="exportLegislativeFactSheet(\'' + geoid + '\', \'' + county + '\', \'' + city + '\', ' + tractMfi + ', ' + msaMfi + ', \'' + level + '\')">' +
+                '<button class="btn-factsheet" onclick="exportLegislativeFactSheet(\'' + geoid + '\', \'' + county.replace(/'/g, "\\'") + '\', \'' + city.replace(/'/g, "\\'") + '\', ' + tractMfi + ', ' + msaMfi + ', \'' + level + '\')">' +
                 '📄 Export Legislative & Investor Fact Sheet</button>';
             
             layer.bindPopup(popupContent);
@@ -1299,40 +1331,6 @@ function showTrifectaLayer(btn) {
     trifectaVisible = true;
     
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
-}
-
-function exportLegislativeFactSheet(geoid, county, city, tractMfi, msaMfi, level) {
-    var ratio = msaMfi > 0 ? ((tractMfi / msaMfi) * 100).toFixed(1) : 'N/A';
-    var printWindow = window.open('', '_blank');
-    if (!printWindow) { alert('Please allow popups to view the Fact Sheet.'); return; }
-    
-    var htmlContent = '<html><head><title>Trifecta Fact Sheet - Tract ' + geoid + '</title>' +
-        '<style>' +
-        'body { font-family: sans-serif; padding: 25px; color: #1a1a1a; line-height: 1.5; }' +
-        '.header { border-bottom: 3px solid #15803d; padding-bottom: 12px; margin-bottom: 20px; }' +
-        '.header h1 { font-size: 20px; color: #15803d; margin: 0; }' +
-        '.badge { background: #15803d; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 5px; }' +
-        '.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }' +
-        '.box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; }' +
-        '.pillar-list { padding-left: 20px; font-size: 11px; }' +
-        '</style></head><body>' +
-        '<button onclick="window.print()" style="float:right;background:#15803d;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-weight:bold;">🖨️ Print / Save PDF</button>' +
-        '<div class="header"><h1>Oregon Trifecta Investment Zone Brief</h1><p>Census Tract ' + geoid + ' • ' + county + ' County / ' + city + '</p></div>' +
-        '<div><span class="badge">Opportunity Zone</span><span class="badge">USDA RD Eligible</span><span class="badge">' + level + ' Income (' + ratio + '% MSA MFI)</span></div>' +
-        '<div class="grid">' +
-        '<div class="box"><h3>📍 Profile</h3><p><strong>Tract GEOID:</strong> ' + geoid + '</p><p><strong>County/City:</strong> ' + county + ' / ' + city + '</p><p><strong>Tract MFI:</strong> $' + parseInt(tractMfi).toLocaleString() + '</p></div>' +
-        '<div class="box"><h3>💰 Capital & Housing Incentives</h3><p><strong>Federal OZ:</strong> 10-Yr Tax-Free Growth</p><p><strong>Bank CRA Credit:</strong> Direct LMI Mortgage Credit</p><p><strong>USDA RD:</strong> 100% Financing Guarantees</p></div>' +
-        '</div>' +
-        '<div class="box"><h3>🚀 4-Pillar Action Plan</h3><ul class="pillar-list">' +
-        '<li><strong>Pillar 1:</strong> OHCS Flex Lending (FirstHome + NextStep DPA) Ready.</li>' +
-        '<li><strong>Pillar 2:</strong> Track A (Fractional Share) + Track B (DPA Match) + Track C (IRC Sec 127 Tax-Free Student Loan Paydown up to $5,250/yr).</li>' +
-        '<li><strong>Pillar 3:</strong> Underutilized commercial property reclamation & tech modernization.</li>' +
-        '<li><strong>Pillar 4:</strong> Opportunity Zone capital gains equity stacked with local bank CRA liquidity.</li>' +
-        '</ul></div>' +
-        '</body></html>';
-        
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
 }
     </script>
 </body>
