@@ -1270,7 +1270,8 @@ function toggleTrifecta() {
         });
 }
 
-function showTrifectaLayer(btn) {
+
+    function showTrifectaLayer(btn) {
     if (!trifectaData) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
@@ -1284,18 +1285,18 @@ function showTrifectaLayer(btn) {
             var props = feature.properties || {};
             var geoid = props.GEOID || props.geoid || props.TRACT || '';
             
-            // Cross-reference with FFIEC Lookup Data
+            // Cross-reference with FFIEC Lookup Data in memory
             var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
             
             var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || 'Oregon');
-            var city = (lookup && lookup.city) ? lookup.city : (props.CITY || props.city || 'Local Area');
             var tractMfi = (lookup && lookup.tractMfi) ? lookup.tractMfi : (props.tractMfi || props.income || 0);
             var msaMfi = (lookup && lookup.msaMfi) ? lookup.msaMfi : (props.msaMfi || props.msaIncome || 0);
             var level = (lookup && lookup.level) ? lookup.level : (props.level || 'Low or Moderate');
             
-            var ratioStr = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) + '%' : 'LMI Ratio';
+            var ratioStr = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) + '%' : 'LMI Qualified';
             var mfiFormatted = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
 
+            // Clean button call passing ONLY the numeric geoid
             var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
                 '<strong>Tract GEOID:</strong> ' + geoid + '<br>' +
                 '<strong>Income Level:</strong> ' + level + ' (' + ratioStr + ')<br>' +
@@ -1305,14 +1306,14 @@ function showTrifectaLayer(btn) {
                 '✅ USDA RD Eligible<br>' +
                 '✅ Opportunity Zone Tax Deferral<br>' +
                 '✅ LMI Tract (OHCS Flex Lending Ready)<br><br>' +
-                '<button class="btn-factsheet" onclick="exportLegislativeFactSheet(\'' + geoid + '\', \'' + county.replace(/'/g, "\\'") + '\', \'' + city.replace(/'/g, "\\'") + '\', ' + tractMfi + ', ' + msaMfi + ', \'' + level + '\')">' +
+                '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + geoid + '\')">' +
                 '📄 Export Legislative & Investor Fact Sheet</button>';
             
             layer.bindPopup(popupContent);
         }
     }).addTo(map);
     
-    // Update Banner Metrics
+    // Update Sidebar Banner Metrics
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
         var mNum1 = document.getElementById('metricTracts');
@@ -1331,6 +1332,69 @@ function showTrifectaLayer(btn) {
     trifectaVisible = true;
     
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+}
+
+// FAIL-SAFE LEGISLATIVE FACT SHEET GENERATOR
+function triggerFactSheet(geoid) {
+    if (!geoid) { alert('No GEOID available for this tract.'); return; }
+    
+    // Lookup exact data from memory
+    var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : {};
+    var county = lookup.county || 'Oregon';
+    var city = lookup.city || 'Local Area';
+    var tractMfi = lookup.tractMfi || 0;
+    var msaMfi = lookup.msaMfi || 0;
+    var level = lookup.level || 'Low or Moderate';
+    var ratio = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) : 'N/A';
+
+    var printWindow = window.open('', '_blank');
+    if (!printWindow) { 
+        alert('Popup blocked! Please allow popups for this site to view the Fact Sheet.'); 
+        return; 
+    }
+    
+    var htmlContent = '<html><head><title>Trifecta Fact Sheet - Tract ' + geoid + '</title>' +
+        '<style>' +
+        'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 25px; color: #1a1a1a; line-height: 1.5; background: #fff; }' +
+        '.header { border-bottom: 3px solid #15803d; padding-bottom: 12px; margin-bottom: 20px; }' +
+        '.header h1 { font-size: 20px; color: #15803d; margin: 0; }' +
+        '.header p { font-size: 11px; color: #555; margin: 3px 0 0 0; }' +
+        '.badge-container { margin-bottom: 15px; }' +
+        '.badge { background: #15803d; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 6px; display: inline-block; }' +
+        '.badge.oz { background: #7c3aed; }' +
+        '.badge.usda { background: #166534; }' +
+        '.badge.lmi { background: #dc2626; }' +
+        '.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }' +
+        '.box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; }' +
+        '.box h3 { font-size: 12px; color: #0f172a; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }' +
+        '.pillar-list { padding-left: 18px; font-size: 11px; margin: 0; }' +
+        '.pillar-list li { margin-bottom: 6px; }' +
+        '.print-btn { background: #15803d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }' +
+        '.footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 9px; color: #64748b; text-align: center; }' +
+        '@media print { .print-btn { display: none; } }' +
+        '</style></head><body>' +
+        '<button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF Fact Sheet</button>' +
+        '<div class="header"><div><h1>Oregon Trifecta Investment Zone Brief</h1><p>Census Tract ' + geoid + ' • ' + county + ' County / ' + city + '</p></div></div>' +
+        '<div class="badge-container">' +
+        '<span class="badge oz">Opportunity Zone Designated</span>' +
+        '<span class="badge usda">USDA RD 100% Eligible</span>' +
+        '<span class="badge lmi">' + level + ' Income (' + ratio + '% MSA MFI)</span>' +
+        '</div>' +
+        '<div class="grid">' +
+        '<div class="box"><h3>📍 Geographic & Demographic Profile</h3><p style="font-size:11px;margin:3px 0;"><strong>Census Tract GEOID:</strong> ' + geoid + '</p><p style="font-size:11px;margin:3px 0;"><strong>County / City:</strong> ' + county + ' / ' + city + '</p><p style="font-size:11px;margin:3px 0;"><strong>Tract Median Income:</strong> $' + parseInt(tractMfi).toLocaleString() + '</p><p style="font-size:11px;margin:3px 0;"><strong>MSA Median Income:</strong> $' + parseInt(msaMfi).toLocaleString() + '</p></div>' +
+        '<div class="box"><h3>💰 Capital & Financing Stacking</h3><p style="font-size:11px;margin:3px 0;"><strong>Federal OZ:</strong> 10-Year Capital Gains Tax Shield</p><p style="font-size:11px;margin:3px 0;"><strong>Bank CRA Credit:</strong> LMI Mortgage & Enterprise Credit</p><p style="font-size:11px;margin:3px 0;"><strong>USDA RD:</strong> Specialized Rural Loan Guarantees</p></div>' +
+        '</div>' +
+        '<div class="box"><h3>🚀 Oregon 4-Pillar Action Plan for Tract ' + geoid + '</h3><ul class="pillar-list">' +
+        '<li><strong>Pillar 1 (Affordable Homeownership):</strong> Eligible for OHCS Flex Lending (FirstHome 1st mortgage + NextStep DPA 2nd mortgage).</li>' +
+        '<li><strong>Pillar 2 (Youth Workforce Benefits):</strong> Deploys Track A (Fractional Equity), Track B (DPA Match), and Track C (IRC Sec 127 Tax-Free Student Loan Paydown up to $5,250/yr).</li>' +
+        '<li><strong>Pillar 3 (Commercial Rejuvenation):</strong> Reclaims existing underutilized commercial property with youth-driven tech/AI operational efficiencies.</li>' +
+        '<li><strong>Pillar 4 (Capital Stacking & ROI):</strong> Stacks private capital gains equity with local bank CRA liquidity.</li>' +
+        '</ul></div>' +
+        '<div class="footer">Generated via Oregon Census Demographics & Trifecta Zone Mapping Platform • Legislative Briefing Tool</div>' +
+        '</body></html>';
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
 }
     </script>
 </body>
