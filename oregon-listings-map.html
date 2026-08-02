@@ -1204,6 +1204,7 @@ Object.values(ffiecLookupData).forEach(function(v) {
         }
               
     
+    
     var trifectaLayer = null;
 var trifectaVisible = false;
 var trifectaData = null;
@@ -1226,33 +1227,40 @@ function toggleTrifecta() {
     var loadingBadge = document.getElementById('loadingBadge');
     if (loadingBadge) {
         loadingBadge.style.display = 'block';
-        loadingBadge.textContent = '⏳ Loading Trifecta zones & income metrics...';
+        loadingBadge.textContent = '⏳ Loading Trifecta zones & official FFIEC metrics...';
     }
     if (btn) btn.disabled = true;
 
-    // Ensure FFIEC Lookup Data is loaded for exact MFI figures
+    // Load and parse FFIEC lookup data matching the PDF schema
     var loadLookup = (!ffiecLookupData) 
         ? fetch('ffiec-lookup.json').then(function(r){ return r.json(); }).then(function(data){
             ffiecLookupData = {};
             data.forEach(function(row) {
-                var fips = row["FIPS code"] || '';
+                // Handle all possible FIPS column variations
+                var fips = String(row["FIPS code"] || row["fips"] || row["FIPS"] || row["GEOID"] || '').trim();
                 if (fips) {
-                    var msaMfi = (row.MSA && row.MSA["MD MFI"]) ? parseInt(row.MSA["MD MFI"]) || 0 : 0;
-                    var tractMfi = parseInt(row["Tract MFI"]) || 0;
-                    var level = row["Tract income level"] || 'Low or Moderate';
+                    // Pull exact column headers matching official PDF table
+                    var msaMfi = parseInt(row["MSA/MD MFI"] || row["MSA MFI"] || row["msaMfi"] || (row.MSA && row.MSA["MD MFI"])) || 0;
+                    var tractMfi = parseInt(row["Tract MFI"] || row["tractMfi"] || row["TractMfi"]) || 0;
+                    var ratioVal = parseFloat(row["Tract income percentage"] || row["ratio"] || row["TractIncomePercentage"]) || 0;
+                    var level = row["Tract income level"] || row["incomeLevel"] || row["level"] || 'Low or Moderate';
+                    var county = row["County name"] || row["county"] || '';
+                    var city = row["MSA/MD name"] || row["city"] || '';
+
                     ffiecLookupData[fips] = {
                         msaMfi: msaMfi,
                         tractMfi: tractMfi,
+                        ratio: ratioVal,
                         level: level,
-                        city: row["MSA/MD name"] || '',
-                        county: row["County name"] || ''
+                        city: city,
+                        county: county
                     };
                 }
             });
         })
         : Promise.resolve();
 
-    // Ensure Trifecta GeoJSON Data is loaded
+    // Load Trifecta GeoJSON
     var loadTrifecta = (!trifectaData)
         ? fetch('oregon-oz-trifecta-only.json').then(function(r){ return r.json(); }).then(function(data){ trifectaData = data; })
         : Promise.resolve();
@@ -1270,9 +1278,7 @@ function toggleTrifecta() {
         });
 }
 
-
-    
-    function showTrifectaLayer(btn) {
+function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
@@ -1285,19 +1291,18 @@ function toggleTrifecta() {
         onEachFeature: function(feature, layer) {
             var props = feature.properties || {};
             
-            // SMART GEOID EXTRACTOR: Checks all possible GIS key names
+            // Extract clean 11-digit FIPS code
             var rawGeoid = props.GEOID || props.geoid || props.GEOID10 || props.geoid10 ||
                            props.GEOID20 || props.geoid20 || props.AFFGEOID || props.affgeoid ||
                            props.FIPS || props.fips || props.TRACT || props.tract ||
                            props.OBJECTID || props.objectid || props.NAME || feature.id || '';
 
-            // Clean string formatting if GEOID contains prefixes like '1400000US41035970201'
             if (rawGeoid && typeof rawGeoid === 'string' && rawGeoid.indexOf('US') >= 0) {
                 rawGeoid = rawGeoid.split('US')[1];
             }
             var geoid = String(rawGeoid).trim();
 
-            // Direct or fuzzy lookup in ffiecLookupData
+            // Find matching FFIEC row in memory
             var lookup = (geoid && ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
 
             if (!lookup && geoid && ffiecLookupData) {
@@ -1311,33 +1316,31 @@ function toggleTrifecta() {
                 }
             }
 
-            // Fallback defaults so values are never undefined
             var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || props.NAME || 'Oregon');
             var city = (lookup && lookup.city) ? lookup.city : (props.CITY || props.city || 'Local Area');
             var tractMfi = (lookup && lookup.tractMfi) ? lookup.tractMfi : (props.tractMfi || props.income || 0);
             var msaMfi = (lookup && lookup.msaMfi) ? lookup.msaMfi : (props.msaMfi || props.msaIncome || 0);
+            var ratio = (lookup && lookup.ratio > 0) ? lookup.ratio : (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 0);
             var level = (lookup && lookup.level) ? lookup.level : (props.level || 'Low or Moderate');
 
-            // Guaranteed clean geoid string
             var displayGeoid = geoid || ('Tract-' + (props.OBJECTID || props.objectid || Math.floor(Math.random()*10000)));
 
-            var ratioStr = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) + '%' : 'LMI Qualified';
-            var mfiFormatted = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
+            var ratioStr = ratio > 0 ? ratio.toFixed(1) + '% of MSA' : 'LMI Qualified';
+            var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
+            var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Qualified';
 
-            // Escape single quotes in text fields to prevent inline HTML JS syntax breaks
-            var safeCounty = county.replace(/'/g, "\\'");
-            var safeCity = city.replace(/'/g, "\\'");
-
-            var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
-                '<strong>Tract GEOID:</strong> ' + displayGeoid + '<br>' +
-                '<strong>Income Level:</strong> ' + level + ' (' + ratioStr + ')<br>' +
-                '<strong>Tract MFI:</strong> ' + mfiFormatted + '<br>' +
+            popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
+                '<strong>Census Tract:</strong> ' + displayGeoid + '<br>' +
+                '<strong>Level:</strong> ' + level + ' Income<br>' +
+                '<strong>Tract MFI:</strong> ' + tractMfiStr + '<br>' +
+                '<strong>MSA MFI:</strong> ' + msaMfiStr + '<br>' +
+                '<strong>Ratio:</strong> ' + ratioStr + '<br>' +
                 '<strong>County:</strong> ' + county + '<br><br>' +
                 '<strong>Convergence Checklist:</strong><br>' +
                 '✅ USDA RD Eligible<br>' +
                 '✅ Opportunity Zone Tax Deferral<br>' +
                 '✅ LMI Tract (OHCS Flex Lending Ready)<br><br>' +
-                '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + displayGeoid + '\', \'' + safeCounty + '\', \'' + safeCity + '\', ' + tractMfi + ', ' + msaMfi + ', \'' + level + '\')">' +
+                '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + displayGeoid + '\')">' +
                 '📄 Export Legislative & Investor Fact Sheet</button>';
             
             layer.bindPopup(popupContent);
@@ -1365,27 +1368,22 @@ function toggleTrifecta() {
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
 }
 
-// BULLETPROOF LEGISLATIVE FACT SHEET GENERATOR
-function triggerFactSheet(geoid, county, city, tractMfi, msaMfi, level) {
-    // Sanitize missing values
-    if (!geoid || geoid === 'undefined') geoid = 'Oregon-Trifecta-Tract';
-    if (!county || county === 'undefined') county = 'Oregon';
-    if (!city || city === 'undefined') city = 'Local Area';
-    if (!tractMfi || isNaN(tractMfi)) tractMfi = 0;
-    if (!msaMfi || isNaN(msaMfi)) msaMfi = 0;
-    if (!level || level === 'undefined') level = 'Low or Moderate';
+// FACT SHEET GENERATOR: QUERIES FFIEC DATA DIRECTLY FROM MEMORY
+function triggerFactSheet(geoid) {
+    if (!geoid) { alert('No GEOID available for this tract.'); return; }
     
-    // Check lookup data from memory if parameters were partial
-    if (ffiecLookupData && ffiecLookupData[geoid]) {
-        var lookup = ffiecLookupData[geoid];
-        county = lookup.county || county;
-        city = lookup.city || city;
-        tractMfi = lookup.tractMfi || tractMfi;
-        msaMfi = lookup.msaMfi || msaMfi;
-        level = lookup.level || level;
-    }
+    // Query exact memory object loaded from ffiec-lookup.json
+    var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : {};
+    var county = lookup.county || 'Oregon';
+    var city = lookup.city || 'Local Area';
+    var tractMfi = lookup.tractMfi || 0;
+    var msaMfi = lookup.msaMfi || 0;
+    var ratioVal = lookup.ratio || (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 0);
+    var level = lookup.level || 'Low or Moderate';
 
-    var ratio = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) : 'N/A';
+    var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'N/A';
+    var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'N/A';
+    var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'N/A';
 
     var printWindow = window.open('', '_blank');
     if (!printWindow) { 
@@ -1418,11 +1416,22 @@ function triggerFactSheet(geoid, county, city, tractMfi, msaMfi, level) {
         '<div class="badge-container">' +
         '<span class="badge oz">Opportunity Zone Designated</span>' +
         '<span class="badge usda">USDA RD 100% Eligible</span>' +
-        '<span class="badge lmi">' + level + ' Income (' + ratio + '% MSA MFI)</span>' +
+        '<span class="badge lmi">' + level + ' Income (' + ratioStr + ')</span>' +
         '</div>' +
         '<div class="grid">' +
-        '<div class="box"><h3>📍 Geographic & Demographic Profile</h3><p style="font-size:11px;margin:3px 0;"><strong>Census Tract GEOID:</strong> ' + geoid + '</p><p style="font-size:11px;margin:3px 0;"><strong>County / City:</strong> ' + county + ' / ' + city + '</p><p style="font-size:11px;margin:3px 0;"><strong>Tract Median Income:</strong> $' + parseInt(tractMfi).toLocaleString() + '</p><p style="font-size:11px;margin:3px 0;"><strong>MSA Median Income:</strong> $' + parseInt(msaMfi).toLocaleString() + '</p></div>' +
-        '<div class="box"><h3>💰 Capital & Financing Stacking</h3><p style="font-size:11px;margin:3px 0;"><strong>Federal OZ:</strong> 10-Year Capital Gains Tax Shield</p><p style="font-size:11px;margin:3px 0;"><strong>Bank CRA Credit:</strong> LMI Mortgage & Enterprise Credit</p><p style="font-size:11px;margin:3px 0;"><strong>USDA RD:</strong> Specialized Rural Loan Guarantees</p></div>' +
+        '<div class="box"><h3>📍 Geographic & Demographic Profile</h3>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>Census Tract:</strong> ' + geoid + '</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>County / City:</strong> ' + county + ' / ' + city + '</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>Level:</strong> ' + level + ' Income</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>Tract MFI:</strong> ' + tractMfiStr + '</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>MSA MFI:</strong> ' + msaMfiStr + '</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>Ratio:</strong> ' + ratioStr + '</p>' +
+        '</div>' +
+        '<div class="box"><h3>💰 Capital & Financing Stacking</h3>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>Federal OZ:</strong> 10-Year Capital Gains Tax Shield</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>Bank CRA Credit:</strong> LMI Mortgage & Enterprise Credit</p>' +
+        '<p style="font-size:11px;margin:3px 0;"><strong>USDA RD:</strong> Specialized Rural Loan Guarantees</p>' +
+        '</div>' +
         '</div>' +
         '<div class="box"><h3>🚀 Oregon 4-Pillar Action Plan for Tract ' + geoid + '</h3><ul class="pillar-list">' +
         '<li><strong>Pillar 1 (Affordable Homeownership):</strong> Eligible for OHCS Flex Lending (FirstHome 1st mortgage + NextStep DPA 2nd mortgage).</li>' +
