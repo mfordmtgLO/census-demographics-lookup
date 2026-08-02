@@ -768,7 +768,7 @@ tracts.forEach(function(t) {
             }).addTo(map);
             
             btn.classList.add('active');
-            btn.textContent = '✅ Hide USDA RD Zones';
+            btn.textContent = '✅ Hide USDA Zones';
             usdaLayerVisible = true;
             
             try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
