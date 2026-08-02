@@ -1344,24 +1344,44 @@ function extractFipsFromFeature(feature) {
     return '';
 }
 
+
+    window.trifectaCache = {};
+window.verifiedTrifectaTracts = [];
+
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
-    var totalTracts = trifectaData.features.length;
-    window.trifectaCache = {}; // Clear memory cache
+    window.trifectaCache = {};
+    window.verifiedTrifectaTracts = [];
+    var totalVerifiedCount = 0;
     
     trifectaLayer = L.geoJSON(trifectaData, {
+        // STRICT LMI FILTER: Exclude Middle or Upper income tracts (MFI Ratio >= 80%)
+        filter: function(feature) {
+            var geoid = extractFipsFromFeature(feature);
+            var lookup = (geoid && ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
+            
+            if (!lookup && geoid && ffiecLookupData && geoid.length >= 6) {
+                lookup = ffiecLookupData[geoid.slice(-6)];
+            }
+            
+            var level = (lookup && lookup.level) ? lookup.level.trim() : '';
+            var ratio = (lookup && lookup.ratio) ? lookup.ratio : 0;
+            
+            // DISQUALIFY Middle or Upper Income Tracts
+            if (level === 'Middle' || level === 'Upper' || ratio >= 80.0) {
+                return false; // DO NOT RENDER ON MAP
+            }
+            return true; // RENDER TRUE TRIFECTA
+        },
         style: function(feature) {
-            return { color: '#15803d', fillColor: '#22c55e', fillOpacity: 0.35, weight: 2 };
+            return { color: '#15803d', fillColor: '#22c55e', fillOpacity: 0.45, weight: 2.5 };
         },
         onEachFeature: function(feature, layer) {
             var props = feature.properties || {};
-            
-            // Extract 11-digit FIPS using Universal Detective
             var geoid = extractFipsFromFeature(feature);
 
-            // 4-Tier Match in FFIEC Lookup Data loaded from JSON/PDF
             var lookup = null;
             if (geoid && ffiecLookupData) {
                 lookup = ffiecLookupData[geoid];
@@ -1370,7 +1390,7 @@ function showTrifectaLayer(btn) {
                 }
             }
 
-            // Fallback match in embedded ffiecTracts array
+            // Fallback match in embedded ffiecTracts
             if (!lookup && typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
                 var found = ffiecTracts.find(function(t) {
                     return (t.geoid && t.geoid === geoid) || (t.tract && geoid.endsWith(t.tract));
@@ -1380,7 +1400,7 @@ function showTrifectaLayer(btn) {
                         msaMfi: found.msaIncome || 0,
                         tractMfi: found.income || 0,
                         ratio: found.ratio ? (found.ratio * 100) : 0,
-                        level: found.level || 'Low or Moderate',
+                        level: found.level || 'Low',
                         county: found.county || '',
                         city: found.city || ''
                     };
@@ -1404,24 +1424,28 @@ function showTrifectaLayer(btn) {
                 tractMfi: tractMfi,
                 msaMfi: msaMfi,
                 ratio: ratioVal,
-                level: level
+                level: level,
+                layer: layer
             };
 
-            var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'LMI Qualified';
-            var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
-            var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Qualified';
+            // ADD TO VERIFIED SIDEBAR LIST
+            window.verifiedTrifectaTracts.push(window.trifectaCache[displayGeoid]);
+            totalVerifiedCount++;
 
-            var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
+            var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'LMI Validated';
+            var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Validated';
+            var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Validated';
+
+            var popupContent = '<strong>🟢 TRUE TRIFECTA ZONE (LMI Validated)</strong><br>' +
                 '<strong>Census Tract:</strong> ' + displayGeoid + '<br>' +
-                '<strong>Level:</strong> ' + level + ' Income<br>' +
+                '<strong>Level:</strong> <span style="color:#22c55e;font-weight:bold;">' + level + ' Income</span> (' + ratioStr + ')<br>' +
                 '<strong>Tract MFI:</strong> ' + tractMfiStr + '<br>' +
                 '<strong>MSA MFI:</strong> ' + msaMfiStr + '<br>' +
-                '<strong>Ratio:</strong> ' + ratioStr + '<br>' +
                 '<strong>County:</strong> ' + county + '<br><br>' +
-                '<strong>Convergence Checklist:</strong><br>' +
-                '✅ USDA RD Eligible<br>' +
+                '<strong>Convergence Verification:</strong><br>' +
+                '✅ USDA RD Eligible Zone<br>' +
                 '✅ Opportunity Zone Tax Deferral<br>' +
-                '✅ LMI Tract (OHCS Flex Lending Ready)<br><br>' +
+                '✅ LMI Tract (<80% MFI Ratio - OHCS Flex Eligible)<br><br>' +
                 '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + displayGeoid + '\')">' +
                 '📄 Export Legislative & Investor Fact Sheet</button>';
             
@@ -1429,25 +1453,61 @@ function showTrifectaLayer(btn) {
         }
     }).addTo(map);
     
-    // Update Sidebar Banner Metrics
+    // UPDATE SIDEBAR BANNER METRICS WITH ONLY VERIFIED TRACTS
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
         var mNum1 = document.getElementById('metricTracts');
         var mNum2 = document.getElementById('metricYouth');
         var mNum3 = document.getElementById('metricHousing');
-        if (mNum1) mNum1.textContent = totalTracts;
-        if (mNum2) mNum2.textContent = (totalTracts * 100).toLocaleString() + '+';
-        if (mNum3) mNum3.textContent = (totalTracts * 50).toLocaleString() + '+';
+        if (mNum1) mNum1.textContent = totalVerifiedCount;
+        if (mNum2) mNum2.textContent = (totalVerifiedCount * 100).toLocaleString() + '+';
+        if (mNum3) mNum3.textContent = (totalVerifiedCount * 50).toLocaleString() + '+';
         banner.classList.add('show');
     }
+
+    // UPDATE SIDEBAR TRACT LIST WITH VERIFIED TRACTS
+    renderVerifiedTrifectaTractList();
     
     if (btn) {
         btn.classList.add('active');
-        btn.textContent = '✅ Hide Trifecta Zones';
+        btn.textContent = '✅ Hide Verified Trifecta';
     }
     trifectaVisible = true;
     
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+}
+
+// RENDER VERIFIED TRACTS IN SIDEBAR
+function renderVerifiedTrifectaTractList() {
+    var container = document.getElementById('tractListContent');
+    if (!container || window.verifiedTrifectaTracts.length === 0) return;
+    
+    var lowCount = 0, modCount = 0;
+    window.verifiedTrifectaTracts.forEach(function(t) {
+        if (t.level === 'Low') lowCount++;
+        else modCount++;
+    });
+
+    var html = '<p style="color:#22c55e;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;font-weight:bold;">' +
+        '🟢 Verified True Trifecta: 🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | Total: ' + window.verifiedTrifectaTracts.length + '</p>';
+
+    window.verifiedTrifectaTracts.forEach(function(t) {
+        var lc = (t.level || 'Low').toLowerCase();
+        html += '<div class="tract-item ' + lc + '" onclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
+            '<span class="tract-id">🟢 Tract ' + t.geoid + '</span> - ' + t.level + ' Income' +
+            '<span class="tract-income">$' + parseInt(t.tractMfi).toLocaleString() + ' | ' + t.ratio.toFixed(1) + '% of MSA (' + t.county + ')</span>' +
+            '<button class="copy-btn" onclick="event.stopPropagation();triggerFactSheet(\'' + t.geoid + '\')">📄</button></div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function focusTrifectaTract(geoid) {
+    if (window.trifectaCache && window.trifectaCache[geoid] && window.trifectaCache[geoid].layer) {
+        var l = window.trifectaCache[geoid].layer;
+        map.fitBounds(l.getBounds().pad(0.3));
+        l.openPopup();
+    }
 }
 
 function triggerFactSheet(geoid) {
