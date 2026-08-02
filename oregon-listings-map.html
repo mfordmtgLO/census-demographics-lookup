@@ -1209,6 +1209,9 @@ Object.values(ffiecLookupData).forEach(function(v) {
 var trifectaVisible = false;
 var trifectaData = null;
 
+
+    window.trifectaCache = {};
+
 function toggleTrifecta() {
     var btn = document.getElementById('btnTrifecta');
     var banner = document.getElementById('trifectaBanner');
@@ -1227,40 +1230,56 @@ function toggleTrifecta() {
     var loadingBadge = document.getElementById('loadingBadge');
     if (loadingBadge) {
         loadingBadge.style.display = 'block';
-        loadingBadge.textContent = '⏳ Loading Trifecta zones & official FFIEC metrics...';
+        loadingBadge.textContent = '⏳ Loading Trifecta zones & matching FFIEC data...';
     }
     if (btn) btn.disabled = true;
 
-    // Load and parse FFIEC lookup data matching the PDF schema
+    // Load and index FFIEC lookup data under both 11-digit and 6-digit keys
     var loadLookup = (!ffiecLookupData) 
-        ? fetch('ffiec-lookup.json').then(function(r){ return r.json(); }).then(function(data){
-            ffiecLookupData = {};
-            data.forEach(function(row) {
-                // Handle all possible FIPS column variations
-                var fips = String(row["FIPS code"] || row["fips"] || row["FIPS"] || row["GEOID"] || '').trim();
-                if (fips) {
-                    // Pull exact column headers matching official PDF table
-                    var msaMfi = parseInt(row["MSA/MD MFI"] || row["MSA MFI"] || row["msaMfi"] || (row.MSA && row.MSA["MD MFI"])) || 0;
-                    var tractMfi = parseInt(row["Tract MFI"] || row["tractMfi"] || row["TractMfi"]) || 0;
-                    var ratioVal = parseFloat(row["Tract income percentage"] || row["ratio"] || row["TractIncomePercentage"]) || 0;
-                    var level = row["Tract income level"] || row["incomeLevel"] || row["level"] || 'Low or Moderate';
-                    var county = row["County name"] || row["county"] || '';
-                    var city = row["MSA/MD name"] || row["city"] || '';
+        ? fetch('ffiec-lookup.json')
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                ffiecLookupData = {};
+                data.forEach(function(row) {
+                    var rawFips = row["FIPS code"] || row["FIPS Code"] || row["FIPS"] || row["fips"] || row["GEOID"] || row["geoid"] || '';
+                    var fips = String(rawFips).replace(/[^0-9]/g, '').trim();
+                    
+                    if (fips) {
+                        var msaMfi = parseInt(row["MSA/MD MFI"] || row["MSA_MFI"] || row["MSA MFI"] || row["msaMfi"] || (row.MSA && row.MSA["MD MFI"])) || 0;
+                        var tractMfi = parseInt(row["Tract MFI"] || row["TRACT_MFI"] || row["tractMfi"] || row["TractMfi"]) || 0;
+                        var ratioVal = parseFloat(row["Tract income percentage"] || row["TRACT_INCOME_PERCENTAGE"] || row["ratio"] || row["TractIncomePercentage"]) || 0;
+                        var level = row["Tract income level"] || row["TRACT_INCOME_LEVEL"] || row["incomeLevel"] || row["level"] || 'Low or Moderate';
+                        var county = row["County name"] || row["COUNTY_NAME"] || row["county"] || '';
+                        var city = row["MSA/MD name"] || row["MSA_NAME"] || row["city"] || '';
 
-                    ffiecLookupData[fips] = {
-                        msaMfi: msaMfi,
-                        tractMfi: tractMfi,
-                        ratio: ratioVal,
-                        level: level,
-                        city: city,
-                        county: county
-                    };
-                }
-            });
-        })
+                        if (ratioVal === 0 && msaMfi > 0 && tractMfi > 0) {
+                            ratioVal = (tractMfi / msaMfi) * 100;
+                        }
+
+                        var item = {
+                            fips: fips,
+                            msaMfi: msaMfi,
+                            tractMfi: tractMfi,
+                            ratio: ratioVal,
+                            level: level,
+                            city: city,
+                            county: county
+                        };
+
+                        // Store under full 11-digit FIPS
+                        ffiecLookupData[fips] = item;
+                        
+                        // Also index under 6-digit suffix (tract number)
+                        if (fips.length >= 6) {
+                            var suffix = fips.slice(-6);
+                            ffiecLookupData[suffix] = item;
+                        }
+                    }
+                });
+            })
+            .catch(function(){ console.log("Lookup JSON fetch skipped or offline."); })
         : Promise.resolve();
 
-    // Load Trifecta GeoJSON
     var loadTrifecta = (!trifectaData)
         ? fetch('oregon-oz-trifecta-only.json').then(function(r){ return r.json(); }).then(function(data){ trifectaData = data; })
         : Promise.resolve();
@@ -1274,19 +1293,16 @@ function toggleTrifecta() {
         .catch(function(err) {
             if (loadingBadge) loadingBadge.style.display = 'none';
             if (btn) btn.disabled = false;
-            alert('Could not load Trifecta or FFIEC data: ' + err.message);
+            alert('Could not load Trifecta layer: ' + err.message);
         });
 }
-
-
-    window.trifectaCache = {};
 
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
     var totalTracts = trifectaData.features.length;
-    window.trifectaCache = {}; // Reset cache
+    window.trifectaCache = {};
     
     trifectaLayer = L.geoJSON(trifectaData, {
         style: function(feature) {
@@ -1295,52 +1311,63 @@ function showTrifectaLayer(btn) {
         onEachFeature: function(feature, layer) {
             var props = feature.properties || {};
             
-            // Extract clean 11-digit FIPS code
-            var rawGeoid = props.GEOID || props.geoid || props.GEOID10 || props.geoid10 ||
-                           props.GEOID20 || props.geoid20 || props.AFFGEOID || props.affgeoid ||
-                           props.FIPS || props.fips || props.TRACT || props.tract ||
-                           props.OBJECTID || props.objectid || props.NAME || feature.id || '';
+            // Extract raw ID digits
+            var rawId = props.GEOID || props.geoid || props.GEOID10 || props.geoid10 ||
+                        props.GEOID20 || props.geoid20 || props.AFFGEOID || props.affgeoid ||
+                        props.FIPS || props.fips || props.TRACT || props.tract ||
+                        props.OBJECTID || props.objectid || props.NAME || feature.id || '';
 
-            if (rawGeoid && typeof rawGeoid === 'string' && rawGeoid.indexOf('US') >= 0) {
-                rawGeoid = rawGeoid.split('US')[1];
+            var cleanDigits = String(rawId).replace(/[^0-9]/g, '').trim();
+
+            // 4-TIER MATCHING ENGINE
+            var lookup = null;
+            if (ffiecLookupData) {
+                // Tier 1: Direct 11-digit FIPS lookup
+                lookup = ffiecLookupData[cleanDigits];
+                // Tier 2: 6-digit suffix lookup
+                if (!lookup && cleanDigits.length >= 6) {
+                    lookup = ffiecLookupData[cleanDigits.slice(-6)];
+                }
             }
-            var geoid = String(rawGeoid).trim();
-
-            // Match against FFIEC Lookup Data loaded from JSON/PDF schema
-            var lookup = (geoid && ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
-
-            if (!lookup && geoid && ffiecLookupData) {
-                var keys = Object.keys(ffiecLookupData);
-                for (var i = 0; i < keys.length; i++) {
-                    if (keys[i].endsWith(geoid) || geoid.endsWith(keys[i])) {
-                        lookup = ffiecLookupData[keys[i]];
-                        geoid = keys[i];
-                        break;
-                    }
+            // Tier 3: Search embedded ffiecTracts array
+            if (!lookup && typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
+                var found = ffiecTracts.find(function(t) {
+                    return (t.geoid && t.geoid === cleanDigits) || (t.tract && cleanDigits.endsWith(t.tract));
+                });
+                if (found) {
+                    lookup = {
+                        msaMfi: found.msaIncome || 0,
+                        tractMfi: found.income || 0,
+                        ratio: found.ratio ? (found.ratio * 100) : 0,
+                        level: found.level || 'Low or Moderate',
+                        county: found.county || '',
+                        city: found.city || ''
+                    };
                 }
             }
 
+            // Tier 4: Property attributes fallback
             var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || props.NAME || 'Oregon');
             var city = (lookup && lookup.city) ? lookup.city : (props.CITY || props.city || 'Local Area');
             var tractMfi = (lookup && lookup.tractMfi) ? lookup.tractMfi : (props.tractMfi || props.income || 0);
             var msaMfi = (lookup && lookup.msaMfi) ? lookup.msaMfi : (props.msaMfi || props.msaIncome || 0);
-            var ratio = (lookup && lookup.ratio > 0) ? lookup.ratio : (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 0);
+            var ratioVal = (lookup && lookup.ratio > 0) ? lookup.ratio : (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 0);
             var level = (lookup && lookup.level) ? lookup.level : (props.level || 'Low or Moderate');
 
-            var displayGeoid = geoid || ('Tract-' + (props.OBJECTID || props.objectid || Math.floor(Math.random()*10000)));
+            var displayGeoid = cleanDigits || ('Tract-' + Math.floor(Math.random()*10000));
 
-            // STORE EXACT RESOLVED OBJECT IN CACHE FOR FACT SHEET GENERATOR
+            // STORE RESOLVED METRICS IN CACHE
             window.trifectaCache[displayGeoid] = {
                 geoid: displayGeoid,
                 county: county,
                 city: city,
                 tractMfi: tractMfi,
                 msaMfi: msaMfi,
-                ratio: ratio,
+                ratio: ratioVal,
                 level: level
             };
 
-            var ratioStr = ratio > 0 ? ratio.toFixed(1) + '% of MSA' : 'LMI Qualified';
+            var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'LMI Qualified';
             var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
             var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Qualified';
 
@@ -1383,11 +1410,9 @@ function showTrifectaLayer(btn) {
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
 }
 
-// FACT SHEET GENERATOR: READS DIRECTLY FROM THE RESOLVED CACHE
 function triggerFactSheet(geoid) {
     if (!geoid) { alert('No GEOID available for this tract.'); return; }
     
-    // Retrieve exact object from memory cache
     var data = (window.trifectaCache && window.trifectaCache[geoid]) ? window.trifectaCache[geoid] : {};
     
     var county = data.county || 'Oregon';
@@ -1450,7 +1475,7 @@ function triggerFactSheet(geoid) {
         '</div>' +
         '</div>' +
         '<div class="box"><h3>🚀 Oregon 4-Pillar Action Plan for Tract ' + geoid + '</h3><ul class="pillar-list">' +
-        '<li><strong>Pillar 1 (Affordable Homeownership):</strong> Eligible for OHCS Flex Lending (FirstHome 1st mortgage + NextStep DPA 2nd mortgage).</li>' +
+        '<li><strong>Pillar 1 (Affordable Homeownership):</strong> Potential OHCS Flex Lending (FirstHome and/or NextStep mortgage products).</li>' +
         '<li><strong>Pillar 2 (Youth Workforce Benefits):</strong> Deploys Track A (Fractional Equity), Track B (DPA Match), and Track C (IRC Sec 127 Tax-Free Student Loan Paydown up to $5,250/yr).</li>' +
         '<li><strong>Pillar 3 (Commercial Rejuvenation):</strong> Reclaims existing underutilized commercial property with youth-driven tech/AI operational efficiencies.</li>' +
         '<li><strong>Pillar 4 (Capital Stacking & ROI):</strong> Stacks private capital gains equity with local bank CRA liquidity.</li>' +
