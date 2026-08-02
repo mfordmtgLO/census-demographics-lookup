@@ -50,7 +50,7 @@
 .btn-usda-toggle:hover { background: #374151; }
 .btn-usda-toggle.active { background: #6b7280; color: white; box-shadow: 0 0 12px rgba(107,114,128,0.5); }
         .btn-reset:hover { background: #dc2626; }
-        .income-toggles { display: flex; gap: 3px; margin-left: auto; }
+        .income-toggles { display: flex; gap: 3px; margin-left: auto; white-space: nowrap; flex-shrink: 0; }
         .income-toggle { padding: 3px 7px; border-radius: 8px; font-size: 8px; cursor: pointer; border: 2px solid transparent; font-weight: 600; background: #0d2137; }
         .income-toggle.low { color: #ef4444; }
         .income-toggle.moderate { color: #f59e0b; }
@@ -188,7 +188,7 @@
            
            <button class="btn btn-ffiec-shapes" id="btnFFIECShapes" onclick="toggleFFIECShapes()" style="white-space:nowrap;">📊 Tract Income Level</button>
         </div>
-       <div class="income-toggles">
+       <div class="income-toggles" style="white-space: nowrap; flex-shrink: 0; margin-left: auto;">
             <span class="income-toggle low active" onclick="toggleLevel('Low', this)">🔴 Low</span>
             <span class="income-toggle moderate active" onclick="toggleLevel('Moderate', this)">🟠 Mod</span>
             <span class="income-toggle middle active" onclick="toggleLevel('Middle', this)">🔵 Mid</span>
