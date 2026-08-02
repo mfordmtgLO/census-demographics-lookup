@@ -1297,12 +1297,59 @@ function toggleTrifecta() {
         });
 }
 
+
+    window.trifectaCache = {};
+
+// UNIVERSAL GIS FIPS DETECTIVE
+function extractFipsFromFeature(feature) {
+    if (!feature) return '';
+    var props = feature.properties || {};
+    
+    // 1. Direct check for known full FIPS keys
+    var possibleKeys = ['GEOID', 'geoid', 'GEOID10', 'geoid10', 'GEOID20', 'geoid20', 'AFFGEOID', 'affgeoid', 'FIPS', 'fips', 'GEOID_1', 'FIPS_CODE'];
+    for (var i = 0; i < possibleKeys.length; i++) {
+        var k = possibleKeys[i];
+        if (props[k]) {
+            var val = String(props[k]).replace(/[^0-9]/g, '').trim();
+            if (val.length >= 6) return val;
+        }
+    }
+    
+    // 2. Check Census TIGER fields: STATEFP + COUNTYFP + TRACTCE (e.g. 41 + 035 + 970201 = 41035970201)
+    var state = props.STATEFP || props.statefp || props.STATE || '41';
+    var county = props.COUNTYFP || props.countyfp || props.COUNTY || '';
+    var tract = props.TRACTCE || props.tractce || props.TRACT || props.tract || props.NAME || props.name || '';
+    
+    if (state && county && tract) {
+        var cleanState = String(state).replace(/[^0-9]/g, '').padStart(2, '0');
+        var cleanCounty = String(county).replace(/[^0-9]/g, '').padStart(3, '0');
+        var cleanTract = String(tract).replace(/[^0-9]/g, '').padStart(6, '0');
+        return cleanState + cleanCounty + cleanTract;
+    }
+
+    // 3. Scan all property values for any 11-digit number starting with 41
+    var allKeys = Object.keys(props);
+    for (var j = 0; j < allKeys.length; j++) {
+        var v = String(props[allKeys[j]]).replace(/[^0-9]/g, '').trim();
+        if (v.length === 11 && v.startsWith('41')) return v;
+        if (v.length === 6) return '41' + v;
+    }
+
+    // 4. Check feature.id
+    if (feature.id) {
+        var fid = String(feature.id).replace(/[^0-9]/g, '').trim();
+        if (fid.length >= 6) return fid.startsWith('41') ? fid : '41' + fid;
+    }
+
+    return '';
+}
+
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
     var totalTracts = trifectaData.features.length;
-    window.trifectaCache = {};
+    window.trifectaCache = {}; // Clear memory cache
     
     trifectaLayer = L.geoJSON(trifectaData, {
         style: function(feature) {
@@ -1311,28 +1358,22 @@ function showTrifectaLayer(btn) {
         onEachFeature: function(feature, layer) {
             var props = feature.properties || {};
             
-            // Extract raw ID digits
-            var rawId = props.GEOID || props.geoid || props.GEOID10 || props.geoid10 ||
-                        props.GEOID20 || props.geoid20 || props.AFFGEOID || props.affgeoid ||
-                        props.FIPS || props.fips || props.TRACT || props.tract ||
-                        props.OBJECTID || props.objectid || props.NAME || feature.id || '';
+            // Extract 11-digit FIPS using Universal Detective
+            var geoid = extractFipsFromFeature(feature);
 
-            var cleanDigits = String(rawId).replace(/[^0-9]/g, '').trim();
-
-            // 4-TIER MATCHING ENGINE
+            // 4-Tier Match in FFIEC Lookup Data loaded from JSON/PDF
             var lookup = null;
-            if (ffiecLookupData) {
-                // Tier 1: Direct 11-digit FIPS lookup
-                lookup = ffiecLookupData[cleanDigits];
-                // Tier 2: 6-digit suffix lookup
-                if (!lookup && cleanDigits.length >= 6) {
-                    lookup = ffiecLookupData[cleanDigits.slice(-6)];
+            if (geoid && ffiecLookupData) {
+                lookup = ffiecLookupData[geoid];
+                if (!lookup && geoid.length >= 6) {
+                    lookup = ffiecLookupData[geoid.slice(-6)];
                 }
             }
-            // Tier 3: Search embedded ffiecTracts array
+
+            // Fallback match in embedded ffiecTracts array
             if (!lookup && typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
                 var found = ffiecTracts.find(function(t) {
-                    return (t.geoid && t.geoid === cleanDigits) || (t.tract && cleanDigits.endsWith(t.tract));
+                    return (t.geoid && t.geoid === geoid) || (t.tract && geoid.endsWith(t.tract));
                 });
                 if (found) {
                     lookup = {
@@ -1346,17 +1387,16 @@ function showTrifectaLayer(btn) {
                 }
             }
 
-            // Tier 4: Property attributes fallback
-            var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || props.NAME || 'Oregon');
-            var city = (lookup && lookup.city) ? lookup.city : (props.CITY || props.city || 'Local Area');
+            var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY_NAME || props.COUNTY || props.county || 'Oregon');
+            var city = (lookup && lookup.city) ? lookup.city : (props.CITY_NAME || props.CITY || props.city || 'Local Area');
             var tractMfi = (lookup && lookup.tractMfi) ? lookup.tractMfi : (props.tractMfi || props.income || 0);
             var msaMfi = (lookup && lookup.msaMfi) ? lookup.msaMfi : (props.msaMfi || props.msaIncome || 0);
             var ratioVal = (lookup && lookup.ratio > 0) ? lookup.ratio : (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 0);
             var level = (lookup && lookup.level) ? lookup.level : (props.level || 'Low or Moderate');
 
-            var displayGeoid = cleanDigits || ('Tract-' + Math.floor(Math.random()*10000));
+            var displayGeoid = geoid || ('Tract-' + Math.floor(Math.random()*10000));
 
-            // STORE RESOLVED METRICS IN CACHE
+            // STORE REAL DATA IN MEMORY CACHE
             window.trifectaCache[displayGeoid] = {
                 geoid: displayGeoid,
                 county: county,
