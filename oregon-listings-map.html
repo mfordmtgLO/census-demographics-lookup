@@ -1271,11 +1271,12 @@ function toggleTrifecta() {
 }
 
 
+    
     function showTrifectaLayer(btn) {
-    if (!trifectaData) { alert('No Trifecta data loaded.'); return; }
+    if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
-    var totalTracts = trifectaData.features ? trifectaData.features.length : 0;
+    var totalTracts = trifectaData.features.length;
     
     trifectaLayer = L.geoJSON(trifectaData, {
         style: function(feature) {
@@ -1283,22 +1284,52 @@ function toggleTrifecta() {
         },
         onEachFeature: function(feature, layer) {
             var props = feature.properties || {};
-            var geoid = props.GEOID || props.geoid || props.TRACT || '';
             
-            // Cross-reference with FFIEC Lookup Data in memory
-            var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
-            
-            var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || 'Oregon');
+            // SMART GEOID EXTRACTOR: Checks all possible GIS key names
+            var rawGeoid = props.GEOID || props.geoid || props.GEOID10 || props.geoid10 ||
+                           props.GEOID20 || props.geoid20 || props.AFFGEOID || props.affgeoid ||
+                           props.FIPS || props.fips || props.TRACT || props.tract ||
+                           props.OBJECTID || props.objectid || props.NAME || feature.id || '';
+
+            // Clean string formatting if GEOID contains prefixes like '1400000US41035970201'
+            if (rawGeoid && typeof rawGeoid === 'string' && rawGeoid.indexOf('US') >= 0) {
+                rawGeoid = rawGeoid.split('US')[1];
+            }
+            var geoid = String(rawGeoid).trim();
+
+            // Direct or fuzzy lookup in ffiecLookupData
+            var lookup = (geoid && ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
+
+            if (!lookup && geoid && ffiecLookupData) {
+                var keys = Object.keys(ffiecLookupData);
+                for (var i = 0; i < keys.length; i++) {
+                    if (keys[i].endsWith(geoid) || geoid.endsWith(keys[i])) {
+                        lookup = ffiecLookupData[keys[i]];
+                        geoid = keys[i];
+                        break;
+                    }
+                }
+            }
+
+            // Fallback defaults so values are never undefined
+            var county = (lookup && lookup.county) ? lookup.county : (props.COUNTY || props.county || props.NAME || 'Oregon');
+            var city = (lookup && lookup.city) ? lookup.city : (props.CITY || props.city || 'Local Area');
             var tractMfi = (lookup && lookup.tractMfi) ? lookup.tractMfi : (props.tractMfi || props.income || 0);
             var msaMfi = (lookup && lookup.msaMfi) ? lookup.msaMfi : (props.msaMfi || props.msaIncome || 0);
             var level = (lookup && lookup.level) ? lookup.level : (props.level || 'Low or Moderate');
-            
+
+            // Guaranteed clean geoid string
+            var displayGeoid = geoid || ('Tract-' + (props.OBJECTID || props.objectid || Math.floor(Math.random()*10000)));
+
             var ratioStr = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) + '%' : 'LMI Qualified';
             var mfiFormatted = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
 
-            // Clean button call passing ONLY the numeric geoid
+            // Escape single quotes in text fields to prevent inline HTML JS syntax breaks
+            var safeCounty = county.replace(/'/g, "\\'");
+            var safeCity = city.replace(/'/g, "\\'");
+
             var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
-                '<strong>Tract GEOID:</strong> ' + geoid + '<br>' +
+                '<strong>Tract GEOID:</strong> ' + displayGeoid + '<br>' +
                 '<strong>Income Level:</strong> ' + level + ' (' + ratioStr + ')<br>' +
                 '<strong>Tract MFI:</strong> ' + mfiFormatted + '<br>' +
                 '<strong>County:</strong> ' + county + '<br><br>' +
@@ -1306,7 +1337,7 @@ function toggleTrifecta() {
                 '✅ USDA RD Eligible<br>' +
                 '✅ Opportunity Zone Tax Deferral<br>' +
                 '✅ LMI Tract (OHCS Flex Lending Ready)<br><br>' +
-                '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + geoid + '\')">' +
+                '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + displayGeoid + '\', \'' + safeCounty + '\', \'' + safeCity + '\', ' + tractMfi + ', ' + msaMfi + ', \'' + level + '\')">' +
                 '📄 Export Legislative & Investor Fact Sheet</button>';
             
             layer.bindPopup(popupContent);
@@ -1334,17 +1365,26 @@ function toggleTrifecta() {
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
 }
 
-// FAIL-SAFE LEGISLATIVE FACT SHEET GENERATOR
-function triggerFactSheet(geoid) {
-    if (!geoid) { alert('No GEOID available for this tract.'); return; }
+// BULLETPROOF LEGISLATIVE FACT SHEET GENERATOR
+function triggerFactSheet(geoid, county, city, tractMfi, msaMfi, level) {
+    // Sanitize missing values
+    if (!geoid || geoid === 'undefined') geoid = 'Oregon-Trifecta-Tract';
+    if (!county || county === 'undefined') county = 'Oregon';
+    if (!city || city === 'undefined') city = 'Local Area';
+    if (!tractMfi || isNaN(tractMfi)) tractMfi = 0;
+    if (!msaMfi || isNaN(msaMfi)) msaMfi = 0;
+    if (!level || level === 'undefined') level = 'Low or Moderate';
     
-    // Lookup exact data from memory
-    var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : {};
-    var county = lookup.county || 'Oregon';
-    var city = lookup.city || 'Local Area';
-    var tractMfi = lookup.tractMfi || 0;
-    var msaMfi = lookup.msaMfi || 0;
-    var level = lookup.level || 'Low or Moderate';
+    // Check lookup data from memory if parameters were partial
+    if (ffiecLookupData && ffiecLookupData[geoid]) {
+        var lookup = ffiecLookupData[geoid];
+        county = lookup.county || county;
+        city = lookup.city || city;
+        tractMfi = lookup.tractMfi || tractMfi;
+        msaMfi = lookup.msaMfi || msaMfi;
+        level = lookup.level || level;
+    }
+
     var ratio = (msaMfi > 0 && tractMfi > 0) ? ((tractMfi / msaMfi) * 100).toFixed(1) : 'N/A';
 
     var printWindow = window.open('', '_blank');
