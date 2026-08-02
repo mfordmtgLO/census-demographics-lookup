@@ -119,7 +119,7 @@
     background: #15803d;
     color: white;
     border: none;
-    padding: 4px 8px;
+    padding: 5px 8px;
     border-radius: 4px;
     font-size: 9px;
     font-weight: bold;
@@ -127,12 +127,8 @@
     margin-top: 6px;
     width: 100%;
     transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
 }
-.btn-factsheet:hover { background: #166534; transform: translateY(-1px); }
+.btn-factsheet:hover { background: #166534; }
     </style>
 </head>
 <body>
@@ -256,7 +252,7 @@
             </div>
                        <!-- TRIFECTA SUMMARY COUNTER BANNER -->
 <div class="trifecta-banner" id="trifectaBanner">
-    <h4>🟢 Trifecta Impact Summary <span id="bannerRegionTag" style="font-size:8px;color:#86efac;">[Statewide]</span></h4>
+    <h4>🟢 Trifecta Impact Summary <span style="font-size:8px;color:#86efac;">[Statewide]</span></h4>
     <div class="banner-metrics">
         <div class="metric-box">
             <div class="metric-num" id="metricTracts">0</div>
@@ -1206,7 +1202,8 @@ Object.values(ffiecLookupData).forEach(function(v) {
                 alert('✅ Tract ' + geoid + ' data copied!');
             });
         }
-               var trifectaLayer = null;
+              
+    var trifectaLayer = null;
 var trifectaVisible = false;
 var trifectaData = null;
 
@@ -1216,29 +1213,34 @@ function toggleTrifecta() {
     
     if (trifectaVisible) {
         if (trifectaLayer) { map.removeLayer(trifectaLayer); trifectaLayer = null; }
-        btn.classList.remove('active');
-        btn.textContent = '🟢 Trifecta Investment';
+        if (btn) {
+            btn.classList.remove('active');
+            btn.textContent = '🟢 Trifecta Investment';
+        }
         if (banner) banner.classList.remove('show');
         trifectaVisible = false;
         return;
     }
     
     if (!trifectaData) {
-        document.getElementById('loadingBadge').style.display = 'block';
-        document.getElementById('loadingBadge').textContent = '⏳ Loading Trifecta Investment zones...';
-        btn.disabled = true;
+        var loadingBadge = document.getElementById('loadingBadge');
+        if (loadingBadge) {
+            loadingBadge.style.display = 'block';
+            loadingBadge.textContent = '⏳ Loading Trifecta Investment zones...';
+        }
+        if (btn) btn.disabled = true;
         
         fetch('oregon-oz-trifecta-only.json')
             .then(function(resp) { return resp.json(); })
             .then(function(data) {
-                document.getElementById('loadingBadge').style.display = 'none';
+                if (loadingBadge) loadingBadge.style.display = 'none';
                 trifectaData = data;
-                btn.disabled = false;
+                if (btn) btn.disabled = false;
                 showTrifectaLayer(btn);
             })
             .catch(function(err) {
-                document.getElementById('loadingBadge').style.display = 'none';
-                btn.disabled = false;
+                if (loadingBadge) loadingBadge.style.display = 'none';
+                if (btn) btn.disabled = false;
                 alert('Could not load Trifecta data: ' + err.message);
             });
     } else {
@@ -1265,8 +1267,7 @@ function showTrifectaLayer(btn) {
             var msaMfi = props.msaMfi || 94727;
             var level = props.level || 'Low or Moderate';
             
-            var popupContent = 
-                '<strong>🟢 Trifecta Investment Zone</strong><br>' +
+            var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
                 '<strong>Tract GEOID:</strong> ' + geoid + '<br>' +
                 '<strong>Convergence Checklist:</strong><br>' +
                 '✅ USDA RD Eligible<br>' +
@@ -1282,97 +1283,56 @@ function showTrifectaLayer(btn) {
     // Update Banner Metrics
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
-        document.getElementById('metricTracts').textContent = totalTracts;
-        document.getElementById('metricYouth').textContent = (totalTracts * 100).toLocaleString() + '+';
-        document.getElementById('metricHousing').textContent = (totalTracts * 50).toLocaleString() + '+';
+        var mNum1 = document.getElementById('metricTracts');
+        var mNum2 = document.getElementById('metricYouth');
+        var mNum3 = document.getElementById('metricHousing');
+        if (mNum1) mNum1.textContent = totalTracts;
+        if (mNum2) mNum2.textContent = (totalTracts * 100).toLocaleString() + '+';
+        if (mNum3) mNum3.textContent = (totalTracts * 50).toLocaleString() + '+';
         banner.classList.add('show');
     }
     
-    btn.classList.add('active');
-    btn.textContent = '✅ Hide Trifecta Zones';
+    if (btn) {
+        btn.classList.add('active');
+        btn.textContent = '✅ Hide Trifecta Zones';
+    }
     trifectaVisible = true;
     
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
 }
 
-// EXPORT LEGISLATIVE FACT SHEET GENERATOR
 function exportLegislativeFactSheet(geoid, county, city, tractMfi, msaMfi, level) {
     var ratio = msaMfi > 0 ? ((tractMfi / msaMfi) * 100).toFixed(1) : 'N/A';
-    
     var printWindow = window.open('', '_blank');
-    var html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Trifecta Investment Zone Fact Sheet - Tract ${geoid}</title>
-        <style>
-            body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; padding: 25px; color: #1a1a1a; line-height: 1.5; }
-            .header { border-bottom: 3px solid #15803d; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-            .header h1 { font-size: 20px; color: #15803d; margin: 0; }
-            .header p { font-size: 11px; color: #555; margin: 2px 0 0 0; }
-            .badge-container { display: flex; gap: 8px; margin-bottom: 18px; }
-            .badge { background: #eab308; color: #1a1a1a; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 10px; }
-            .badge.oz { background: #7c3aed; color: white; }
-            .badge.usda { background: #166534; color: white; }
-            .badge.lmi { background: #ef4444; color: white; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-            .box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; }
-            .box h3 { font-size: 12px; color: #0f172a; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
-            .pillar-list { list-style: none; padding: 0; margin: 0; }
-            .pillar-list li { font-size: 11px; margin-bottom: 8px; padding-left: 15px; position: relative; }
-            .pillar-list li::before { content: "✔"; position: absolute; left: 0; color: #15803d; font-weight: bold; }
-            .footer { margin-top: 30px; border-top: 1fr solid #e2e8f0; padding-top: 10px; font-size: 9px; color: #64748b; text-align: center; }
-            @media print { .no-print { display: none; } }
-        </style>
-    </head>
-    <body>
-        <button class="no-print" onclick="window.print()" style="float:right;background:#15803d;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-weight:bold;">🖨️ Print / Save as PDF</button>
-        <div class="header">
-            <div>
-                <h1>Oregon Trifecta Investment Zone Brief</h1>
-                <p>Official Legislative & Investor Briefing • Oregon 4-Pillar Economic Framework</p>
-            </div>
-        </div>
-
-        <div class="badge-container">
-            <span class="badge oz">Opportunity Zone Designated</span>
-            <span class="badge usda">USDA RD 100% Eligible</span>
-            <span class="badge lmi">${level} Income Level (${ratio}% MSA MFI)</span>
-        </div>
-
-        <div class="grid">
-            <div class="box">
-                <h3>📍 Geographic & Demographic Profile</h3>
-                <p style="font-size:11px;margin:3px 0;"><strong>Census Tract GEOID:</strong> ${geoid}</p>
-                <p style="font-size:11px;margin:3px 0;"><strong>County / City:</strong> ${county} County / ${city}</p>
-                <p style="font-size:11px;margin:3px 0;"><strong>Tract Median Income:</strong> $${parseInt(tractMfi).toLocaleString()}</p>
-                <p style="font-size:11px;margin:3px 0;"><strong>MSA Median Income:</strong> $${parseInt(msaMfi).toLocaleString()}</p>
-            </div>
-
-            <div class="box">
-                <h3>💰 Investor & Banking Incentives</h3>
-                <p style="font-size:11px;margin:3px 0;"><strong>Federal OZ:</strong> 10-Year Capital Gains Tax Shield</p>
-                <p style="font-size:11px;margin:3px 0;"><strong>Bank CRA Credit:</strong> Direct LMI Mortgage & Enterprise Credit</p>
-                <p style="font-size:11px;margin:3px 0;"><strong>USDA RD:</strong> Specialized Rural Business & Housing Guarantees</p>
-            </div>
-        </div>
-
-        <div class="box" style="margin-bottom:15px;">
-            <h3>🚀 The 4-Pillar Action Plan for Tract ${geoid}</h3>
-            <ul class="pillar-list">
-                <li><strong>Pillar 1 (Affordable Homeownership):</strong> Enables FirstHome 1st mortgage and NextStep DPA 2nd mortgage via OHCS Flex Lending.</li>
-                <li><strong>Pillar 2 (Youth Fractional Equity & Benefits):</strong> Deploys Track A (Enterprise Fractional Share), Track B (Down Payment Match), and Track C (IRC Sec 127 Tax-Free Student Loan Paydown up to $5,250/yr).</li>
-                <li><strong>Pillar 3 (Business Rejuvenation):</strong> Reclaims existing underutilized commercial real estate with youth-driven operational tech/AI efficiencies.</li>
-                <li><strong>Pillar 4 (Capital Injection & ROI):</strong> Stacks private capital gains equity with CRA bank liquidity for sustainable long-term yield.</li>
-            </ul>
-        </div>
-
-        <div class="footer">
-            Generated via Oregon Census Demographics & Trifecta Zone Mapping Platform • Oregon Legislative Session Briefing Tool
-        </div>
-    </body>
-    </html>
-    `;
-    printWindow.document.write(html);
+    if (!printWindow) { alert('Please allow popups to view the Fact Sheet.'); return; }
+    
+    var htmlContent = '<html><head><title>Trifecta Fact Sheet - Tract ' + geoid + '</title>' +
+        '<style>' +
+        'body { font-family: sans-serif; padding: 25px; color: #1a1a1a; line-height: 1.5; }' +
+        '.header { border-bottom: 3px solid #15803d; padding-bottom: 12px; margin-bottom: 20px; }' +
+        '.header h1 { font-size: 20px; color: #15803d; margin: 0; }' +
+        '.badge { background: #15803d; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 5px; }' +
+        '.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }' +
+        '.box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; }' +
+        '.pillar-list { padding-left: 20px; font-size: 11px; }' +
+        '</style></head><body>' +
+        '<button onclick="window.print()" style="float:right;background:#15803d;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-weight:bold;">🖨️ Print / Save PDF</button>' +
+        '<div class="header"><h1>Oregon Trifecta Investment Zone Brief</h1><p>Census Tract ' + geoid + ' • ' + county + ' County / ' + city + '</p></div>' +
+        '<div><span class="badge">Opportunity Zone</span><span class="badge">USDA RD Eligible</span><span class="badge">' + level + ' Income (' + ratio + '% MSA MFI)</span></div>' +
+        '<div class="grid">' +
+        '<div class="box"><h3>📍 Profile</h3><p><strong>Tract GEOID:</strong> ' + geoid + '</p><p><strong>County/City:</strong> ' + county + ' / ' + city + '</p><p><strong>Tract MFI:</strong> $' + parseInt(tractMfi).toLocaleString() + '</p></div>' +
+        '<div class="box"><h3>💰 Capital & Housing Incentives</h3><p><strong>Federal OZ:</strong> 10-Yr Tax-Free Growth</p><p><strong>Bank CRA Credit:</strong> Direct LMI Mortgage Credit</p><p><strong>USDA RD:</strong> 100% Financing Guarantees</p></div>' +
+        '</div>' +
+        '<div class="box"><h3>🚀 4-Pillar Action Plan</h3><ul class="pillar-list">' +
+        '<li><strong>Pillar 1:</strong> OHCS Flex Lending (FirstHome + NextStep DPA) Ready.</li>' +
+        '<li><strong>Pillar 2:</strong> Track A (Fractional Share) + Track B (DPA Match) + Track C (IRC Sec 127 Tax-Free Student Loan Paydown up to $5,250/yr).</li>' +
+        '<li><strong>Pillar 3:</strong> Underutilized commercial property reclamation & tech modernization.</li>' +
+        '<li><strong>Pillar 4:</strong> Opportunity Zone capital gains equity stacked with local bank CRA liquidity.</li>' +
+        '</ul></div>' +
+        '</body></html>';
+        
+    printWindow.document.write(htmlContent);
     printWindow.document.close();
 }
+    </script>
+</body>
