@@ -1278,11 +1278,15 @@ function toggleTrifecta() {
         });
 }
 
+
+    window.trifectaCache = {};
+
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
     var totalTracts = trifectaData.features.length;
+    window.trifectaCache = {}; // Reset cache
     
     trifectaLayer = L.geoJSON(trifectaData, {
         style: function(feature) {
@@ -1302,7 +1306,7 @@ function showTrifectaLayer(btn) {
             }
             var geoid = String(rawGeoid).trim();
 
-            // Find matching FFIEC row in memory
+            // Match against FFIEC Lookup Data loaded from JSON/PDF schema
             var lookup = (geoid && ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
 
             if (!lookup && geoid && ffiecLookupData) {
@@ -1325,11 +1329,22 @@ function showTrifectaLayer(btn) {
 
             var displayGeoid = geoid || ('Tract-' + (props.OBJECTID || props.objectid || Math.floor(Math.random()*10000)));
 
+            // STORE EXACT RESOLVED OBJECT IN CACHE FOR FACT SHEET GENERATOR
+            window.trifectaCache[displayGeoid] = {
+                geoid: displayGeoid,
+                county: county,
+                city: city,
+                tractMfi: tractMfi,
+                msaMfi: msaMfi,
+                ratio: ratio,
+                level: level
+            };
+
             var ratioStr = ratio > 0 ? ratio.toFixed(1) + '% of MSA' : 'LMI Qualified';
             var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
             var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Qualified';
 
-            popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
+            var popupContent = '<strong>🟢 Trifecta Investment Zone</strong><br>' +
                 '<strong>Census Tract:</strong> ' + displayGeoid + '<br>' +
                 '<strong>Level:</strong> ' + level + ' Income<br>' +
                 '<strong>Tract MFI:</strong> ' + tractMfiStr + '<br>' +
@@ -1368,22 +1383,23 @@ function showTrifectaLayer(btn) {
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
 }
 
-// FACT SHEET GENERATOR: QUERIES FFIEC DATA DIRECTLY FROM MEMORY
+// FACT SHEET GENERATOR: READS DIRECTLY FROM THE RESOLVED CACHE
 function triggerFactSheet(geoid) {
     if (!geoid) { alert('No GEOID available for this tract.'); return; }
     
-    // Query exact memory object loaded from ffiec-lookup.json
-    var lookup = (ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : {};
-    var county = lookup.county || 'Oregon';
-    var city = lookup.city || 'Local Area';
-    var tractMfi = lookup.tractMfi || 0;
-    var msaMfi = lookup.msaMfi || 0;
-    var ratioVal = lookup.ratio || (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 0);
-    var level = lookup.level || 'Low or Moderate';
+    // Retrieve exact object from memory cache
+    var data = (window.trifectaCache && window.trifectaCache[geoid]) ? window.trifectaCache[geoid] : {};
+    
+    var county = data.county || 'Oregon';
+    var city = data.city || 'Local Area';
+    var tractMfi = data.tractMfi || 0;
+    var msaMfi = data.msaMfi || 0;
+    var ratioVal = data.ratio || 0;
+    var level = data.level || 'Low or Moderate';
 
-    var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'N/A';
-    var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'N/A';
-    var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'N/A';
+    var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'LMI Qualified';
+    var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Qualified';
+    var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Qualified';
 
     var printWindow = window.open('', '_blank');
     if (!printWindow) { 
