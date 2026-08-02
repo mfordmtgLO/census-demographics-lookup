@@ -504,7 +504,9 @@
                 updateTractList(tractListData);
             }
             
-            
+                        if (!ffiecShapesVisible) {
+                updateTractList([]);
+            }
             document.getElementById('searchInput').style.borderColor = foundTracts.length > 0 ? '#10b981' : '#f59e0b';
         }
                 function updateUI(displayName) {
