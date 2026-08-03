@@ -1690,18 +1690,71 @@ function updateTractList(tracts) {
     container.innerHTML = html;
 }
 
+var tempTrifectaMarkers = [];
+
+// INTERACTIVE NAVIGATION FOR TRIFECTA TRACTS (DROPS PIN & OPENS POPUP)
 function focusTrifectaTract(geoid) {
     if (window.trifectaCache && window.trifectaCache[geoid]) {
         var cached = window.trifectaCache[geoid];
+        
+        // 1. If it has a polygon layer on the map, zoom to it & open its popup!
         if (cached.layer) {
             map.fitBounds(cached.layer.getBounds().pad(0.3));
             cached.layer.openPopup();
-        } else if (cached.coords) {
+            return;
+        } 
+        
+        // 2. If it's a targeted tract with coordinates, DROP A PIN MARKER & OPEN POPUP!
+        if (cached.coords) {
+            // Remove previous temporary pin markers
+            tempTrifectaMarkers.forEach(function(m) { map.removeLayer(m); });
+            tempTrifectaMarkers = [];
+
+            var ratioStr = cached.ratio > 0 ? cached.ratio.toFixed(1) + '% of MSA' : 'Targeted Area';
+            var tractMfiStr = '$' + parseInt(cached.tractMfi || 0).toLocaleString();
+            var msaMfiStr = '$' + parseInt(cached.msaMfi || 0).toLocaleString();
+            
+            var levelStr = String(cached.level || '');
+            var levelColor = '#f59e0b'; // Default Orange for Moderate
+            if (levelStr.indexOf('Low') >= 0) {
+                levelColor = '#dc2626'; // Red for Low Income
+            } else if (levelStr.indexOf('Moderate') >= 0) {
+                levelColor = '#f59e0b'; // Orange for Moderate Income
+            } else if (levelStr.indexOf('Middle') >= 0 || levelStr.indexOf('Upper') >= 0) {
+                levelColor = '#7c3aed'; // Purple for Middle/Upper Targeted Minority
+            }
+            
+            var targetedTag = cached.minorityPct > 50.0 ? ' <span style="background:#7c3aed;color:white;padding:1px 4px;border-radius:3px;font-size:7px;">OHCS TARGETED MINORITY (' + cached.minorityPct.toFixed(1) + '%)</span>' : '';
+
+            var popupContent = '<div style="font-family:sans-serif;font-size:10px;">' +
+                '<h4 style="color:#15803d;margin:0 0 4px 0;font-size:12px;">🟢 Qualified Targeted Zone</h4>' +
+                '<p style="margin:2px 0;"><strong>Census Tract:</strong> <span style="color:#15803d;font-weight:bold;">' + geoid + '</span>' + targetedTag + '</p>' +
+                '<p style="margin:2px 0;"><strong>Income Designation:</strong> <span style="color:' + levelColor + ';font-weight:bold;">' + cached.level + '</span> (' + ratioStr + ')</p>' +
+                '<p style="margin:2px 0;"><strong>Tract Median Income:</strong> ' + tractMfiStr + '</p>' +
+                '<p style="margin:2px 0;"><strong>MSA Median Income:</strong> ' + msaMfiStr + '</p>' +
+                '<p style="margin:2px 0;"><strong>County:</strong> ' + cached.county + '</p>' +
+                '<hr style="border:none;border-top:1px solid #cbd5e1;margin:6px 0;">' +
+                '<strong>Polygon Overlay Convergence Checklist:</strong><br>' +
+                '✅ Opportunity Zone Polygon Overlay<br>' +
+                '✅ USDA RD Eligible Boundary Overlay<br>' +
+                '✅ OHCS Qualified Tract Overlay (LMI or >50% Minority)<br><br>' +
+                '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + geoid + '\')">' +
+                '📄 Export Legislative & Investor Fact Sheet</button>' +
+                '</div>';
+
+            // Create Pin Marker & Add to Map
+            var marker = L.marker(cached.coords).addTo(map);
+            marker.bindPopup(popupContent);
+            tempTrifectaMarkers.push(marker);
+
+            // Center view & open popup immediately
             map.setView(cached.coords, 13);
+            marker.openPopup();
         }
     }
 }
 
+// INTERACTIVE NAVIGATION FOR FFIEC TRACTS
 function focusFFIECTract(geoid) {
     var foundLayer = false;
     if (ffiecShapeLayer) {
@@ -1713,8 +1766,8 @@ function focusFFIECTract(geoid) {
             }
         });
     }
-    if (!foundLayer && window.trifectaCache && window.trifectaCache[geoid] && window.trifectaCache[geoid].coords) {
-        map.setView(window.trifectaCache[geoid].coords, 13);
+    if (!foundLayer) {
+        focusTrifectaTract(geoid);
     }
 }
 
