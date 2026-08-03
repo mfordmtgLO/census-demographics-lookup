@@ -1602,6 +1602,7 @@ function renderVerifiedTrifectaTractList() {
     
     var lowCount = 0, modCount = 0, minTargetCount = 0;
     
+    // Deduplicate array by GEOID for accurate counting
     var uniqueTracts = [];
     var seen = {};
     window.verifiedTrifectaTracts.forEach(function(t) {
@@ -1611,10 +1612,23 @@ function renderVerifiedTrifectaTractList() {
         }
     });
 
+    // INDEPENDENT COUNTING ENGINE (NO EXCLOSIVE ELSE-IF)
     uniqueTracts.forEach(function(t) {
-        if (String(t.level).indexOf('Low') >= 0) lowCount++;
-        else if (t.minorityPct > 50.0 || String(t.level).indexOf('>50%') >= 0) minTargetCount++;
-        else modCount++;
+        var minPct = t.minorityPct || 0;
+        var lvlStr = String(t.level || '');
+        var isMinorityTargeted = (minPct > 50.0) || (lvlStr.indexOf('>50%') >= 0);
+
+        // Count Minority Targeted Whenever >50%
+        if (isMinorityTargeted) {
+            minTargetCount++;
+        }
+
+        // Count Income Levels
+        if (lvlStr.indexOf('Low') >= 0) {
+            lowCount++;
+        } else if (lvlStr.indexOf('Moderate') >= 0) {
+            modCount++;
+        }
     });
 
     var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #22c55e;margin-bottom:6px;">' +
@@ -1623,11 +1637,13 @@ function renderVerifiedTrifectaTractList() {
         '</div>';
 
     uniqueTracts.forEach(function(t) {
-        var isTargeted = t.minorityPct > 50.0 || String(t.level).indexOf('>50%') >= 0;
+        var minPct = t.minorityPct || 0;
+        var lvlStr = String(t.level || '');
+        var isTargeted = minPct > 50.0 || lvlStr.indexOf('>50%') >= 0;
         
         var cardClass = isTargeted ? "tract-item minority-targeted" : "tract-item trifecta-qualified";
-        var levelBadgeColor = (String(t.level).indexOf('Low') >= 0) ? '#ef4444' : (isTargeted ? '#d8b4fe' : '#f59e0b');
-        var tagLabel = isTargeted ? 'OHCS TARGETED (' + t.minorityPct.toFixed(1) + '% MINORITY)' : 'QUALIFIED TRIFECTA';
+        var levelBadgeColor = (lvlStr.indexOf('Low') >= 0) ? '#ef4444' : (isTargeted ? '#d8b4fe' : '#f59e0b');
+        var tagLabel = isTargeted ? 'OHCS TARGETED (' + minPct.toFixed(1) + '% MINORITY)' : 'QUALIFIED TRIFECTA';
         var badgeClass = isTargeted ? 'minority-badge-tag' : 'trifecta-badge-tag';
 
         html += '<div class="' + cardClass + '" onclick="focusTrifectaTract(\'' + t.geoid + '\')" dblclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
@@ -1639,89 +1655,6 @@ function renderVerifiedTrifectaTractList() {
                 'Financing: <span style="color:' + levelBadgeColor + ';font-weight:bold;">OHCS Flex Lending Ready</span> | MFI: $' + parseInt(t.tractMfi).toLocaleString() + ' (' + t.ratio.toFixed(1) + '% of MSA)' +
             '</div>' +
             '<div style="color:#86efac;font-size:7px;margin-top:2px;">📍 ' + t.county + ' • Overlays: OZ + USDA RD + OHCS Targeted</div>' +
-            '</div>';
-    });
-
-    container.innerHTML = html;
-}
-
-// OVERRIDE FFIEC SIDEBAR LISTING TO SHOW ALL 20 LOW & ALL 29 TARGETED MINORITY TRACTS
-function updateTractList(tracts) {
-    var container = document.getElementById('tractListContent');
-    if (!container) return;
-
-    // Seed master lookup entries into sidebar cache
-    Object.keys(masterOregonFFIECLookup).forEach(function(geoid) {
-        var lookup = masterOregonFFIECLookup[geoid];
-        if (!window.trifectaCache[geoid]) {
-            window.trifectaCache[geoid] = {
-                geoid: geoid,
-                county: lookup.county,
-                city: lookup.city,
-                tractMfi: lookup.tractMfi,
-                msaMfi: lookup.msaMfi,
-                ratio: lookup.ratio,
-                level: lookup.level,
-                minorityPct: lookup.minorityPct,
-                isOz: lookup.isOz,
-                coords: lookup.coords
-            };
-        }
-    });
-
-    var lowCount = 0, modCount = 0, midCount = 0, targetedCount = 0;
-    
-    var allTractsList = [];
-    var seenGeoids = {};
-
-    // First push all master lookup tracts (guarantees all 20 Low & 29 Targeted show up)
-    Object.keys(masterOregonFFIECLookup).forEach(function(g) {
-        var item = masterOregonFFIECLookup[g];
-        if (g.length === 11 && !seenGeoids[g]) {
-            seenGeoids[g] = true;
-            allTractsList.push({
-                geoid: g,
-                tract: g.slice(-6),
-                tractMfi: item.tractMfi,
-                msaMfi: item.msaMfi,
-                ratio: item.ratio,
-                level: item.level,
-                minorityPct: item.minorityPct,
-                county: item.county,
-                city: item.city,
-                onMap: true
-            });
-        }
-    });
-
-    allTractsList.forEach(function(t) {
-        var minPct = t.minorityPct || 0;
-        var lvl = String(t.level);
-
-        if (minPct > 50.0 || lvl.indexOf('>50%') >= 0) {
-            targetedCount++;
-        } else if (lvl.indexOf('Low') >= 0) lowCount++;
-        else if (lvl.indexOf('Moderate') >= 0) modCount++;
-        else midCount++;
-    });
-
-    var html = '<p style="color:#8899aa;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | 🔵 ' + midCount + ' Mid | 🟣 ' + targetedCount + ' Targeted Minority | <span class="results-count">' + allTractsList.length + ' total</span></p>';
-
-    allTractsList.forEach(function(t) {
-        var geoid = t.geoid || '';
-        var minPct = t.minorityPct || 0;
-        var isTargeted = minPct > 50.0 || String(t.level).indexOf('>50%') >= 0;
-
-        var cardClass = isTargeted ? "tract-item minority-targeted" : "tract-item " + (t.level || 'middle').toLowerCase();
-        var mapIcon = t.onMap ? '✅' : '⚠️';
-        var badgeTag = isTargeted ? '<span class="minority-badge-tag">OHCS TARGETED (' + minPct.toFixed(1) + '%)</span>' : '';
-
-        html += '<div class="' + cardClass + '" onclick="focusFFIECTract(\'' + geoid + '\')" dblclick="focusFFIECTract(\'' + geoid + '\')">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                '<span class="tract-id">' + mapIcon + ' Tract ' + (t.tract || geoid) + badgeTag + '</span>' +
-                '<button class="copy-btn" onclick="event.stopPropagation();triggerFactSheet(\'' + geoid + '\')">📋 PDF</button>' +
-            '</div>' +
-            '<div class="tract-income">$' + parseInt(t.tractMfi || 0).toLocaleString() + ' | ' + (t.level || 'Middle') + ' Income</div>' +
             '</div>';
     });
 
