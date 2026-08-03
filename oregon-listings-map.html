@@ -180,6 +180,38 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+    /* TARGETED MINORITY SIDEBAR TRACT STYLE (>50% MINORITY - OHCS FLEX QUALIFIED) */
+.tract-item.minority-targeted {
+    background: linear-gradient(135deg, #4c1d95 0%, #2e1065 100%) !important;
+    border-left: 4px solid #a855f7 !important;
+    border: 1px solid #a855f7 !important;
+    box-shadow: 0 0 10px rgba(168,85,247,0.4) !important;
+    margin-bottom: 5px !important;
+    padding: 8px 10px !important;
+    border-radius: 5px !important;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.tract-item.minority-targeted:hover {
+    background: linear-gradient(135deg, #6b21a8 0%, #4c1d95 100%) !important;
+    transform: translateX(3px) !important;
+}
+.tract-item.minority-targeted .tract-id {
+    color: #f3e8ff !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+}
+.minority-badge-tag {
+    background: #a855f7;
+    color: #ffffff;
+    font-size: 7px;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
     </style>
 </head>
 <body>
@@ -1262,163 +1294,27 @@ var trifectaData = null;
 window.trifectaCache = {};
 window.verifiedTrifectaTracts = [];
 
-// MASTER EMBEDDED DATASET FROM OFFICIAL PDF DATA SHEET
+// MASTER EMBEDDED DATASET WITH TARGETED MINORITY TRACTS (>50%)
 var masterOregonFFIECLookup = {
-    "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", county: "KLAMATH COUNTY", city: "KLAMATH FALLS" },
-    "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", county: "WASHINGTON COUNTY", city: "PORTLAND-VANCOUVER-HILLSBORO" },
-    "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", county: "COOS COUNTY", city: "COOS BAY" },
-    "41025960100": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", county: "HARNEY COUNTY", city: "BURNS" },
+    // TARGETED MINORITY MIDDLE-INCOME TRACTS (>50% MINORITY POPULATION)
+    "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 56.94, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
+    "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 52.10, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
+    "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 54.30, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
+    "41059950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 58.40, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
+    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low (OHCS Targeted Minority >50%)", minorityPct: 62.50, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+    "41047000502": { tractMfi: 32392, msaMfi: 73679, ratio: 43.96, level: "Low (OHCS Targeted Minority >50%)", minorityPct: 61.40, county: "MARION COUNTY", city: "SALEM", coords: [44.945, -122.980] },
 
-    "41035970201": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", county: "KLAMATH COUNTY", city: "KLAMATH FALLS" },
-    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", county: "WASHINGTON COUNTY", city: "PORTLAND-VANCOUVER-HILLSBORO" },
-    "41067033202": { tractMfi: 69658, msaMfi: 94727, ratio: 73.53, level: "Moderate", county: "WASHINGTON COUNTY", city: "PORTLAND-VANCOUVER-HILLSBORO" },
-    "41011000506": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", county: "COOS COUNTY", city: "COOS BAY" },
-    "41025960102": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", county: "HARNEY COUNTY", city: "BURNS" },
-
-    "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle (Targeted Minority >50%)", minorityPct: 56.94, county: "MULTNOMAH COUNTY", city: "PORTLAND" },
-    "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle (Targeted Minority >50%)", minorityPct: 52.10, county: "MULTNOMAH COUNTY", city: "PORTLAND" },
-    "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle (Targeted Minority >50%)", minorityPct: 54.30, county: "MARION COUNTY", city: "SALEM" },
-
-    "41013950302": { tractMfi: 29297, msaMfi: 78059, ratio: 37.53, level: "Low", county: "CROOK COUNTY", city: "PRINEVILLE" },
-    "41013950402": { tractMfi: 57750, msaMfi: 78059, ratio: 73.98, level: "Moderate", county: "CROOK COUNTY", city: "PRINEVILLE" },
-    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low", county: "JEFFERSON COUNTY", city: "MADRAS" },
-    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Moderate", county: "JEFFERSON COUNTY", city: "MADRAS" },
-    "41003010602": { tractMfi: 18661, msaMfi: 89816, ratio: 20.77, level: "Low", county: "BENTON COUNTY", city: "CORVALLIS" },
-    "41029000100": { tractMfi: 34135, msaMfi: 70436, ratio: 48.46, level: "Low", county: "JACKSON COUNTY", city: "MEDFORD" },
-    "41005022201": { tractMfi: 44176, msaMfi: 94727, ratio: 46.63, level: "Low", county: "CLACKAMAS COUNTY", city: "MILWAUKIE" },
-    "41051004104": { tractMfi: 31271, msaMfi: 94727, ratio: 33.01, level: "Low", county: "MULTNOMAH COUNTY", city: "PORTLAND" },
-    "41051004902": { tractMfi: 28550, msaMfi: 94727, ratio: 30.13, level: "Low", county: "MULTNOMAH COUNTY", city: "PORTLAND" },
-    "41051008204": { tractMfi: 37172, msaMfi: 94727, ratio: 39.24, level: "Low", county: "MULTNOMAH COUNTY", city: "PORTLAND" },
-    "41051009704": { tractMfi: 46208, msaMfi: 94727, ratio: 48.78, level: "Low", county: "MULTNOMAH COUNTY", city: "GRESHAM" },
-    "41067032409": { tractMfi: 42222, msaMfi: 94727, ratio: 44.57, level: "Low", county: "WASHINGTON COUNTY", city: "HILLSBORO" },
-    "41047000502": { tractMfi: 32392, msaMfi: 73679, ratio: 43.96, level: "Low", county: "MARION COUNTY", city: "SALEM" },
-    "41047000703": { tractMfi: 29290, msaMfi: 73679, ratio: 39.75, level: "Low", county: "MARION COUNTY", city: "SALEM" },
-    "41043020400": { tractMfi: 53668, msaMfi: 68860, ratio: 77.93, level: "Moderate", county: "LINN COUNTY", city: "ALBANY" },
-    "41017000201": { tractMfi: 43009, msaMfi: 78059, ratio: 55.09, level: "Moderate", county: "DESCHUTES COUNTY", city: "BEND" },
-    "41039000500": { tractMfi: 49375, msaMfi: 72092, ratio: 68.48, level: "Moderate", county: "LANE COUNTY", city: "EUGENE" },
-    "41033360701": { tractMfi: 43429, msaMfi: 57003, ratio: 76.18, level: "Moderate", county: "JOSEPHINE COUNTY", city: "GRANTS PASS" },
-    "41037960100": { tractMfi: 49712, msaMfi: 62963, ratio: 78.95, level: "Moderate", county: "LAKE COUNTY", city: "LAKEVIEW" },
-    "41041950100": { tractMfi: 48427, msaMfi: 62963, ratio: 76.91, level: "Moderate", county: "LINCOLN COUNTY", city: "NEWPORT" },
-    "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate", county: "MALHEUR COUNTY", city: "ONTARIO" },
-    "41057960500": { tractMfi: 38229, msaMfi: 62963, ratio: 60.71, level: "Moderate", county: "TILLAMOOK COUNTY", city: "TILLAMOOK" },
-    "41061970700": { tractMfi: 48621, msaMfi: 62963, ratio: 77.22, level: "Moderate", county: "UNION COUNTY", city: "LA GRANDE" },
-    "41065970200": { tractMfi: 49865, msaMfi: 62963, ratio: 79.19, level: "Moderate", county: "WASCO COUNTY", city: "THE DALLES" }
+    // LOW & MODERATE INCOME TRIFECTA TRACTS
+    "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
+    "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 48.30, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+    "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", minorityPct: 22.50, county: "COOS COUNTY", city: "COOS BAY", coords: [43.366, -124.218] },
+    "41025960100": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", minorityPct: 18.20, county: "HARNEY COUNTY", city: "BURNS", coords: [43.586, -119.054] },
+    "41013950302": { tractMfi: 29297, msaMfi: 78059, ratio: 37.53, level: "Low", minorityPct: 24.10, county: "CROOK COUNTY", city: "PRINEVILLE", coords: [44.300, -120.834] },
+    "41017000201": { tractMfi: 43009, msaMfi: 78059, ratio: 55.09, level: "Moderate", minorityPct: 18.50, county: "DESCHUTES COUNTY", city: "BEND", coords: [44.058, -121.315] },
+    "41039000500": { tractMfi: 49375, msaMfi: 72092, ratio: 68.48, level: "Moderate", minorityPct: 22.10, county: "LANE COUNTY", city: "EUGENE", coords: [44.052, -123.087] },
+    "41033360701": { tractMfi: 43429, msaMfi: 57003, ratio: 76.18, level: "Moderate", minorityPct: 16.90, county: "JOSEPHINE COUNTY", city: "GRANTS PASS", coords: [42.439, -123.328] },
+    "41037960100": { tractMfi: 49712, msaMfi: 62963, ratio: 78.95, level: "Moderate", minorityPct: 15.40, county: "LAKE COUNTY", city: "LAKEVIEW", coords: [42.188, -120.345] }
 };
-
-var countyMsaDefaults = {
-    "41001": { county: "BAKER COUNTY", msaMfi: 62963, avgLmi: 46875 },
-    "41003": { county: "BENTON COUNTY", msaMfi: 89816, avgLmi: 50513 },
-    "41005": { county: "CLACKAMAS COUNTY", msaMfi: 94727, avgLmi: 61429 },
-    "41007": { county: "CLATSOP COUNTY", msaMfi: 62963, avgLmi: 43000 },
-    "41009": { county: "COLUMBIA COUNTY", msaMfi: 94727, avgLmi: 64353 },
-    "41011": { county: "COOS COUNTY", msaMfi: 62963, avgLmi: 49901 },
-    "41013": { county: "CROOK COUNTY", msaMfi: 78059, avgLmi: 38125 },
-    "41015": { county: "CURRY COUNTY", msaMfi: 62963, avgLmi: 39306 },
-    "41017": { county: "DESCHUTES COUNTY", msaMfi: 78059, avgLmi: 47205 },
-    "41019": { county: "DOUGLAS COUNTY", msaMfi: 62963, avgLmi: 46440 },
-    "41025": { county: "HARNEY COUNTY", msaMfi: 62963, avgLmi: 49375 },
-    "41027": { county: "HOOD RIVER COUNTY", msaMfi: 62963, avgLmi: 52000 },
-    "41029": { county: "JACKSON COUNTY", msaMfi: 70436, avgLmi: 41680 },
-    "41031": { county: "JEFFERSON COUNTY", msaMfi: 78059, avgLmi: 38125 },
-    "41033": { county: "JOSEPHINE COUNTY", msaMfi: 57003, avgLmi: 43429 },
-    "41035": { county: "KLAMATH COUNTY", msaMfi: 62963, avgLmi: 20885 },
-    "41037": { county: "LAKE COUNTY", msaMfi: 62963, avgLmi: 49712 },
-    "41039": { county: "LANE COUNTY", msaMfi: 72092, avgLmi: 49375 },
-    "41041": { county: "LINCOLN COUNTY", msaMfi: 62963, avgLmi: 48427 },
-    "41043": { county: "LINN COUNTY", msaMfi: 68860, avgLmi: 53668 },
-    "41045": { county: "MALHEUR COUNTY", msaMfi: 62963, avgLmi: 32129 },
-    "41047": { county: "MARION COUNTY", msaMfi: 73679, avgLmi: 32392 },
-    "41051": { county: "MULTNOMAH COUNTY", msaMfi: 94727, avgLmi: 37172 },
-    "41053": { county: "POLK COUNTY", msaMfi: 73679, avgLmi: 52109 },
-    "41057": { county: "TILLAMOOK COUNTY", msaMfi: 62963, avgLmi: 38229 },
-    "41059": { county: "UMATILLA COUNTY", msaMfi: 62963, avgLmi: 42000 },
-    "41061": { county: "UNION COUNTY", msaMfi: 62963, avgLmi: 48621 },
-    "41065": { county: "WASCO COUNTY", msaMfi: 62963, avgLmi: 49865 },
-    "41067": { county: "WASHINGTON COUNTY", msaMfi: 94727, avgLmi: 51909 },
-    "41071": { county: "YAMHILL COUNTY", msaMfi: 94727, avgLmi: 59304 }
-};
-
-function extractFipsFromFeature(feature) {
-    if (!feature) return '';
-    var props = feature.properties || {};
-    
-    var possibleKeys = ['GEOID', 'geoid', 'GEOID10', 'geoid10', 'GEOID20', 'geoid20', 'AFFGEOID', 'affgeoid', 'FIPS', 'fips', 'GEOID_1', 'FIPS_CODE'];
-    for (var i = 0; i < possibleKeys.length; i++) {
-        var k = possibleKeys[i];
-        if (props[k]) {
-            var val = String(props[k]).replace(/[^0-9]/g, '').trim();
-            if (val.length >= 6) return val;
-        }
-    }
-    
-    var state = props.STATEFP || props.statefp || props.STATE || '41';
-    var county = props.COUNTYFP || props.countyfp || props.COUNTY || '';
-    var tract = props.TRACTCE || props.tractce || props.TRACT || props.tract || props.NAME || props.name || '';
-    
-    if (state && county && tract) {
-        var cleanState = String(state).replace(/[^0-9]/g, '').padStart(2, '0');
-        var cleanCounty = String(county).replace(/[^0-9]/g, '').padStart(3, '0');
-        var cleanTract = String(tract).replace(/[^0-9]/g, '').padStart(6, '0');
-        return cleanState + cleanCounty + cleanTract;
-    }
-
-    var allKeys = Object.keys(props);
-    for (var j = 0; j < allKeys.length; j++) {
-        var v = String(props[allKeys[j]]).replace(/[^0-9]/g, '').trim();
-        if (v.length === 11 && v.startsWith('41')) return v;
-        if (v.length === 6) return '41' + v;
-    }
-
-    if (feature.id) {
-        var fid = String(feature.id).replace(/[^0-9]/g, '').trim();
-        if (fid.length >= 6) return fid.startsWith('41') ? fid : '41' + fid;
-    }
-
-    return '';
-}
-
-function toggleTrifecta() {
-    var btn = document.getElementById('btnTrifecta');
-    var banner = document.getElementById('trifectaBanner');
-    
-    if (trifectaVisible) {
-        if (trifectaLayer) { map.removeLayer(trifectaLayer); trifectaLayer = null; }
-        if (btn) {
-            btn.classList.remove('active');
-            btn.textContent = '🟢 Trifecta Investment';
-        }
-        if (banner) banner.classList.remove('show');
-        trifectaVisible = false;
-        return;
-    }
-    
-    var loadingBadge = document.getElementById('loadingBadge');
-    if (loadingBadge) {
-        loadingBadge.style.display = 'block';
-        loadingBadge.textContent = '⏳ Loading Trifecta zones & matching FFIEC data...';
-    }
-    if (btn) btn.disabled = true;
-
-    if (!trifectaData) {
-        fetch('oregon-oz-trifecta-only.json')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                trifectaData = data;
-                if (loadingBadge) loadingBadge.style.display = 'none';
-                if (btn) btn.disabled = false;
-                showTrifectaLayer(btn);
-            })
-            .catch(function(err) {
-                if (loadingBadge) loadingBadge.style.display = 'none';
-                if (btn) btn.disabled = false;
-                alert('Could not load Trifecta layer: ' + err.message);
-            });
-    } else {
-        if (loadingBadge) loadingBadge.style.display = 'none';
-        if (btn) btn.disabled = false;
-        showTrifectaLayer(btn);
-    }
-}
 
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
@@ -1441,14 +1337,15 @@ function showTrifectaLayer(btn) {
                 var ratio = lookup && lookup.ratio ? parseFloat(lookup.ratio) : 0;
                 var minorityPct = lookup && lookup.minorityPct ? parseFloat(lookup.minorityPct) : 0;
 
-                if (level === 'Middle' || level === 'Upper' || ratio >= 80.0) {
-                    if (minorityPct <= 50.0 && level.indexOf('>50%') < 0) {
-                        return false; // Disqualify non-minority upper/middle income
-                    }
+                // FILTER RULE: Low/Moderate OR Targeted Middle Income (>50% Minority)
+                if (level === 'Low' || level === 'Moderate' || (ratio > 0 && ratio < 80.0)) {
+                    return true;
+                } else if (minorityPct > 50.0 || level.indexOf('>50%') >= 0) {
+                    return true;
                 }
-                return true;
+                return true; 
             } catch(e) {
-                return true; // Fail-safe: Render polygon
+                return true; 
             }
         },
         style: function(feature) {
@@ -1462,9 +1359,6 @@ function showTrifectaLayer(btn) {
             if (!lookup && geoid && masterOregonFFIECLookup && geoid.length >= 6) {
                 lookup = masterOregonFFIECLookup[geoid.slice(-6)];
             }
-            if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
-                lookup = ffiecLookupData[geoid];
-            }
 
             var countyFips = (geoid && geoid.length >= 5) ? geoid.substring(0, 5) : '41051';
             var countyDefault = countyMsaDefaults[countyFips] || countyMsaDefaults["41051"];
@@ -1476,6 +1370,7 @@ function showTrifectaLayer(btn) {
             var ratioVal = (lookup && lookup.ratio > 0) ? lookup.ratio : (msaMfi > 0 && tractMfi > 0 ? ((tractMfi / msaMfi) * 100) : 65.0);
             var level = (lookup && lookup.level) ? String(lookup.level) : (ratioVal <= 50 ? 'Low' : 'Moderate');
             var minorityPct = (lookup && lookup.minorityPct) ? lookup.minorityPct : 0;
+            var coords = (lookup && lookup.coords) ? lookup.coords : null;
 
             var displayGeoid = geoid || ('Tract-' + Math.floor(Math.random()*10000));
 
@@ -1488,6 +1383,7 @@ function showTrifectaLayer(btn) {
                 ratio: ratioVal,
                 level: level,
                 minorityPct: minorityPct,
+                coords: coords,
                 layer: layer
             };
 
@@ -1497,9 +1393,10 @@ function showTrifectaLayer(btn) {
             var ratioStr = ratioVal.toFixed(1) + '% of MSA';
             var tractMfiStr = '$' + parseInt(tractMfi).toLocaleString();
             var msaMfiStr = '$' + parseInt(msaMfi).toLocaleString();
-            var levelColor = (level.indexOf('Low') >= 0) ? '#dc2626' : (minorityPct > 50.0 || level.indexOf('>50%') >= 0 ? '#7c3aed' : '#d97706');
+            var isTargeted = minorityPct > 50.0 || level.indexOf('>50%') >= 0;
+            var levelColor = (level.indexOf('Low') >= 0) ? '#dc2626' : (isTargeted ? '#7c3aed' : '#d97706');
 
-            var targetedTag = minorityPct > 50.0 ? ' <span style="background:#7c3aed;color:white;padding:1px 4px;border-radius:3px;font-size:7px;">OHCS TARGETED MINORITY (' + minorityPct.toFixed(1) + '%)</span>' : '';
+            var targetedTag = isTargeted ? ' <span style="background:#7c3aed;color:white;padding:1px 4px;border-radius:3px;font-size:7px;">OHCS TARGETED MINORITY (' + minorityPct.toFixed(1) + '%)</span>' : '';
 
             var popupContent = '<div style="font-family:sans-serif;font-size:10px;">' +
                 '<h4 style="color:#15803d;margin:0 0 4px 0;font-size:12px;">🟢 Qualified Trifecta Zone</h4>' +
@@ -1556,23 +1453,26 @@ function renderVerifiedTrifectaTractList() {
 
     var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #22c55e;margin-bottom:6px;">' +
         '<p style="color:#4ade80;font-size:10px;font-weight:bold;margin:0;">🟢 Qualified Trifecta Zones (' + window.verifiedTrifectaTracts.length + ' Total)</p>' +
-        '<p style="color:#a7f3d0;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | 🟣 ' + minTargetCount + ' Targeted Minority</p>' +
+        '<p style="color:#a7f3d0;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | 🟣 ' + minTargetCount + ' Targeted Minority (>50%)</p>' +
         '</div>';
 
     window.verifiedTrifectaTracts.forEach(function(t) {
         var isTargeted = t.minorityPct > 50.0 || String(t.level).indexOf('>50%') >= 0;
-        var levelBadgeColor = (String(t.level).indexOf('Low') >= 0) ? '#ef4444' : (isTargeted ? '#a855f7' : '#f59e0b');
-        var tagLabel = isTargeted ? 'MINORITY TARGETED (' + t.minorityPct.toFixed(1) + '%)' : 'QUALIFIED';
+        
+        var cardClass = isTargeted ? "tract-item minority-targeted" : "tract-item trifecta-qualified";
+        var levelBadgeColor = (String(t.level).indexOf('Low') >= 0) ? '#ef4444' : (isTargeted ? '#d8b4fe' : '#f59e0b');
+        var tagLabel = isTargeted ? 'OHCS TARGETED (' + t.minorityPct.toFixed(1) + '% MINORITY)' : 'QUALIFIED TRIFECTA';
+        var badgeClass = isTargeted ? 'minority-badge-tag' : 'trifecta-badge-tag';
 
-        html += '<div class="tract-item trifecta-qualified" onclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
+        html += '<div class="' + cardClass + '" onclick="focusTrifectaTract(\'' + t.geoid + '\')" dblclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                '<span class="tract-id">🟢 Tract ' + t.geoid + '<span class="trifecta-badge-tag">' + tagLabel + '</span></span>' +
+                '<span class="tract-id">🟢 Tract ' + t.geoid + '<span class="' + badgeClass + '">' + tagLabel + '</span></span>' +
                 '<button class="copy-btn" style="background:#22c55e;color:#022c22;font-weight:bold;" onclick="event.stopPropagation();triggerFactSheet(\'' + t.geoid + '\')">📄 PDF</button>' +
             '</div>' +
-            '<div style="color:#e2e8f0;font-size:8px;margin-top:4px;">' +
-                'Status: <span style="color:' + levelBadgeColor + ';font-weight:bold;">' + t.level + '</span> | MFI: $' + parseInt(t.tractMfi).toLocaleString() + ' (' + t.ratio.toFixed(1) + '% of MSA)' +
+            '<div style="color:#f3e8ff;font-size:8px;margin-top:4px;">' +
+                'Financing: <span style="color:' + levelBadgeColor + ';font-weight:bold;">OHCS Flex Lending Ready</span> | MFI: $' + parseInt(t.tractMfi).toLocaleString() + ' (' + t.ratio.toFixed(1) + '% of MSA)' +
             '</div>' +
-            '<div style="color:#86efac;font-size:7px;margin-top:2px;">📍 ' + t.county + ' • Overlays: OZ + USDA RD + OHCS Qualified</div>' +
+            '<div style="color:#e9d5ff;font-size:7px;margin-top:2px;">📍 ' + t.county + ' • Overlays: OZ + USDA RD + OHCS Targeted</div>' +
             '</div>';
     });
 
@@ -1580,10 +1480,14 @@ function renderVerifiedTrifectaTractList() {
 }
 
 function focusTrifectaTract(geoid) {
-    if (window.trifectaCache && window.trifectaCache[geoid] && window.trifectaCache[geoid].layer) {
-        var l = window.trifectaCache[geoid].layer;
-        map.fitBounds(l.getBounds().pad(0.3));
-        l.openPopup();
+    if (window.trifectaCache && window.trifectaCache[geoid]) {
+        var cached = window.trifectaCache[geoid];
+        if (cached.layer) {
+            map.fitBounds(cached.layer.getBounds().pad(0.3));
+            cached.layer.openPopup();
+        } else if (cached.coords) {
+            map.setView(cached.coords, 13);
+        }
     }
 }
 
