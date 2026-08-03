@@ -1467,7 +1467,6 @@ function showTrifectaLayer(btn) {
                 var ratio = lookup && lookup.ratio ? parseFloat(lookup.ratio) : 0;
                 var minorityPct = lookup && lookup.minorityPct ? parseFloat(lookup.minorityPct) : 0;
 
-                // TRIFECTA REQUIREMENT: Must be inside OZ + (LMI OR Targeted Minority)
                 if (level.indexOf('Low') >= 0 || level.indexOf('Moderate') >= 0 || (ratio > 0 && ratio < 80.0)) {
                     return true;
                 } else if (minorityPct > 50.0 || level.indexOf('>50%') >= 0) {
@@ -1488,6 +1487,9 @@ function showTrifectaLayer(btn) {
             var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
             if (!lookup && geoid && masterOregonFFIECLookup && geoid.length >= 6) {
                 lookup = masterOregonFFIECLookup[geoid.slice(-6)];
+            }
+            if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
+                lookup = ffiecLookupData[geoid];
             }
 
             var countyFips = (geoid && geoid.length >= 5) ? geoid.substring(0, 5) : '41051';
@@ -1524,7 +1526,16 @@ function showTrifectaLayer(btn) {
             var tractMfiStr = '$' + parseInt(tractMfi).toLocaleString();
             var msaMfiStr = '$' + parseInt(msaMfi).toLocaleString();
             var isTargeted = minorityPct > 50.0 || level.indexOf('>50%') >= 0;
-            var levelColor = (level.indexOf('Low') >= 0) ? '#dc2626' : (isTargeted ? '#7c3aed' : '#d97706');
+
+            // COLOR RULE: MODERATE IS ALWAYS VIBRANT ORANGE (#f59e0b)
+            var levelColor = '#f59e0b'; // Default Orange for Moderate
+            if (level.indexOf('Low') >= 0) {
+                levelColor = '#dc2626'; // Red for Low Income
+            } else if (level.indexOf('Moderate') >= 0) {
+                levelColor = '#f59e0b'; // Vibrant Orange for Moderate Income
+            } else if (level.indexOf('Middle') >= 0 || level.indexOf('Upper') >= 0) {
+                levelColor = '#7c3aed'; // Purple for Middle/Upper Targeted Minority
+            }
 
             var targetedTag = isTargeted ? ' <span style="background:#7c3aed;color:white;padding:1px 4px;border-radius:3px;font-size:7px;">OHCS TARGETED MINORITY (' + minorityPct.toFixed(1) + '%)</span>' : '';
 
@@ -1547,7 +1558,7 @@ function showTrifectaLayer(btn) {
             layer.bindPopup(popupContent);
         }
     }).addTo(map);
-
+    
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
         var mNum1 = document.getElementById('metricTracts');
