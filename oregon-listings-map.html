@@ -129,6 +129,36 @@
     transition: all 0.2s;
 }
 .btn-factsheet:hover { background: #166534; }
+    /* DISTINCT SHADING FOR QUALIFIED TRIFECTA SIDEBAR TRACTS */
+.tract-item.trifecta-qualified {
+    background: linear-gradient(135deg, #064e3b 0%, #022c22 100%) !important;
+    border-left: 4px solid #22c55e !important;
+    border: 1px solid #10b981 !important;
+    box-shadow: 0 0 10px rgba(34,197,94,0.3) !important;
+    margin-bottom: 5px !important;
+    padding: 8px 10px !important;
+    border-radius: 5px !important;
+}
+.tract-item.trifecta-qualified:hover {
+    background: linear-gradient(135deg, #047857 0%, #064e3b 100%) !important;
+    transform: translateX(3px) !important;
+}
+.tract-item.trifecta-qualified .tract-id {
+    color: #4ade80 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+}
+.trifecta-badge-tag {
+    background: #22c55e;
+    color: #022c22;
+    font-size: 7px;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
     </style>
 </head>
 <body>
@@ -1352,28 +1382,25 @@ function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
     
+    var totalVerifiedCount = 0;
     window.trifectaCache = {};
     window.verifiedTrifectaTracts = [];
-    var totalVerifiedCount = 0;
     
     trifectaLayer = L.geoJSON(trifectaData, {
-        // STRICT LMI FILTER: Exclude Middle or Upper income tracts (MFI Ratio >= 80%)
         filter: function(feature) {
             var geoid = extractFipsFromFeature(feature);
             var lookup = (geoid && ffiecLookupData && ffiecLookupData[geoid]) ? ffiecLookupData[geoid] : null;
-            
             if (!lookup && geoid && ffiecLookupData && geoid.length >= 6) {
                 lookup = ffiecLookupData[geoid.slice(-6)];
             }
-            
             var level = (lookup && lookup.level) ? lookup.level.trim() : '';
             var ratio = (lookup && lookup.ratio) ? lookup.ratio : 0;
             
-            // DISQUALIFY Middle or Upper Income Tracts
+            // Strictly exclude Middle/Upper Income
             if (level === 'Middle' || level === 'Upper' || ratio >= 80.0) {
-                return false; // DO NOT RENDER ON MAP
+                return false;
             }
-            return true; // RENDER TRUE TRIFECTA
+            return true;
         },
         style: function(feature) {
             return { color: '#15803d', fillColor: '#22c55e', fillOpacity: 0.45, weight: 2.5 };
@@ -1390,7 +1417,6 @@ function showTrifectaLayer(btn) {
                 }
             }
 
-            // Fallback match in embedded ffiecTracts
             if (!lookup && typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
                 var found = ffiecTracts.find(function(t) {
                     return (t.geoid && t.geoid === geoid) || (t.tract && geoid.endsWith(t.tract));
@@ -1416,7 +1442,6 @@ function showTrifectaLayer(btn) {
 
             var displayGeoid = geoid || ('Tract-' + Math.floor(Math.random()*10000));
 
-            // STORE REAL DATA IN MEMORY CACHE
             window.trifectaCache[displayGeoid] = {
                 geoid: displayGeoid,
                 county: county,
@@ -1428,32 +1453,36 @@ function showTrifectaLayer(btn) {
                 layer: layer
             };
 
-            // ADD TO VERIFIED SIDEBAR LIST
             window.verifiedTrifectaTracts.push(window.trifectaCache[displayGeoid]);
             totalVerifiedCount++;
 
             var ratioStr = ratioVal > 0 ? ratioVal.toFixed(1) + '% of MSA' : 'LMI Validated';
             var tractMfiStr = tractMfi > 0 ? '$' + parseInt(tractMfi).toLocaleString() : 'LMI Validated';
             var msaMfiStr = msaMfi > 0 ? '$' + parseInt(msaMfi).toLocaleString() : 'MSA Validated';
+            var levelColor = (level === 'Low') ? '#dc2626' : '#d97706';
 
-            var popupContent = '<strong>🟢 TRUE TRIFECTA ZONE (LMI Validated)</strong><br>' +
-                '<strong>Census Tract:</strong> ' + displayGeoid + '<br>' +
-                '<strong>Level:</strong> <span style="color:#22c55e;font-weight:bold;">' + level + ' Income</span> (' + ratioStr + ')<br>' +
-                '<strong>Tract MFI:</strong> ' + tractMfiStr + '<br>' +
-                '<strong>MSA MFI:</strong> ' + msaMfiStr + '<br>' +
-                '<strong>County:</strong> ' + county + '<br><br>' +
-                '<strong>Convergence Verification:</strong><br>' +
-                '✅ USDA RD Eligible Zone<br>' +
-                '✅ Opportunity Zone Tax Deferral<br>' +
-                '✅ LMI Tract (<80% MFI Ratio - OHCS Flex Eligible)<br><br>' +
+            // ENHANCED POPUP INCLUDING ALL 3 POLYGON OVERLAYS
+            var popupContent = '<div style="font-family:sans-serif;font-size:10px;">' +
+                '<h4 style="color:#15803d;margin:0 0 4px 0;font-size:12px;">🟢 Qualified Trifecta Zone</h4>' +
+                '<p style="margin:2px 0;"><strong>Census Tract:</strong> <span style="color:#15803d;font-weight:bold;">' + displayGeoid + '</span></p>' +
+                '<p style="margin:2px 0;"><strong>Income Designation:</strong> <span style="color:' + levelColor + ';font-weight:bold;">' + level + ' Income Level</span> (' + ratioStr + ')</p>' +
+                '<p style="margin:2px 0;"><strong>Tract Median Income:</strong> ' + tractMfiStr + '</p>' +
+                '<p style="margin:2px 0;"><strong>MSA Median Income:</strong> ' + msaMfiStr + '</p>' +
+                '<p style="margin:2px 0;"><strong>County:</strong> ' + county + '</p>' +
+                '<hr style="border:none;border-top:1px solid #cbd5e1;margin:6px 0;">' +
+                '<strong>Polygon Overlay Convergence Checklist:</strong><br>' +
+                '✅ Opportunity Zone Polygon Overlay<br>' +
+                '✅ USDA RD Eligible Boundary Overlay<br>' +
+                '✅ ' + level + ' Income Level Polygon Overlay<br><br>' +
                 '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + displayGeoid + '\')">' +
-                '📄 Export Legislative & Investor Fact Sheet</button>';
+                '📄 Export Legislative & Investor Fact Sheet</button>' +
+                '</div>';
             
             layer.bindPopup(popupContent);
         }
     }).addTo(map);
     
-    // UPDATE SIDEBAR BANNER METRICS WITH ONLY VERIFIED TRACTS
+    // UPDATE BANNER METRICS
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
         var mNum1 = document.getElementById('metricTracts');
@@ -1465,7 +1494,6 @@ function showTrifectaLayer(btn) {
         banner.classList.add('show');
     }
 
-    // UPDATE SIDEBAR TRACT LIST WITH VERIFIED TRACTS
     renderVerifiedTrifectaTractList();
     
     if (btn) {
@@ -1477,7 +1505,7 @@ function showTrifectaLayer(btn) {
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
 }
 
-// RENDER VERIFIED TRACTS IN SIDEBAR
+// DISTINCT SIDEBAR LISTING FOR QUALIFIED TRIFECTA TRACTS
 function renderVerifiedTrifectaTractList() {
     var container = document.getElementById('tractListContent');
     if (!container || window.verifiedTrifectaTracts.length === 0) return;
@@ -1488,15 +1516,23 @@ function renderVerifiedTrifectaTractList() {
         else modCount++;
     });
 
-    var html = '<p style="color:#22c55e;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;font-weight:bold;">' +
-        '🟢 Verified True Trifecta: 🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | Total: ' + window.verifiedTrifectaTracts.length + '</p>';
+    var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #22c55e;margin-bottom:6px;">' +
+        '<p style="color:#4ade80;font-size:10px;font-weight:bold;margin:0;">🟢 Qualified Trifecta Zones (' + window.verifiedTrifectaTracts.length + ' Total)</p>' +
+        '<p style="color:#a7f3d0;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low Income | 🟠 ' + modCount + ' Moderate Income</p>' +
+        '</div>';
 
     window.verifiedTrifectaTracts.forEach(function(t) {
-        var lc = (t.level || 'Low').toLowerCase();
-        html += '<div class="tract-item ' + lc + '" onclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
-            '<span class="tract-id">🟢 Tract ' + t.geoid + '</span> - ' + t.level + ' Income' +
-            '<span class="tract-income">$' + parseInt(t.tractMfi).toLocaleString() + ' | ' + t.ratio.toFixed(1) + '% of MSA (' + t.county + ')</span>' +
-            '<button class="copy-btn" onclick="event.stopPropagation();triggerFactSheet(\'' + t.geoid + '\')">📄</button></div>';
+        var levelBadgeColor = (t.level === 'Low') ? '#ef4444' : '#f59e0b';
+        html += '<div class="tract-item trifecta-qualified" onclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span class="tract-id">🟢 Tract ' + t.geoid + '<span class="trifecta-badge-tag">QUALIFIED</span></span>' +
+                '<button class="copy-btn" style="background:#22c55e;color:#022c22;font-weight:bold;" onclick="event.stopPropagation();triggerFactSheet(\'' + t.geoid + '\')">📄 PDF</button>' +
+            '</div>' +
+            '<div style="color:#e2e8f0;font-size:8px;margin-top:4px;">' +
+                'Status: <span style="color:' + levelBadgeColor + ';font-weight:bold;">' + t.level + ' Income</span> | MFI: $' + parseInt(t.tractMfi).toLocaleString() + ' (' + t.ratio.toFixed(1) + '% of MSA)' +
+            '</div>' +
+            '<div style="color:#86efac;font-size:7px;margin-top:2px;">📍 ' + t.county + ' County • Overlays: OZ + USDA RD + ' + t.level + ' Income</div>' +
+            '</div>';
     });
 
     container.innerHTML = html;
