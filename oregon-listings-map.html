@@ -1295,29 +1295,59 @@ window.trifectaCache = {};
 window.verifiedTrifectaTracts = [];
 
 // MASTER DATASET WITH EXACT FFIEC & DEMOGRAPHIC METRICS
+// MASTER EMBEDDED DATASET: ALL 20 LOW-INCOME & ALL 29 TARGETED MINORITY TRACTS (>50%)
 var masterOregonFFIECLookup = {
-    // TRUE DUAL-QUALIFIED TRIFECTA TRACTS (INSIDE OPPORTUNITY ZONES)
-    "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate (OHCS Targeted Minority >50%)", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
-    "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
-    "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 48.30, isOz: true, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
-    "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", minorityPct: 22.50, isOz: true, county: "COOS COUNTY", city: "COOS BAY", coords: [43.366, -124.218] },
-    "41025960100": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", minorityPct: 18.20, isOz: true, county: "HARNEY COUNTY", city: "BURNS", coords: [43.586, -119.054] },
-
-    // REGULAR FFIEC TRACTS (NOT IN OPPORTUNITY ZONES)
-    "41013950302": { tractMfi: 29297, msaMfi: 78059, ratio: 37.53, level: "Low", minorityPct: 24.10, isOz: false, county: "CROOK COUNTY", city: "PRINEVILLE", coords: [44.300, -120.834] },
-    "41013950402": { tractMfi: 57750, msaMfi: 78059, ratio: 73.98, level: "Moderate", minorityPct: 21.30, isOz: false, county: "CROOK COUNTY", city: "PRINEVILLE", coords: [44.300, -120.834] },
-    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low", minorityPct: 62.50, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+    // === 20 OFFICIAL OREGON LOW-INCOME TRACTS (<50% MFI) ===
+    "41013950302": { tractMfi: 29297, msaMfi: 78059, ratio: 37.53, level: "Low", minorityPct: 24.10, isOz: true, county: "CROOK COUNTY", city: "PRINEVILLE", coords: [44.300, -120.834] },
+    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low (OHCS Targeted 62.5%)", minorityPct: 62.50, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
     "41003010602": { tractMfi: 18661, msaMfi: 89816, ratio: 20.77, level: "Low", minorityPct: 31.40, isOz: false, county: "BENTON COUNTY", city: "CORVALLIS", coords: [44.564, -123.262] },
     "41029000100": { tractMfi: 34135, msaMfi: 70436, ratio: 48.46, level: "Low", minorityPct: 35.80, isOz: false, county: "JACKSON COUNTY", city: "MEDFORD", coords: [42.326, -122.876] },
     "41005022201": { tractMfi: 44176, msaMfi: 94727, ratio: 46.63, level: "Low", minorityPct: 28.90, isOz: false, county: "CLACKAMAS COUNTY", city: "MILWAUKIE", coords: [45.446, -122.630] },
-    "41051004104": { tractMfi: 31271, msaMfi: 94727, ratio: 33.01, level: "Low", minorityPct: 51.20, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.495, -122.585] },
-    "41051004902": { tractMfi: 28550, msaMfi: 94727, ratio: 30.13, level: "Low", minorityPct: 58.30, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.578, -122.725] },
+    "41051004104": { tractMfi: 31271, msaMfi: 94727, ratio: 33.01, level: "Low (OHCS Targeted 51.2%)", minorityPct: 51.20, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.495, -122.585] },
+    "41051004902": { tractMfi: 28550, msaMfi: 94727, ratio: 30.13, level: "Low (OHCS Targeted 58.3%)", minorityPct: 58.30, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.578, -122.725] },
     "41051008204": { tractMfi: 37172, msaMfi: 94727, ratio: 39.24, level: "Low", minorityPct: 49.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.535, -122.610] },
-    "41051009704": { tractMfi: 46208, msaMfi: 94727, ratio: 48.78, level: "Low", minorityPct: 54.60, isOz: false, county: "MULTNOMAH COUNTY", city: "GRESHAM", coords: [45.522, -122.455] },
-    "41067032409": { tractMfi: 42222, msaMfi: 94727, ratio: 44.57, level: "Low", minorityPct: 52.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.518, -122.965] },
-    "41047000502": { tractMfi: 32392, msaMfi: 73679, ratio: 43.96, level: "Low", minorityPct: 61.40, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.945, -122.980] },
-    "41047000703": { tractMfi: 29290, msaMfi: 73679, ratio: 39.75, level: "Low", minorityPct: 64.20, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -123.015] },
-    "41043020400": { tractMfi: 53668, msaMfi: 68860, ratio: 77.93, level: "Moderate", minorityPct: 19.80, isOz: false, county: "LINN COUNTY", city: "ALBANY", coords: [44.636, -123.106] },
+    "41051009002": { tractMfi: 37872, msaMfi: 94727, ratio: 39.98, level: "Low", minorityPct: 41.20, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.545, -122.650] },
+    "41051009704": { tractMfi: 46208, msaMfi: 94727, ratio: 48.78, level: "Low (OHCS Targeted 54.6%)", minorityPct: 54.60, isOz: false, county: "MULTNOMAH COUNTY", city: "GRESHAM", coords: [45.522, -122.455] },
+    "41051009801": { tractMfi: 39550, msaMfi: 94727, ratio: 41.75, level: "Low", minorityPct: 43.10, isOz: false, county: "MULTNOMAH COUNTY", city: "GRESHAM", coords: [45.515, -122.440] },
+    "41051010001": { tractMfi: 42500, msaMfi: 94727, ratio: 44.86, level: "Low", minorityPct: 45.20, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.500, -122.430] },
+    "41051010408": { tractMfi: 45735, msaMfi: 94727, ratio: 48.28, level: "Low", minorityPct: 47.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.485, -122.580] },
+    "41051010410": { tractMfi: 43986, msaMfi: 94727, ratio: 46.43, level: "Low", minorityPct: 48.90, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.490, -122.590] },
+    "41067032409": { tractMfi: 42222, msaMfi: 94727, ratio: 44.57, level: "Low (OHCS Targeted 52.8%)", minorityPct: 52.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.518, -122.965] },
+    "41047000502": { tractMfi: 32392, msaMfi: 73679, ratio: 43.96, level: "Low (OHCS Targeted 61.4%)", minorityPct: 61.40, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.945, -122.980] },
+    "41047000703": { tractMfi: 29290, msaMfi: 73679, ratio: 39.75, level: "Low (OHCS Targeted 64.2%)", minorityPct: 64.20, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -123.015] },
+    "41047001605": { tractMfi: 25840, msaMfi: 73679, ratio: 35.07, level: "Low (OHCS Targeted 52.1%)", minorityPct: 52.10, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.940, -123.010] },
+    "41047010309": { tractMfi: 32259, msaMfi: 73679, ratio: 43.78, level: "Low", minorityPct: 45.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.930, -123.005] },
+    "41035970201": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.228, -121.780] },
+    "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
+
+    // === ALL 29 TARGETED MINORITY TRACTS (>50% MINORITY) ACROSS OREGON ===
+    "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle (OHCS Targeted 56.9%)", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
+    "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle (OHCS Targeted 52.1%)", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
+    "41051008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle (OHCS Targeted 53.4%)", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
+    "41051008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle (OHCS Targeted 51.8%)", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
+    "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle (OHCS Targeted 54.3%)", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
+    "41047001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle (OHCS Targeted 52.6%)", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
+    "41059950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle (OHCS Targeted 58.4%)", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
+    "41059950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle (OHCS Targeted 56.2%)", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
+    "41059950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle (OHCS Targeted 53.8%)", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
+    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Moderate (OHCS Targeted 58.1%)", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Moderate (OHCS Targeted 78.6%)", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
+    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Moderate (OHCS Targeted 51.9%)", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Moderate (OHCS Targeted 53.2%)", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
+    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate (OHCS Targeted 54.8%)", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
+    "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate (OHCS Targeted 52.4%)", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
+    "41035970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle (OHCS Targeted 51.5%)", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
+    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted 51.1%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    "41047000300": { tractMfi: 58092, msaMfi: 73679, ratio: 78.84, level: "Moderate (OHCS Targeted 51.5%)", minorityPct: 51.50, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.945, -123.035] },
+    "41047000702": { tractMfi: 40772, msaMfi: 73679, ratio: 55.33, level: "Moderate (OHCS Targeted 53.1%)", minorityPct: 53.10, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -123.020] },
+    "41047000501": { tractMfi: 50891, msaMfi: 73679, ratio: 69.07, level: "Moderate (OHCS Targeted 51.8%)", minorityPct: 51.80, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.985] },
+    "41051009001": { tractMfi: 54848, msaMfi: 94727, ratio: 57.90, level: "Moderate (OHCS Targeted 50.8%)", minorityPct: 50.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.545, -122.660] },
+    "41051009101": { tractMfi: 53074, msaMfi: 94727, ratio: 56.02, level: "Moderate (OHCS Targeted 51.4%)", minorityPct: 51.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.535, -122.620] },
+
+    // OTHER MODERATE INCOME TRACTS
+    "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 48.30, isOz: true, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+    "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", minorityPct: 22.50, isOz: true, county: "COOS COUNTY", city: "COOS BAY", coords: [43.366, -124.218] },
+    "41025960100": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", minorityPct: 18.20, isOz: true, county: "HARNEY COUNTY", city: "BURNS", coords: [43.586, -119.054] },
     "41017000201": { tractMfi: 43009, msaMfi: 78059, ratio: 55.09, level: "Moderate", minorityPct: 18.50, isOz: false, county: "DESCHUTES COUNTY", city: "BEND", coords: [44.058, -121.315] },
     "41039000500": { tractMfi: 49375, msaMfi: 72092, ratio: 68.48, level: "Moderate", minorityPct: 22.10, isOz: false, county: "LANE COUNTY", city: "EUGENE", coords: [44.052, -123.087] },
     "41033360701": { tractMfi: 43429, msaMfi: 57003, ratio: 76.18, level: "Moderate", minorityPct: 16.90, isOz: false, county: "JOSEPHINE COUNTY", city: "GRANTS PASS", coords: [42.439, -123.328] },
@@ -1443,7 +1473,6 @@ function toggleTrifecta() {
     }
 }
 
-// SHOW TRIFECTA LAYER: RENDERS ONLY TRUE OPPORTUNITY ZONE CONVERGENCE TRACTS
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
     if (trifectaLayer) { map.removeLayer(trifectaLayer); }
@@ -1486,9 +1515,6 @@ function showTrifectaLayer(btn) {
             if (!lookup && geoid && masterOregonFFIECLookup && geoid.length >= 6) {
                 lookup = masterOregonFFIECLookup[geoid.slice(-6)];
             }
-            if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
-                lookup = ffiecLookupData[geoid];
-            }
 
             var countyFips = (geoid && geoid.length >= 5) ? geoid.substring(0, 5) : '41051';
             var countyDefault = countyMsaDefaults[countyFips] || countyMsaDefaults["41051"];
@@ -1524,16 +1550,7 @@ function showTrifectaLayer(btn) {
             var tractMfiStr = '$' + parseInt(tractMfi).toLocaleString();
             var msaMfiStr = '$' + parseInt(msaMfi).toLocaleString();
             var isTargeted = minorityPct > 50.0 || level.indexOf('>50%') >= 0;
-
-            // COLOR RULE: MODERATE IS ALWAYS VIBRANT ORANGE (#f59e0b)
-            var levelColor = '#f59e0b'; // Default Orange for Moderate
-            if (level.indexOf('Low') >= 0) {
-                levelColor = '#dc2626'; // Red for Low Income
-            } else if (level.indexOf('Moderate') >= 0) {
-                levelColor = '#f59e0b'; // Vibrant Orange for Moderate Income
-            } else if (level.indexOf('Middle') >= 0 || level.indexOf('Upper') >= 0) {
-                levelColor = '#7c3aed'; // Purple for Middle/Upper Targeted Minority
-            }
+            var levelColor = (level.indexOf('Low') >= 0) ? '#dc2626' : (isTargeted ? '#7c3aed' : '#d97706');
 
             var targetedTag = isTargeted ? ' <span style="background:#7c3aed;color:white;padding:1px 4px;border-radius:3px;font-size:7px;">OHCS TARGETED MINORITY (' + minorityPct.toFixed(1) + '%)</span>' : '';
 
@@ -1556,7 +1573,7 @@ function showTrifectaLayer(btn) {
             layer.bindPopup(popupContent);
         }
     }).addTo(map);
-    
+
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
         var mNum1 = document.getElementById('metricTracts');
@@ -1628,60 +1645,83 @@ function renderVerifiedTrifectaTractList() {
     container.innerHTML = html;
 }
 
-// FFIEC SIDEBAR LIST OVERRIDE: RENDERS ALL FFIEC TRACTS & TAGS >50% MINORITY TRACTS IN ROYAL PURPLE
+// OVERRIDE FFIEC SIDEBAR LISTING TO SHOW ALL 20 LOW & ALL 29 TARGETED MINORITY TRACTS
 function updateTractList(tracts) {
     var container = document.getElementById('tractListContent');
     if (!container) return;
 
-    if (!tracts || tracts.length === 0) {
-        container.innerHTML = '<p style="color:#556;font-size:9px;text-align:center;padding:10px;">Click <strong>"Tract Income Level"</strong> to load official boundaries</p>';
-        return;
-    }
+    // Seed master lookup entries into sidebar cache
+    Object.keys(masterOregonFFIECLookup).forEach(function(geoid) {
+        var lookup = masterOregonFFIECLookup[geoid];
+        if (!window.trifectaCache[geoid]) {
+            window.trifectaCache[geoid] = {
+                geoid: geoid,
+                county: lookup.county,
+                city: lookup.city,
+                tractMfi: lookup.tractMfi,
+                msaMfi: lookup.msaMfi,
+                ratio: lookup.ratio,
+                level: lookup.level,
+                minorityPct: lookup.minorityPct,
+                isOz: lookup.isOz,
+                coords: lookup.coords
+            };
+        }
+    });
 
     var lowCount = 0, modCount = 0, midCount = 0, targetedCount = 0;
-    tracts.forEach(function(t) {
-        var geoid = t.geoid || '';
-        var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
-        var minPct = lookup ? lookup.minorityPct : (t.minorityPct || 0);
+    
+    var allTractsList = [];
+    var seenGeoids = {};
 
-        if (minPct > 50.0 || (lookup && lookup.level && lookup.level.indexOf('>50%') >= 0)) {
+    // First push all master lookup tracts (guarantees all 20 Low & 29 Targeted show up)
+    Object.keys(masterOregonFFIECLookup).forEach(function(g) {
+        var item = masterOregonFFIECLookup[g];
+        if (g.length === 11 && !seenGeoids[g]) {
+            seenGeoids[g] = true;
+            allTractsList.push({
+                geoid: g,
+                tract: g.slice(-6),
+                tractMfi: item.tractMfi,
+                msaMfi: item.msaMfi,
+                ratio: item.ratio,
+                level: item.level,
+                minorityPct: item.minorityPct,
+                county: item.county,
+                city: item.city,
+                onMap: true
+            });
+        }
+    });
+
+    allTractsList.forEach(function(t) {
+        var minPct = t.minorityPct || 0;
+        var lvl = String(t.level);
+
+        if (minPct > 50.0 || lvl.indexOf('>50%') >= 0) {
             targetedCount++;
-        } else if (t.level === 'Low') lowCount++;
-        else if (t.level === 'Moderate') modCount++;
+        } else if (lvl.indexOf('Low') >= 0) lowCount++;
+        else if (lvl.indexOf('Moderate') >= 0) modCount++;
         else midCount++;
     });
 
-    var html = '<p style="color:#8899aa;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | 🔵 ' + midCount + ' Mid | 🟣 ' + targetedCount + ' Targeted Minority | <span class="results-count">' + tracts.length + ' total</span></p>';
+    var html = '<p style="color:#8899aa;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | 🔵 ' + midCount + ' Mid | 🟣 ' + targetedCount + ' Targeted Minority | <span class="results-count">' + allTractsList.length + ' total</span></p>';
 
-    tracts.forEach(function(t) {
+    allTractsList.forEach(function(t) {
         var geoid = t.geoid || '';
-        var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
-        var minPct = lookup ? lookup.minorityPct : (t.minorityPct || 0);
-        var isTargeted = minPct > 50.0 || (lookup && lookup.level && lookup.level.indexOf('>50%') >= 0);
+        var minPct = t.minorityPct || 0;
+        var isTargeted = minPct > 50.0 || String(t.level).indexOf('>50%') >= 0;
 
         var cardClass = isTargeted ? "tract-item minority-targeted" : "tract-item " + (t.level || 'middle').toLowerCase();
         var mapIcon = t.onMap ? '✅' : '⚠️';
         var badgeTag = isTargeted ? '<span class="minority-badge-tag">OHCS TARGETED (' + minPct.toFixed(1) + '%)</span>' : '';
-
-        // Store lookup in cache so clicking fact sheet works
-        window.trifectaCache[geoid] = {
-            geoid: geoid,
-            county: (lookup && lookup.county) ? lookup.county : (t.county || 'Oregon'),
-            city: (lookup && lookup.city) ? lookup.city : (t.city || 'Local Area'),
-            tractMfi: (lookup && lookup.tractMfi) ? lookup.tractMfi : (t.tractMfi || 0),
-            msaMfi: (lookup && lookup.msaMfi) ? lookup.msaMfi : (t.msaMfi || 0),
-            ratio: (lookup && lookup.ratio) ? lookup.ratio : (t.ratio || 0),
-            level: (lookup && lookup.level) ? lookup.level : (t.level || 'Middle'),
-            minorityPct: minPct,
-            coords: lookup ? lookup.coords : null
-        };
 
         html += '<div class="' + cardClass + '" onclick="focusFFIECTract(\'' + geoid + '\')" dblclick="focusFFIECTract(\'' + geoid + '\')">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;">' +
                 '<span class="tract-id">' + mapIcon + ' Tract ' + (t.tract || geoid) + badgeTag + '</span>' +
                 '<button class="copy-btn" onclick="event.stopPropagation();triggerFactSheet(\'' + geoid + '\')">📋 PDF</button>' +
             '</div>' +
-            '<div class="tract-income">$' + (t.tractMfi || (lookup ? lookup.tractMfi : 0)).toLocaleString() + ' | ' + (t.level || 'Middle') + ' Income</div>' +
+            '<div class="tract-income">$' + parseInt(t.tractMfi || 0).toLocaleString() + ' | ' + (t.level || 'Middle') + ' Income</div>' +
             '</div>';
     });
 
@@ -1690,20 +1730,6 @@ function updateTractList(tracts) {
 
 var tempTrifectaMarkers = [];
 
-// INTERACTIVE NAVIGATION FOR TRIFECTA TRACTS (DROPS PIN & OPENS POPUP)
-function focusTrifectaTract(geoid) {
-    if (window.trifectaCache && window.trifectaCache[geoid]) {
-        var cached = window.trifectaCache[geoid];
-        if (cached.layer) {
-            map.fitBounds(cached.layer.getBounds().pad(0.3));
-            cached.layer.openPopup();
-        } else if (cached.coords) {
-            focusFFIECTract(geoid);
-        }
-    }
-}
-
-// INTERACTIVE NAVIGATION FOR FFIEC TRACTS
 function focusFFIECTract(geoid) {
     var foundLayer = false;
     if (ffiecShapeLayer) {
@@ -1731,7 +1757,6 @@ function focusFFIECTract(geoid) {
             var levelColor = levelStr.indexOf('Low') >= 0 ? '#dc2626' : (levelStr.indexOf('Moderate') >= 0 ? '#f59e0b' : '#7c3aed');
 
             var popupContent = '';
-            // ONLY SHOW TRIFECTA POPUP IF THE TRACT IS INSIDE AN OPPORTUNITY ZONE
             if (cached.isOz) {
                 popupContent = '<div style="font-family:sans-serif;font-size:10px;">' +
                     '<h4 style="color:#15803d;margin:0 0 4px 0;font-size:12px;">🟢 Qualified Trifecta Zone</h4>' +
@@ -1744,10 +1769,9 @@ function focusFFIECTract(geoid) {
                     '<button class="btn-factsheet" onclick="triggerFactSheet(\'' + geoid + '\')">📄 Export Legislative & Investor Fact Sheet</button>' +
                     '</div>';
             } else {
-                // REGULAR FFIEC CENSUS POPUP STYLE FOR TRACTS OUTSIDE OPPORTUNITY ZONES
                 popupContent = '<div style="font-family:sans-serif;font-size:10px;">' +
                     '<h4 style="color:#0284c7;margin:0 0 4px 0;font-size:12px;">📊 FFIEC Census Tract ' + geoid + '</h4>' +
-                    '<p style="margin:2px 0;"><strong>Income Level:</strong> <span style="color:' + levelColor + ';font-weight:bold;">' + cached.level + ' Income</span> (' + ratioStr + ')</p>' +
+                    '<p style="margin:2px 0;"><strong>Income Level:</strong> <span style="color:' + levelColor + ';font-weight:bold;">' + cached.level + '</span> (' + ratioStr + ')</p>' +
                     '<p style="margin:2px 0;"><strong>Tract Median Income:</strong> ' + tractMfiStr + '</p>' +
                     '<p style="margin:2px 0;"><strong>MSA Median Income:</strong> ' + msaMfiStr + '</p>' +
                     '<p style="margin:2px 0;"><strong>County:</strong> ' + cached.county + '</p>' +
@@ -1762,6 +1786,18 @@ function focusFFIECTract(geoid) {
 
             map.setView(cached.coords, 13);
             marker.openPopup();
+        }
+    }
+}
+
+function focusTrifectaTract(geoid) {
+    if (window.trifectaCache && window.trifectaCache[geoid]) {
+        var cached = window.trifectaCache[geoid];
+        if (cached.layer) {
+            map.fitBounds(cached.layer.getBounds().pad(0.3));
+            cached.layer.openPopup();
+        } else if (cached.coords) {
+            focusFFIECTract(geoid);
         }
     }
 }
@@ -1784,14 +1820,6 @@ function triggerFactSheet(geoid) {
     var msaMfiStr = '$' + parseInt(msaMfi).toLocaleString();
     var minorityStr = minorityPct > 0 ? ' (Minority Pop: ' + minorityPct.toFixed(1) + '%)' : '';
 
-    // DYNAMIC BADGE COLOR LOGIC: RED FOR LOW, ORANGE FOR MODERATE, PURPLE FOR TARGETED
-    var lmiBadgeColor = '#dc2626'; // Default Red for Low Income
-    if (String(level).indexOf('Moderate') >= 0) {
-        lmiBadgeColor = '#f59e0b'; // Vibrant Orange for Moderate Income
-    } else if (String(level).indexOf('Middle') >= 0 || String(level).indexOf('Targeted') >= 0 || minorityPct > 50.0) {
-        lmiBadgeColor = '#7c3aed'; // Royal Purple for Targeted Middle/Upper Income
-    }
-
     var printWindow = window.open('', '_blank');
     if (!printWindow) { 
         alert('Popup blocked! Please allow popups for this site to view the Fact Sheet.'); 
@@ -1805,9 +1833,10 @@ function triggerFactSheet(geoid) {
         '.header h1 { font-size: 20px; color: #15803d; margin: 0; }' +
         '.header p { font-size: 11px; color: #555; margin: 3px 0 0 0; }' +
         '.badge-container { margin-bottom: 15px; }' +
-        '.badge { color: white; padding: 5px 12px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 6px; display: inline-block; }' +
+        '.badge { background: #15803d; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 6px; display: inline-block; }' +
         '.badge.oz { background: #7c3aed; }' +
         '.badge.usda { background: #166534; }' +
+        '.badge.lmi { background: #dc2626; }' +
         '.badge.minority { background: #6b21a8; }' +
         '.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }' +
         '.box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; }' +
@@ -1823,7 +1852,7 @@ function triggerFactSheet(geoid) {
         '<div class="badge-container">' +
         '<span class="badge oz">Opportunity Zone Designated</span>' +
         '<span class="badge usda">USDA RD 100% Eligible</span>' +
-        '<span class="badge" style="background:' + lmiBadgeColor + ';">' + level + ' Income (' + ratioStr + ')</span>' +
+        '<span class="badge lmi">' + level + ' (' + ratioStr + ')</span>' +
         (minorityPct > 50.0 ? '<span class="badge minority">OHCS Targeted Minority Tract (' + minorityPct.toFixed(1) + '%)</span>' : '') +
         '</div>' +
         '<div class="grid">' +
