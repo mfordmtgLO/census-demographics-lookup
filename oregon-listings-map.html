@@ -1725,6 +1725,14 @@ function triggerFactSheet(geoid) {
     var msaMfiStr = '$' + parseInt(msaMfi).toLocaleString();
     var minorityStr = minorityPct > 0 ? ' (Minority Pop: ' + minorityPct.toFixed(1) + '%)' : '';
 
+    // DYNAMIC BADGE COLOR LOGIC: RED FOR LOW, ORANGE FOR MODERATE, PURPLE FOR TARGETED
+    var lmiBadgeColor = '#dc2626'; // Default Red for Low Income
+    if (String(level).indexOf('Moderate') >= 0) {
+        lmiBadgeColor = '#f59e0b'; // Vibrant Orange for Moderate Income
+    } else if (String(level).indexOf('Middle') >= 0 || String(level).indexOf('Targeted') >= 0 || minorityPct > 50.0) {
+        lmiBadgeColor = '#7c3aed'; // Royal Purple for Targeted Middle/Upper Income
+    }
+
     var printWindow = window.open('', '_blank');
     if (!printWindow) { 
         alert('Popup blocked! Please allow popups for this site to view the Fact Sheet.'); 
@@ -1738,10 +1746,9 @@ function triggerFactSheet(geoid) {
         '.header h1 { font-size: 20px; color: #15803d; margin: 0; }' +
         '.header p { font-size: 11px; color: #555; margin: 3px 0 0 0; }' +
         '.badge-container { margin-bottom: 15px; }' +
-        '.badge { background: #15803d; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 6px; display: inline-block; }' +
+        '.badge { color: white; padding: 5px 12px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-right: 6px; display: inline-block; }' +
         '.badge.oz { background: #7c3aed; }' +
         '.badge.usda { background: #166534; }' +
-        '.badge.lmi { background: #dc2626; }' +
         '.badge.minority { background: #6b21a8; }' +
         '.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }' +
         '.box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; }' +
@@ -1757,7 +1764,7 @@ function triggerFactSheet(geoid) {
         '<div class="badge-container">' +
         '<span class="badge oz">Opportunity Zone Designated</span>' +
         '<span class="badge usda">USDA RD 100% Eligible</span>' +
-        '<span class="badge lmi">' + level + ' (' + ratioStr + ')</span>' +
+        '<span class="badge" style="background:' + lmiBadgeColor + ';">' + level + ' Income (' + ratioStr + ')</span>' +
         (minorityPct > 50.0 ? '<span class="badge minority">OHCS Targeted Minority Tract (' + minorityPct.toFixed(1) + '%)</span>' : '') +
         '</div>' +
         '<div class="grid">' +
