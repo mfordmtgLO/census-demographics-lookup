@@ -1238,10 +1238,6 @@ Object.values(ffiecLookupData).forEach(function(v) {
     var trifectaLayer = null;
 var trifectaVisible = false;
 var trifectaData = null;
-
-
-    window.trifectaCache = {};
-
 window.trifectaCache = {};
 window.verifiedTrifectaTracts = [];
 
@@ -1361,6 +1357,49 @@ function extractFipsFromFeature(feature) {
     }
 
     return '';
+}
+
+function toggleTrifecta() {
+    var btn = document.getElementById('btnTrifecta');
+    var banner = document.getElementById('trifectaBanner');
+    
+    if (trifectaVisible) {
+        if (trifectaLayer) { map.removeLayer(trifectaLayer); trifectaLayer = null; }
+        if (btn) {
+            btn.classList.remove('active');
+            btn.textContent = '🟢 Trifecta Investment';
+        }
+        if (banner) banner.classList.remove('show');
+        trifectaVisible = false;
+        return;
+    }
+    
+    var loadingBadge = document.getElementById('loadingBadge');
+    if (loadingBadge) {
+        loadingBadge.style.display = 'block';
+        loadingBadge.textContent = '⏳ Loading Trifecta zones & matching FFIEC data...';
+    }
+    if (btn) btn.disabled = true;
+
+    if (!trifectaData) {
+        fetch('oregon-oz-trifecta-only.json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                trifectaData = data;
+                if (loadingBadge) loadingBadge.style.display = 'none';
+                if (btn) btn.disabled = false;
+                showTrifectaLayer(btn);
+            })
+            .catch(function(err) {
+                if (loadingBadge) loadingBadge.style.display = 'none';
+                if (btn) btn.disabled = false;
+                alert('Could not load Trifecta layer: ' + err.message);
+            });
+    } else {
+        if (loadingBadge) loadingBadge.style.display = 'none';
+        if (btn) btn.disabled = false;
+        showTrifectaLayer(btn);
+    }
 }
 
 function showTrifectaLayer(btn) {
