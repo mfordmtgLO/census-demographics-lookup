@@ -1242,157 +1242,22 @@ var trifectaData = null;
 
     window.trifectaCache = {};
 
-function toggleTrifecta() {
-    var btn = document.getElementById('btnTrifecta');
-    var banner = document.getElementById('trifectaBanner');
-    
-    if (trifectaVisible) {
-        if (trifectaLayer) { map.removeLayer(trifectaLayer); trifectaLayer = null; }
-        if (btn) {
-            btn.classList.remove('active');
-            btn.textContent = '🟢 Trifecta Investment';
-        }
-        if (banner) banner.classList.remove('show');
-        trifectaVisible = false;
-        return;
-    }
-    
-    var loadingBadge = document.getElementById('loadingBadge');
-    if (loadingBadge) {
-        loadingBadge.style.display = 'block';
-        loadingBadge.textContent = '⏳ Loading Trifecta zones & matching FFIEC data...';
-    }
-    if (btn) btn.disabled = true;
-
-    // Load and index FFIEC lookup data under both 11-digit and 6-digit keys
-    var loadLookup = (!ffiecLookupData) 
-        ? fetch('ffiec-lookup.json')
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-                ffiecLookupData = {};
-                data.forEach(function(row) {
-                    var rawFips = row["FIPS code"] || row["FIPS Code"] || row["FIPS"] || row["fips"] || row["GEOID"] || row["geoid"] || '';
-                    var fips = String(rawFips).replace(/[^0-9]/g, '').trim();
-                    
-                    if (fips) {
-                        var msaMfi = parseInt(row["MSA/MD MFI"] || row["MSA_MFI"] || row["MSA MFI"] || row["msaMfi"] || (row.MSA && row.MSA["MD MFI"])) || 0;
-                        var tractMfi = parseInt(row["Tract MFI"] || row["TRACT_MFI"] || row["tractMfi"] || row["TractMfi"]) || 0;
-                        var ratioVal = parseFloat(row["Tract income percentage"] || row["TRACT_INCOME_PERCENTAGE"] || row["ratio"] || row["TractIncomePercentage"]) || 0;
-                        var level = row["Tract income level"] || row["TRACT_INCOME_LEVEL"] || row["incomeLevel"] || row["level"] || 'Low or Moderate';
-                        var county = row["County name"] || row["COUNTY_NAME"] || row["county"] || '';
-                        var city = row["MSA/MD name"] || row["MSA_NAME"] || row["city"] || '';
-
-                        if (ratioVal === 0 && msaMfi > 0 && tractMfi > 0) {
-                            ratioVal = (tractMfi / msaMfi) * 100;
-                        }
-
-                        var item = {
-                            fips: fips,
-                            msaMfi: msaMfi,
-                            tractMfi: tractMfi,
-                            ratio: ratioVal,
-                            level: level,
-                            city: city,
-                            county: county
-                        };
-
-                        // Store under full 11-digit FIPS
-                        ffiecLookupData[fips] = item;
-                        
-                        // Also index under 6-digit suffix (tract number)
-                        if (fips.length >= 6) {
-                            var suffix = fips.slice(-6);
-                            ffiecLookupData[suffix] = item;
-                        }
-                    }
-                });
-            })
-            .catch(function(){ console.log("Lookup JSON fetch skipped or offline."); })
-        : Promise.resolve();
-
-    var loadTrifecta = (!trifectaData)
-        ? fetch('oregon-oz-trifecta-only.json').then(function(r){ return r.json(); }).then(function(data){ trifectaData = data; })
-        : Promise.resolve();
-
-    Promise.all([loadLookup, loadTrifecta])
-        .then(function() {
-            if (loadingBadge) loadingBadge.style.display = 'none';
-            if (btn) btn.disabled = false;
-            showTrifectaLayer(btn);
-        })
-        .catch(function(err) {
-            if (loadingBadge) loadingBadge.style.display = 'none';
-            if (btn) btn.disabled = false;
-            alert('Could not load Trifecta layer: ' + err.message);
-        });
-}
-
-
-    window.trifectaCache = {};
-
-// UNIVERSAL GIS FIPS DETECTIVE
-function extractFipsFromFeature(feature) {
-    if (!feature) return '';
-    var props = feature.properties || {};
-    
-    // 1. Direct check for known full FIPS keys
-    var possibleKeys = ['GEOID', 'geoid', 'GEOID10', 'geoid10', 'GEOID20', 'geoid20', 'AFFGEOID', 'affgeoid', 'FIPS', 'fips', 'GEOID_1', 'FIPS_CODE'];
-    for (var i = 0; i < possibleKeys.length; i++) {
-        var k = possibleKeys[i];
-        if (props[k]) {
-            var val = String(props[k]).replace(/[^0-9]/g, '').trim();
-            if (val.length >= 6) return val;
-        }
-    }
-    
-    // 2. Check Census TIGER fields: STATEFP + COUNTYFP + TRACTCE (e.g. 41 + 035 + 970201 = 41035970201)
-    var state = props.STATEFP || props.statefp || props.STATE || '41';
-    var county = props.COUNTYFP || props.countyfp || props.COUNTY || '';
-    var tract = props.TRACTCE || props.tractce || props.TRACT || props.tract || props.NAME || props.name || '';
-    
-    if (state && county && tract) {
-        var cleanState = String(state).replace(/[^0-9]/g, '').padStart(2, '0');
-        var cleanCounty = String(county).replace(/[^0-9]/g, '').padStart(3, '0');
-        var cleanTract = String(tract).replace(/[^0-9]/g, '').padStart(6, '0');
-        return cleanState + cleanCounty + cleanTract;
-    }
-
-    // 3. Scan all property values for any 11-digit number starting with 41
-    var allKeys = Object.keys(props);
-    for (var j = 0; j < allKeys.length; j++) {
-        var v = String(props[allKeys[j]]).replace(/[^0-9]/g, '').trim();
-        if (v.length === 11 && v.startsWith('41')) return v;
-        if (v.length === 6) return '41' + v;
-    }
-
-    // 4. Check feature.id
-    if (feature.id) {
-        var fid = String(feature.id).replace(/[^0-9]/g, '').trim();
-        if (fid.length >= 6) return fid.startsWith('41') ? fid : '41' + fid;
-    }
-
-    return '';
-}
-
-
-    window.trifectaCache = {};
+window.trifectaCache = {};
 window.verifiedTrifectaTracts = [];
+
 // MASTER EMBEDDED DATASET FROM OFFICIAL PDF DATA SHEET
 var masterOregonFFIECLookup = {
-    // 4 SPECIFIC TRACTS FROM SCREENSHOTS (2020 FIPS KEYS)
     "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", county: "KLAMATH COUNTY", city: "KLAMATH FALLS" },
     "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", county: "WASHINGTON COUNTY", city: "PORTLAND-VANCOUVER-HILLSBORO" },
     "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", county: "COOS COUNTY", city: "COOS BAY" },
     "41025960100": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", county: "HARNEY COUNTY", city: "BURNS" },
 
-    // 2024 FIPS KEYS & ALTERNATIVES
     "41035970201": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", county: "KLAMATH COUNTY", city: "KLAMATH FALLS" },
     "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", county: "WASHINGTON COUNTY", city: "PORTLAND-VANCOUVER-HILLSBORO" },
     "41067033202": { tractMfi: 69658, msaMfi: 94727, ratio: 73.53, level: "Moderate", county: "WASHINGTON COUNTY", city: "PORTLAND-VANCOUVER-HILLSBORO" },
     "41011000506": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", county: "COOS COUNTY", city: "COOS BAY" },
     "41025960102": { tractMfi: 49375, msaMfi: 62963, ratio: 78.41, level: "Moderate", county: "HARNEY COUNTY", city: "BURNS" },
 
-    // ALL OTHER OREGON TRIFECTA & LMI TRACTS
     "41013950302": { tractMfi: 29297, msaMfi: 78059, ratio: 37.53, level: "Low", county: "CROOK COUNTY", city: "PRINEVILLE" },
     "41013950402": { tractMfi: 57750, msaMfi: 78059, ratio: 73.98, level: "Moderate", county: "CROOK COUNTY", city: "PRINEVILLE" },
     "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low", county: "JEFFERSON COUNTY", city: "MADRAS" },
@@ -1426,7 +1291,6 @@ var masterOregonFFIECLookup = {
     "41065970200": { tractMfi: 49865, msaMfi: 62963, ratio: 79.19, level: "Moderate", county: "WASCO COUNTY", city: "THE DALLES" }
 };
 
-// COUNTY MSA DEFAULT FALLBACKS
 var countyMsaDefaults = {
     "41001": { county: "BAKER COUNTY", msaMfi: 62963, avgLmi: 46875 },
     "41003": { county: "BENTON COUNTY", msaMfi: 89816, avgLmi: 50513 },
@@ -1459,8 +1323,45 @@ var countyMsaDefaults = {
     "41067": { county: "WASHINGTON COUNTY", msaMfi: 94727, avgLmi: 51909 },
     "41071": { county: "YAMHILL COUNTY", msaMfi: 94727, avgLmi: 59304 }
 };
-window.trifectaCache = {};
-window.verifiedTrifectaTracts = [];
+
+function extractFipsFromFeature(feature) {
+    if (!feature) return '';
+    var props = feature.properties || {};
+    
+    var possibleKeys = ['GEOID', 'geoid', 'GEOID10', 'geoid10', 'GEOID20', 'geoid20', 'AFFGEOID', 'affgeoid', 'FIPS', 'fips', 'GEOID_1', 'FIPS_CODE'];
+    for (var i = 0; i < possibleKeys.length; i++) {
+        var k = possibleKeys[i];
+        if (props[k]) {
+            var val = String(props[k]).replace(/[^0-9]/g, '').trim();
+            if (val.length >= 6) return val;
+        }
+    }
+    
+    var state = props.STATEFP || props.statefp || props.STATE || '41';
+    var county = props.COUNTYFP || props.countyfp || props.COUNTY || '';
+    var tract = props.TRACTCE || props.tractce || props.TRACT || props.tract || props.NAME || props.name || '';
+    
+    if (state && county && tract) {
+        var cleanState = String(state).replace(/[^0-9]/g, '').padStart(2, '0');
+        var cleanCounty = String(county).replace(/[^0-9]/g, '').padStart(3, '0');
+        var cleanTract = String(tract).replace(/[^0-9]/g, '').padStart(6, '0');
+        return cleanState + cleanCounty + cleanTract;
+    }
+
+    var allKeys = Object.keys(props);
+    for (var j = 0; j < allKeys.length; j++) {
+        var v = String(props[allKeys[j]]).replace(/[^0-9]/g, '').trim();
+        if (v.length === 11 && v.startsWith('41')) return v;
+        if (v.length === 6) return '41' + v;
+    }
+
+    if (feature.id) {
+        var fid = String(feature.id).replace(/[^0-9]/g, '').trim();
+        if (fid.length >= 6) return fid.startsWith('41') ? fid : '41' + fid;
+    }
+
+    return '';
+}
 
 function showTrifectaLayer(btn) {
     if (!trifectaData || !trifectaData.features) { alert('No Trifecta data loaded.'); return; }
@@ -1485,7 +1386,6 @@ function showTrifectaLayer(btn) {
             var level = (lookup && lookup.level) ? lookup.level.trim() : '';
             var ratio = (lookup && lookup.ratio) ? lookup.ratio : 0;
             
-            // Strictly exclude Middle or Upper Income tracts
             if (level === 'Middle' || level === 'Upper' || ratio >= 80.0) {
                 return false;
             }
@@ -1498,20 +1398,32 @@ function showTrifectaLayer(btn) {
             var props = feature.properties || {};
             var geoid = extractFipsFromFeature(feature);
 
-            // TIER 1: EMBEDDED MASTER PDF LOOKUP
             var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
             
-            // TIER 2: 6-DIGIT SUFFIX MATCH
             if (!lookup && geoid && masterOregonFFIECLookup && geoid.length >= 6) {
                 lookup = masterOregonFFIECLookup[geoid.slice(-6)];
             }
             
-            // TIER 3: FFIEC LOOKUP JSON MATCH
             if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
                 lookup = ffiecLookupData[geoid];
             }
 
-            // TIER 4: COUNTY-LEVEL MSA ESTIMATOR FALLBACK
+            if (!lookup && typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
+                var found = ffiecTracts.find(function(t) {
+                    return (t.geoid && t.geoid === geoid) || (t.tract && geoid.endsWith(t.tract));
+                });
+                if (found) {
+                    lookup = {
+                        msaMfi: found.msaIncome || 0,
+                        tractMfi: found.income || 0,
+                        ratio: found.ratio ? (found.ratio * 100) : 0,
+                        level: found.level || 'Low',
+                        county: found.county || '',
+                        city: found.city || ''
+                    };
+                }
+            }
+
             var countyFips = (geoid && geoid.length >= 5) ? geoid.substring(0, 5) : '41051';
             var countyDefault = countyMsaDefaults[countyFips] || countyMsaDefaults["41051"];
 
@@ -1563,7 +1475,6 @@ function showTrifectaLayer(btn) {
         }
     }).addTo(map);
     
-    // UPDATE BANNER METRICS
     var banner = document.getElementById('trifectaBanner');
     if (banner) {
         var mNum1 = document.getElementById('metricTracts');
@@ -1584,6 +1495,46 @@ function showTrifectaLayer(btn) {
     trifectaVisible = true;
     
     try { map.fitBounds(trifectaLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+}
+
+function renderVerifiedTrifectaTractList() {
+    var container = document.getElementById('tractListContent');
+    if (!container || !window.verifiedTrifectaTracts || window.verifiedTrifectaTracts.length === 0) return;
+    
+    var lowCount = 0, modCount = 0;
+    window.verifiedTrifectaTracts.forEach(function(t) {
+        if (t.level === 'Low') lowCount++;
+        else modCount++;
+    });
+
+    var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #22c55e;margin-bottom:6px;">' +
+        '<p style="color:#4ade80;font-size:10px;font-weight:bold;margin:0;">🟢 Qualified Trifecta Zones (' + window.verifiedTrifectaTracts.length + ' Total)</p>' +
+        '<p style="color:#a7f3d0;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low Income | 🟠 ' + modCount + ' Moderate Income</p>' +
+        '</div>';
+
+    window.verifiedTrifectaTracts.forEach(function(t) {
+        var levelBadgeColor = (t.level === 'Low') ? '#ef4444' : '#f59e0b';
+        html += '<div class="tract-item trifecta-qualified" onclick="focusTrifectaTract(\'' + t.geoid + '\')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span class="tract-id">🟢 Tract ' + t.geoid + '<span class="trifecta-badge-tag">QUALIFIED</span></span>' +
+                '<button class="copy-btn" style="background:#22c55e;color:#022c22;font-weight:bold;" onclick="event.stopPropagation();triggerFactSheet(\'' + t.geoid + '\')">📄 PDF</button>' +
+            '</div>' +
+            '<div style="color:#e2e8f0;font-size:8px;margin-top:4px;">' +
+                'Status: <span style="color:' + levelBadgeColor + ';font-weight:bold;">' + t.level + ' Income</span> | MFI: $' + parseInt(t.tractMfi).toLocaleString() + ' (' + t.ratio.toFixed(1) + '% of MSA)' +
+            '</div>' +
+            '<div style="color:#86efac;font-size:7px;margin-top:2px;">📍 ' + t.county + ' • Overlays: OZ + USDA RD + ' + t.level + ' Income</div>' +
+            '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function focusTrifectaTract(geoid) {
+    if (window.trifectaCache && window.trifectaCache[geoid] && window.trifectaCache[geoid].layer) {
+        var l = window.trifectaCache[geoid].layer;
+        map.fitBounds(l.getBounds().pad(0.3));
+        l.openPopup();
+    }
 }
 
 function triggerFactSheet(geoid) {
