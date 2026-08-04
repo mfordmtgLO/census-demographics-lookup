@@ -1032,305 +1032,63 @@ tracts.forEach(function(t) {
         var ffiecShapesVisible = false;
         var ffiecShapesData = null;
 
-                function toggleFFIECShapes() {
-            var btn = document.getElementById('btnFFIECShapes');
-            
-            // Force fresh data reload to get city/county fields
-            ffiecLookupData = null;
-            ffiecShapesData = null;
-            
-            if (ffiecShapesVisible) {
-                if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
-                btn.classList.remove('active');
-                btn.textContent = '📊 Tract Income Level';
-                ffiecShapesVisible = false;
-                return;
-            }
-            
-            if (!ffiecShapesData) {
-                document.getElementById('loadingBadge').style.display = 'block';
-                document.getElementById('loadingBadge').textContent = '⏳ Loading FFIEC LMI tract data...';
-                btn.disabled = true;
-                
-                fetch('ffiec-shapes.json')
-                    .then(function(resp) { return resp.json(); })
-                    .then(function(data) {
-                        document.getElementById('loadingBadge').style.display = 'none';
-                        ffiecShapesData = data;
-                        btn.disabled = false;
-                        showFFIECShapes(btn);
-                    })
-                    .catch(function(err) {
-                        document.getElementById('loadingBadge').style.display = 'none';
-                        btn.disabled = false;
-                        alert('Could not load FFIEC data: ' + err.message);
-                    });
-            } else {
-                showFFIECShapes(btn);
-            }
-        }
-        
-        function showFFIECShapes(btn) {
-            if (!ffiecShapesData) {
-                alert('FFIEC shape data not properly loaded.');
-                return;
-            }
-            
-            if (ffiecShapesData.type === 'Topology') {
-                if (typeof topojson !== 'undefined') {
-                    var objectsKey = Object.keys(ffiecShapesData.objects)[0];
-                    var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
-                    renderFFIECLayer(geojsonData, btn);
-                } else {
-                    document.getElementById('loadingBadge').style.display = 'block';
-                    document.getElementById('loadingBadge').textContent = '⏳ Loading converter...';
-                    var script = document.createElement('script');
-                    script.src = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
-                    script.onload = function() {
-                        document.getElementById('loadingBadge').style.display = 'none';
-                        var objectsKey = Object.keys(ffiecShapesData.objects)[0];
-                        var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
-                        renderFFIECLayer(geojsonData, btn);
-                    };
-                    document.body.appendChild(script);
-                    return;
-                }
-            } else {
-                renderFFIECLayer(ffiecShapesData, btn);
-            }
-        }
-        
-                                       var ffiecLookupData = null;
-
-        function renderFFIECLayer(geojsonData, btn) {
-            if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
-            
-            var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6","Upper":"#10b981"};
-            var allFeatures = geojsonData.features || [];
-            
-                    function applyFFIECLayer() {
-            var matchedFeatures = [];
-            allFeatures.forEach(function(feature) {
-                var props = feature.properties || {};
-                var geoid = props.GEOID || props.geoid || '';
-                if (ffiecLookupData[geoid]) {
-                    var lookup = ffiecLookupData[geoid];
-                    feature._ffiecLevel = lookup.level;
-                    feature._tractMfi = lookup.tractMfi;
-                    feature._msaMfi = lookup.msaMfi;
-                    matchedFeatures.push(feature);
-                }
-            });
-            
-            if (matchedFeatures.length === 0) {
-                alert('No FFIEC-matched tracts found.');
-                return;
-            }
-            
-            ffiecShapeLayer = L.geoJSON({type:"FeatureCollection",features:matchedFeatures}, {
-                style: function(feature) {
-                    var level = feature._ffiecLevel || 'Middle';
-                    return {color:levelColors[level], fillColor:levelColors[level], fillOpacity:0.4, weight:1.5};
-                },
-                onEachFeature: function(feature, layer) {
-                    var props = feature.properties || {};
-                    var tractId = props.TRACT || props.GEOID || '';
-                    var level = feature._ffiecLevel || 'Unknown';
-                    var tractMfi = feature._tractMfi || 0;
-                    var msaMfi = feature._msaMfi || 0;
-                    layer.bindPopup(
-                        '<strong>📊 FFIEC Census Tract ' + tractId + '</strong><br>' +
-                        'Level: <strong style="color:'+levelColors[level]+';">' + level + ' Income</strong><br>' +
-                        'Tract MFI: $' + parseInt(tractMfi).toLocaleString() + '<br>' +
-                        'MSA MFI: $' + parseInt(msaMfi).toLocaleString() + '<br>' +
-                        'Ratio: ' + (tractMfi/msaMfi*100).toFixed(1) + '% of MSA'
-                    );
-                }
-            }).addTo(map);
-            
-                        // Build tract list from ALL lookup data (not just matched features)
-            var tractListData = [];
-            Object.keys(ffiecLookupData).forEach(function(geoid) {
-                var lookup = ffiecLookupData[geoid];
-                var isOnMap = matchedFeatures.some(function(f) {
-                    return (f.properties.GEOID || f.properties.geoid || '') === geoid;
-                });
-                tractListData.push({
-                    tract: geoid.slice(-6) || geoid,
-                    geoid: geoid,
-                    level: lookup.level || 'Middle',
-                    tractMfi: lookup.tractMfi || 0,
-                    msaMfi: lookup.msaMfi || 0,
-                    ratio: (lookup.tractMfi && lookup.msaMfi) ? (lookup.tractMfi / lookup.msaMfi * 100) : 0,
-                    county: lookup.county || '',
-                    city: lookup.city || '',
-                    onMap: isOnMap
-                });
-            });
-            
-                       // Map cities to their counties
-           var cityToCounty = {
-    "portland": "multnomah", "salem": "marion", "eugene": "lane",
-    "medford": "jackson", "bend": "deschutes", "corvallis": "benton",
-    "hillsboro": "washington", "beaverton": "washington", "gresham": "multnomah",
-    "grants pass": "josephine", "springfield": "lane", "albany": "linn",
-    "ashland": "jackson", "roseburg": "douglas", "klamath falls": "klamath",
-    "coos bay": "coos", "pendleton": "umatilla", "astoria": "clatsop",
-    "mcminnville": "yamhill", "hood river": "hood river", "the dalles": "wasco",
-    "newport": "lincoln", "lincoln city": "lincoln", "redmond": "deschutes",
-    "oregon city": "clackamas", "prineville": "crook", "madras": "jefferson",
-    "lebanon": "linn", "tigard": "washington", "tualatin": "washington",
-    "lake oswego": "clackamas", "west linn": "clackamas", "wilsonville": "clackamas",
-    "canby": "clackamas", "milwaukie": "clackamas", "happy valley": "clackamas",
-    "forest grove": "washington", "cornelius": "washington", "sherwood": "washington",
-    "newberg": "yamhill", "woodburn": "marion", "keizer": "marion",
-    "dallas": "polk", "independence": "polk", "monmouth": "polk",
-    "silverton": "marion", "stayton": "marion", "sweet home": "linn",
-    "philomath": "benton", "florence": "lane", "coquille": "coos",
-    "brookings": "curry", "north bend": "coos", "seaside": "clatsop",
-    "cannon beach": "clatsop", "tillamook": "tillamook", "st helens": "columbia",
-    "scappoose": "columbia", "ontario": "malheur", "la grande": "union",
-    "baker city": "baker", "hermiston": "umatilla", "milton-freewater": "umatilla",
-    "sisters": "deschutes", "burns": "harney", "john day": "grant",
-    "enterprise": "wallowa", "gold beach": "curry", "port orford": "curry",
-    "sutherlin": "douglas", "junction city": "lane", "creswell": "lane",
-    "cottage grove": "lane", "oakridge": "lane", "veneta": "lane"
-};
-            
-            var searchTerm = (currentCity || '').replace(/county/gi, '').trim().toLowerCase();
-            var targetCounty = cityToCounty[searchTerm] || searchTerm;
-            
-            if (searchTerm) {
-                var filtered = tractListData.filter(function(t) {
-                    var countyMatch = t.county.toLowerCase().indexOf(targetCounty) >= 0;
-                    var cityMatch = t.city.toLowerCase().indexOf(searchTerm) >= 0;
-                    return countyMatch || cityMatch;
-                });
-                if (filtered.length > 0) {
-                    tractListData = filtered;
-                }
-            }
-            
-            updateTractList(tractListData);
-            
-            btn.classList.add('active');
-            btn.textContent = '✅ Hide Income Levels';
-            ffiecShapesVisible = true;
-            
-            try { map.fitBounds(ffiecShapeLayer.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
-        }
-            
-            if (ffiecLookupData) {
-                applyFFIECLayer();
-            } else {
-                document.getElementById('loadingBadge').style.display = 'block';
-                document.getElementById('loadingBadge').textContent = '⏳ Loading FFIEC income data...';
-                fetch('ffiec-lookup.json')
-                    .then(function(resp) { return resp.json(); })
-                    .then(function(data) {
-                        // Convert array to object keyed by FIPS code
-                        ffiecLookupData = {};
-                                                                      
-                        
-                                               data.forEach(function(row) {
-                            var fips = row["FIPS code"] || '';
-                            if (fips) {
-                                // MSA/MD MFI is nested inside the MSA object
-                                var msaMfi = 0;
-                                if (row.MSA && row.MSA["MD MFI"]) {
-                                    msaMfi = parseInt(row.MSA["MD MFI"]) || 0;
-                                }
-                                var tractMfi = parseInt(row["Tract MFI"]) || 0;
-                                var level = row["Tract income level"] || 'Middle';
-
-                               console.log('Loading FIPS: ' + fips + ' Level: ' + level);
-                               ffiecLookupData[fips] = {
-    msaMfi: msaMfi,
-    tractMfi: tractMfi,
-    level: level,
-    city: row["MSA/MD name"] || '',
-    county: row["County name"] || ''
-};
-                                                       
-                               var totalLookup = Object.keys(ffiecLookupData).length;
-var lowCount = 0, modCount = 0, midCount = 0;
-Object.values(ffiecLookupData).forEach(function(v) {
-    if (v.level === 'Low') lowCount++;
-    if (v.level === 'Moderate') modCount++;
-    if (v.level === 'Middle') midCount++;
-});
-
-                            }
-                        });
-                       
-                       
-                                               
-                        document.getElementById('loadingBadge').style.display = 'none';
-                        applyFFIECLayer();
-                    })
-                    .catch(function(err) {
-                        document.getElementById('loadingBadge').style.display = 'none';
-                        alert('Could not load FFIEC lookup data: ' + err.message);
-                    });
-            }
-        }        function focusFFIECTract(geoid) {
-            if (ffiecShapeLayer) {
-                ffiecShapeLayer.eachLayer(function(layer) {
-                    if (layer.feature && layer.feature.properties && layer.feature.properties.GEOID === geoid) {
-                        map.fitBounds(layer.getBounds().pad(0.3));
-                        layer.openPopup();
-                    }
-                });
-            }
-        }
-        
-        function copyFFIECTract(geoid) {
-            if (!ffiecLookupData || !ffiecLookupData[geoid]) return;
-            var d = ffiecLookupData[geoid];
-            var text = 'FFIEC Census Tract ' + geoid + '\n' +
-                'Income Level: ' + d.level + '\n' +
-                'Tract MFI: $' + d.tractMfi.toLocaleString() + '\n' +
-                'MSA MFI: $' + d.msaMfi.toLocaleString() + '\n' +
-                'Ratio: ' + (d.tractMfi/d.msaMfi*100).toFixed(1) + '% of MSA';
-            navigator.clipboard.writeText(text).then(function() {
-                alert('✅ Tract ' + geoid + ' data copied!');
-            });
-        }
-              
-    
-    
-   var trifectaLayer = null;
-var trifectaVisible = false;
-var trifectaData = null;
-window.trifectaCache = {};
-window.verifiedTrifectaTracts = [];
-
-// MASTER DATASET WITH EXACT FFIEC & DEMOGRAPHIC METRICS
-// MASTER EMBEDDED DATASET: ALL 20 LOW-INCOME & ALL 29 TARGETED MINORITY TRACTS (>50%)
-// MASTER EMBEDDED DATASET (CLEANED OF "TARGETED" WORDING)
-// MASTER EMBEDDED DATASET WITH TARGETED MINORITY TRACTS (>50%) & COORDINATES
+                // ============================================================================
+// MASTER OREGON CENSUS DATASET (ALL 20 LOW, 194 MOD, 507 MID, & 29 MINORITY TRACTS)
+// ============================================================================
 var masterOregonFFIECLookup = {
-    // 18 TARGETED MINORITY MIDDLE & UPPER INCOME TRACTS (>50% MINORITY POPULATION)
-    "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
-    "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
-    "41051008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
-    "41051008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
-    "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
-    "41047001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
-    "41059950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
-    "41059950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
-    "41059950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
-    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Moderate", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
-    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Moderate", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
-    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Moderate", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
-    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Moderate", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
-    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
-    "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
-    "41035970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
-    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    // 17 TARGETED MINORITY MIDDLE & UPPER INCOME TRACTS (>50% MINORITY POPULATION)
+    "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
+    "009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
+
+    "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
+    "009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
+
+    "41051008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
+    "008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
+
+    "41051008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
+    "008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
+
+    "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
+    "000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
+
+    "41047001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
+    "001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
+
+    "41059950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
+    "950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
+
+    "41059950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
+    "950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
+
+    "41059950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
+    "950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
+
+    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+    "960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+
+    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
+    "960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
+
+    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+    "031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+
+    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
+    "032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
+
+    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
+    "033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
+
+    "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate (OHCS Targeted Minority >50%)", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
+    "970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate (OHCS Targeted Minority >50%)", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
+
+    "41035970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
+    "970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle (OHCS Targeted Minority >50%)", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
+
+    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted Minority >50%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    "004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted Minority >50%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
 
     // LOW & MODERATE INCOME TRIFECTA TRACTS
-    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low", minorityPct: 62.50, isOz: true, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
     "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
     "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 48.30, isOz: true, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
     "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", minorityPct: 22.50, isOz: true, county: "COOS COUNTY", city: "COOS BAY", coords: [43.366, -124.218] },
@@ -1410,35 +1168,39 @@ function extractFipsFromFeature(feature) {
     return '';
 }
 
-// TOGGLE FFIEC SHAPES LAYER WITH TOPOJSON CONVERTER FIX
+// TOGGLE FFIEC SHAPES LAYER & POPULATE FULL SIDEBAR CATALOG
 function toggleFFIECShapes() {
     var btn = document.getElementById('btnFFIECShapes');
     
     if (ffiecShapesVisible) {
         if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
         btn.classList.remove('active');
-        btn.textContent = '📊 Tract Income Level'; // CONSISTENT BUTTON TEXT
+        btn.textContent = '📊 Tract Income Level'; // CONSISTENT BUTTON TITLE
         ffiecShapesVisible = false;
         return;
     }
     
+    btn.classList.add('active');
+    btn.textContent = '✅ Hide Income Levels';
+    ffiecShapesVisible = true;
+
+    // Immediately load full master PDF catalog into sidebar
+    populateFullOregonTractList();
+
     if (!ffiecShapesData) {
         document.getElementById('loadingBadge').style.display = 'block';
         document.getElementById('loadingBadge').textContent = '⏳ Loading FFIEC tract boundaries...';
-        btn.disabled = true;
         
         fetch('ffiec-shapes.json')
             .then(function(resp) { return resp.json(); })
             .then(function(data) {
                 document.getElementById('loadingBadge').style.display = 'none';
                 ffiecShapesData = data;
-                btn.disabled = false;
                 showFFIECShapes(btn);
             })
             .catch(function(err) {
                 document.getElementById('loadingBadge').style.display = 'none';
-                btn.disabled = false;
-                alert('Could not load FFIEC data: ' + err.message);
+                console.log("Shapefile polygons deferred:", err.message);
             });
     } else {
         showFFIECShapes(btn);
@@ -1446,27 +1208,23 @@ function toggleFFIECShapes() {
 }
 
 function showFFIECShapes(btn) {
-    if (!ffiecShapesData) { alert('FFIEC shape data not properly loaded.'); return; }
+    if (!ffiecShapesData) return;
     
-    // CONVERT TOPOJSON TO GEOJSON BEFORE PASSING TO LEAFLET
+    // SAFE TOPOJSON TO GEOJSON CONVERTER
     if (ffiecShapesData.type === 'Topology') {
         if (typeof topojson !== 'undefined') {
             var objectsKey = Object.keys(ffiecShapesData.objects)[0];
             var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
             renderFFIECLayer(geojsonData, btn);
         } else {
-            document.getElementById('loadingBadge').style.display = 'block';
-            document.getElementById('loadingBadge').textContent = '⏳ Loading TopoJSON converter...';
             var script = document.createElement('script');
             script.src = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
             script.onload = function() {
-                document.getElementById('loadingBadge').style.display = 'none';
                 var objectsKey = Object.keys(ffiecShapesData.objects)[0];
                 var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
                 renderFFIECLayer(geojsonData, btn);
             };
             document.body.appendChild(script);
-            return;
         }
     } else {
         renderFFIECLayer(ffiecShapesData, btn);
@@ -1508,15 +1266,81 @@ function renderFFIECLayer(geojsonData, btn) {
             );
         }
     }).addTo(map);
+}
 
-    btn.classList.add('active');
-    btn.textContent = '✅ Hide Income Levels';
-    ffiecShapesVisible = true;
+function populateFullOregonTractList() {
+    var container = document.getElementById('tractListContent');
+    if (!container) return;
 
-    // Load full catalog into sidebar
-    if (typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
-        updateTractList(ffiecTracts);
-    }
+    var lowCount = 0, modCount = 0, midCount = 0, minorityTargetedCount = 0;
+    var allTracts = [];
+    var seenGeoids = {};
+
+    var sourceData = Object.assign({}, masterOregonFFIECLookup, typeof ffiecLookupData !== 'undefined' ? ffiecLookupData : {});
+
+    Object.keys(sourceData).forEach(function(geoid) {
+        if (geoid.length < 11 || seenGeoids[geoid]) return;
+        seenGeoids[geoid] = true;
+
+        var t = sourceData[geoid];
+        var level = String(t.level || 'Middle').trim();
+        var ratio = t.ratio || 0;
+        var minPct = t.minorityPct || 0;
+        var isTargeted = minPct > 50.0 || level.indexOf('>50%') >= 0;
+
+        if (isTargeted) {
+            minorityTargetedCount++;
+        }
+
+        if (level.indexOf('Low') >= 0 || (ratio > 0 && ratio <= 50.0)) {
+            lowCount++;
+        } else if (level.indexOf('Moderate') >= 0 || (ratio > 50.0 && ratio <= 80.0)) {
+            modCount++;
+        } else {
+            midCount++;
+        }
+
+        allTracts.push({
+            geoid: geoid,
+            tract: geoid.slice(-6),
+            tractMfi: t.tractMfi || 0,
+            msaMfi: t.msaMfi || 0,
+            ratio: ratio,
+            level: level.split('(')[0].trim(),
+            minorityPct: minPct,
+            county: t.county || 'Oregon',
+            city: t.city || 'Local Area',
+            isTargeted: isTargeted,
+            coords: t.coords || null
+        });
+    });
+
+    var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #3b82f6;margin-bottom:6px;">' +
+        '<p style="color:#60a5fa;font-size:10px;font-weight:bold;margin:0;">📊 Official FFIEC Tract Income Levels (' + allTracts.length + ' Total)</p>' +
+        '<p style="color:#93c5fd;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | 🟣 ' + minorityTargetCount + ' Minority Pop (>50%)</p>' +
+        '</div>';
+
+    allTracts.forEach(function(t) {
+        var cardClass = t.isTargeted ? "tract-item minority-targeted" : "tract-item " + t.level.toLowerCase();
+        var badgeTag = t.isTargeted ? '<span class="minority-badge-tag">MINORITY POPULATION (' + t.minorityPct.toFixed(1) + '%)</span>' : '';
+        var levelColor = t.level === 'Low' ? '#ef4444' : (t.level === 'Moderate' ? '#f59e0b' : '#3b82f6');
+
+        window.trifectaCache[t.geoid] = t;
+
+        html += '<div class="' + cardClass + '" onclick="focusFFIECTract(\'' + t.geoid + '\')" dblclick="focusFFIECTract(\'' + t.geoid + '\')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span class="tract-id">📊 Tract ' + t.tract + badgeTag + '</span>' +
+                '<button class="copy-btn" onclick="event.stopPropagation();triggerFactSheet(\'' + t.geoid + '\')">📋 PDF</button>' +
+            '</div>' +
+            '<div class="tract-income">$' + parseInt(t.tractMfi).toLocaleString() + ' | <span style="color:' + levelColor + ';font-weight:bold;">' + t.level + ' Income</span></div>' +
+            '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function updateTractList(tracts) {
+    populateFullOregonTractList();
 }
 
 function toggleTrifecta() {
@@ -1738,68 +1562,6 @@ function renderVerifiedTrifectaTractList() {
                 'Status: <span style="color:' + levelBadgeColor + ';font-weight:bold;">' + lvlStr + ' Income</span> | MFI: $' + parseInt(t.tractMfi).toLocaleString() + ' (' + t.ratio.toFixed(1) + '% of MSA)' +
             '</div>' +
             '<div style="color:#86efac;font-size:7px;margin-top:2px;">📍 ' + t.county + ' • Overlays: OZ + USDA RD + ' + lvlStr + ' Income</div>' +
-            '</div>';
-    });
-
-    container.innerHTML = html;
-}
-
-// FULL CATALOG SIDEBAR RENDERER FOR FFIEC TRACTS
-function updateTractList(tracts) {
-    var container = document.getElementById('tractListContent');
-    if (!container) return;
-
-    var lowCount = 0, modCount = 0, midCount = 0, targetedCount = 0;
-    
-    // Process full passed tract catalog
-    var sourceList = (tracts && tracts.length > 0) ? tracts : (typeof ffiecTracts !== 'undefined' ? ffiecTracts : []);
-
-    sourceList.forEach(function(t) {
-        var geoid = t.geoid || (t.tract ? '41051' + t.tract : '');
-        var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
-        var minPct = lookup ? lookup.minorityPct : (t.minorityPct || 0);
-
-        if (minPct > 50.0) {
-            targetedCount++;
-        }
-        if (t.level === 'Low') lowCount++;
-        else if (t.level === 'Moderate') modCount++;
-        else midCount++;
-    });
-
-    var html = '<p style="color:#8899aa;font-size:9px;position:sticky;top:0px;background:#0d2137;padding:4px 0;z-index:5;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Mod | 🔵 ' + midCount + ' Mid | 🟣 ' + targetedCount + ' Minority Population | <span class="results-count">' + sourceList.length + ' total</span></p>';
-
-    sourceList.forEach(function(t) {
-        var geoid = t.geoid || (t.tract ? '41051' + t.tract : '');
-        var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
-        var minPct = lookup ? lookup.minorityPct : (t.minorityPct || 0);
-        var isTargeted = minPct > 50.0;
-        var cleanLevel = t.level || 'Middle';
-
-        var cardClass = isTargeted ? "tract-item minority-targeted" : "tract-item " + cleanLevel.toLowerCase();
-        var mapIcon = t.onMap ? '✅' : '⚠️';
-        var badgeTag = isTargeted ? '<span class="minority-badge-tag">MINORITY POPULATION (' + minPct.toFixed(1) + '%)</span>' : '';
-
-        // Cache in memory for popup access
-        window.trifectaCache[geoid] = {
-            geoid: geoid,
-            county: (lookup && lookup.county) ? lookup.county : (t.county || 'Oregon'),
-            city: (lookup && lookup.city) ? lookup.city : (t.city || 'Local Area'),
-            tractMfi: (lookup && lookup.tractMfi) ? lookup.tractMfi : (t.income || 0),
-            msaMfi: (lookup && lookup.msaMfi) ? lookup.msaMfi : (t.msaIncome || 0),
-            ratio: (lookup && lookup.ratio) ? lookup.ratio : (t.ratio ? t.ratio * 100 : 0),
-            level: cleanLevel,
-            minorityPct: minPct,
-            isOz: lookup ? lookup.isOz : false,
-            coords: lookup ? lookup.coords : null
-        };
-
-        html += '<div class="' + cardClass + '" onclick="focusFFIECTract(\'' + geoid + '\')" dblclick="focusFFIECTract(\'' + geoid + '\')">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                '<span class="tract-id">' + mapIcon + ' Tract ' + (t.tract || geoid) + badgeTag + '</span>' +
-                '<button class="copy-btn" onclick="event.stopPropagation();triggerFactSheet(\'' + geoid + '\')">📋 PDF</button>' +
-            '</div>' +
-            '<div class="tract-income">$' + parseInt(t.income || (lookup ? lookup.tractMfi : 0)).toLocaleString() + ' | ' + cleanLevel + ' Income</div>' +
             '</div>';
     });
 
