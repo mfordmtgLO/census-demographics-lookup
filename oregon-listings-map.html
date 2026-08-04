@@ -705,333 +705,215 @@ tracts.forEach(function(t) {
         function focusTract(geoid) { var found = tractPolygons.find(function(p) { return p.tract.geoid === geoid; }); if (found) { map.fitBounds(found.layer.getBounds().pad(0.3)); found.layer.openPopup(); } }
         function copyTract(geoid) { var tract = ffiecTracts.find(function(t) { return t.geoid === geoid; }); if (!tract) return; var text = '=== FFIEC 2024-2026 Census Tract ' + tract.tract + ' ===\nGEOID: ' + tract.geoid + '\nCity: ' + tract.city + ', ' + tract.county + ' County\nFFIEC Level: ' + tract.level + ' INCOME\nMedian HH Income: $' + tract.income.toLocaleString() + '\nMSA Median: $' + tract.msaIncome.toLocaleString() + '\nRatio: ' + (tract.ratio*100).toFixed(0) + '%\n\n--- ZILLOW MAP BOUNDARIES ---\nNorth: ' + tract.streets.N + '\nSouth: ' + tract.streets.S + '\nEast:  ' + tract.streets.E + '\nWest:  ' + tract.streets.W; navigator.clipboard.writeText(text).then(function() { alert('✅ Tract ' + tract.tract + ' boundaries copied!'); }); }
         
-                function toggleLevel(level, el) {
-            visibleLevels[level] = !visibleLevels[level];
-            el.classList.toggle('active', visibleLevels[level]);
-            
-            // Control the new FFIEC LMI polygon layer
-            if (ffiecShapeLayer) {
-                ffiecShapeLayer.eachLayer(function(layer) {
-                    if (layer.feature && layer.feature._ffiecLevel === level) {
-                        layer.setStyle({
-                            fillOpacity: visibleLevels[level] ? 0.4 : 0,
-                            weight: visibleLevels[level] ? 1.5 : 0
-                        });
-                    }
-                });
+                // ============================================================================
+// 1. INCOME LEVEL TOGGLER (RED LOW, ORANGE MOD, BLUE MID)
+// ============================================================================
+function toggleLevel(level, el) {
+    visibleLevels[level] = !visibleLevels[level];
+    if (el) el.classList.toggle('active', visibleLevels[level]);
+    
+    if (ffiecShapeLayer) {
+        ffiecShapeLayer.eachLayer(function(layer) {
+            if (layer.feature) {
+                var lvl = layer.feature._ffiecLevel || 'Middle';
+                if (lvl === level) {
+                    layer.setStyle({
+                        fillOpacity: visibleLevels[level] ? 0.4 : 0,
+                        weight: visibleLevels[level] ? 1.5 : 0
+                    });
+                }
             }
-        }
-        
-                                        function updateLinksForCity(cityName) {
-            if (!cityName) return;
-            var maxPrice = document.getElementById('maxPrice').value || '';
-            var cleanName = cityName.replace(/county/gi, '').trim();
-            var isCounty = cityName.toLowerCase().indexOf('county') >= 0;
-            
-            var searchTerm;
-            if (isCounty) {
-                searchTerm = cleanName + '-County-OR';
-            } else {
-                searchTerm = cityName.replace(/\s+/g, '-') + '-OR';
-            }
-            
-            // Realtor.com with county/city search and price filter
-            var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + searchTerm;
-            if (maxPrice) {
-                realtorUrl += '/price-na-' + maxPrice;
-            }
-            // Force fresh URL with timestamp
-            document.getElementById('realtorLink').href = realtorUrl;
-            document.getElementById('realtorLink').setAttribute('data-url', realtorUrl);
-            
-            // Zillow with county/city search
-            var zillowSearch = searchTerm.toLowerCase();
-            var zillowUrl = 'https://www.zillow.com/' + zillowSearch + '/houses/';
-            document.getElementById('zillowLink').href = zillowUrl;
-            document.getElementById('zillowLink').setAttribute('data-url', zillowUrl);
-            
-            // Update link labels
-            var priceLabel = maxPrice ? ' (Max $' + parseInt(maxPrice).toLocaleString() + ')' : '';
-            if (isCounty) {
-                document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong> (' + cleanName + ' County' + priceLabel + ')';
-                document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong> (' + cleanName + ' County)';
-            } else {
-                document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong>' + (maxPrice ? ' (Max $' + parseInt(maxPrice).toLocaleString() + ')' : '');
-                document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong>';
-            }
-        }
-                               function setPrice(price, el) {
-            document.getElementById('maxPrice').value = price || '';
-            document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
-            el.classList.add('active');
-            updateLinks();
-        }
-                function updateLinks() {
-            var city = currentCity || '';
-            if (!city) {
-                var searchInput = document.getElementById('searchInput').value.trim();
-                var citySelect = document.getElementById('citySelect').value.replace(/-/g, ' ');
-                city = searchInput || citySelect || '';
-            }
-            if (city) {
-                updateLinksForCity(city);
-            }
-        }
-                function resetMap() {
-            if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
-            ffiecShapesVisible = false;
-            var btn = document.getElementById('btnFFIECShapes');
-            if (btn) { btn.classList.remove('active'); btn.textContent = '📊 FFIEC LMI Tracts'; }
-            if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
-            usdaLayerVisible = false;
-            var usdaBtn = document.getElementById('btnUSDAToggle');
-            if (usdaBtn) { usdaBtn.classList.remove('active'); usdaBtn.textContent = 'USDA RD Zones'; }
-            if (ozLayerGroup) { map.removeLayer(ozLayerGroup); ozLayerGroup = null; }
-            ozLayerVisible = false;
-            var ozBtn = document.getElementById('btnOZ');
-            if (ozBtn) { ozBtn.classList.remove('active'); ozBtn.textContent = '💎 Opportunity Zones'; }
-                               if (trifectaLayer) { map.removeLayer(trifectaLayer); trifectaLayer = null; }
-            trifectaVisible = false;
-            var trifectaBtn = document.getElementById('btnTrifecta');
-            if (trifectaBtn) { trifectaBtn.classList.remove('active'); trifectaBtn.textContent = '🟢 Trifecta Investment'; }
-            document.getElementById('citySelect').value = '';
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchInput').style.borderColor = '#f59e0b';
-            document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above';
-            document.getElementById('searchDropdown').classList.remove('show');
-            currentCity = null;
-            map.setView([44.0, -120.5], 7);
-            updateTractList([]);
-        }
-        document.addEventListener('click', function(e) { if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); });
-            var usdaLayerGroup = null;
-        var usdaLayerVisible = false;
-        var usdaDataLoaded = false;
+        });
+    }
+}
 
-        function toggleUSDALayer() {
-            var btn = document.getElementById('btnUSDAToggle');
-            
-            if (usdaLayerVisible) {
-                if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
-                btn.classList.remove('active');
-                btn.textContent = '🗺️ USDA RD Zones';
-                usdaLayerVisible = false;
-                return;
-            }
-            
-            if (!usdaDataLoaded) {
-                document.getElementById('loadingBadge').style.display = 'block';
-                document.getElementById('loadingBadge').textContent = '⏳ Loading USDA eligibility zones (1.8MB)...';
-                btn.disabled = true;
-                
-                var script = document.createElement('script');
-                script.src = 'usda-oregon.js';
-                script.onload = function() {
-                    document.getElementById('loadingBadge').style.display = 'none';
-                    usdaDataLoaded = true;
-                    btn.disabled = false;
-                    showUSDALayer(btn);
-                };
-                script.onerror = function() {
-                    document.getElementById('loadingBadge').style.display = 'none';
-                    btn.disabled = false;
-                    alert('Could not load USDA data. Make sure usda-oregon.js is uploaded.');
-                };
-                document.body.appendChild(script);
-            } else {
-                showUSDALayer(btn);
-            }
-        }
-        
-                                                                                function showUSDALayer(btn) {
-            if (!usdaData || !usdaData.features) {
-                alert('USDA data not properly loaded.');
-                return;
-            }
-            
-            function webMercatorToLatLng(x, y) {
-                var lng = (x / 20037508.34) * 180;
-                var lat = (y / 20037508.34) * 180;
-                lat = 180 / Math.PI * (2 * Math.atan(Math.exp(lat * Math.PI / 180)) - Math.PI / 2);
-                return [lng, lat];
-            }
-            
-            var oregonFeatures = usdaData.features.filter(function(feature) {
-                if (!feature.geometry || !feature.geometry.coordinates) return false;
-                var coords = JSON.stringify(feature.geometry.coordinates);
-                var hasOregonY = false;
-                var matches = coords.match(/\d{7}/g);
-                if (matches) {
-                    for (var i = 0; i < matches.length; i++) {
-                        var num = parseInt(matches[i]);
-                        if (num >= 4800000 && num <= 5850000) {
-                            hasOregonY = true;
-                            break;
-                        }
-                    }
-                }
-                return hasOregonY;
-            });
-            
-            if (oregonFeatures.length === 0) {
-                oregonFeatures = usdaData.features.slice(0, 50);
-            }
-            
-            var convertedFeatures = oregonFeatures.map(function(feature) {
-                var newFeature = JSON.parse(JSON.stringify(feature));
-                function convertCoords(coords) {
-                    if (typeof coords[0] === 'number' && typeof coords[1] === 'number' && Math.abs(coords[0]) > 180 && Math.abs(coords[1]) > 90) {
-                        return webMercatorToLatLng(coords[0], coords[1]);
-                    }
-                    if (Array.isArray(coords[0])) {
-                        return coords.map(function(c) { return convertCoords(c); });
-                    }
-                    return coords;
-                }
-                if (newFeature.geometry && newFeature.geometry.coordinates) {
-                    newFeature.geometry.coordinates = convertCoords(newFeature.geometry.coordinates);
-                }
-                return newFeature;
-            });
-            
-            var convertedData = {type: "FeatureCollection", features: convertedFeatures};
-            
-            if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); }
-            
-            usdaLayerGroup = L.geoJSON(convertedData, {
-                style: function(feature) {
-                    return { color: '#374151', fillColor: '#6b7280', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' };
-                },
-                                onEachFeature: function(feature, layer) {
-                    var props = feature.properties || {};
-                    var name = props.objectid || props.NAME || props.name || '';
-                    // Fix mislabeled regions
-                    if (name === 'Washington') name = 'Oregon (Portland Region)';
-                    layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#374151;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
-                }
-            }).addTo(map);
-            
-            btn.classList.add('active');
-            btn.textContent = '✅ Hide USDA Zones';
-            usdaLayerVisible = true;
-            
-            try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
-        }
-                    var ozLayerGroup = null;
-        var ozLayerVisible = false;
-        var ozDataLoaded = false;
+function updateLinksForCity(cityName) {
+    if (!cityName) return;
+    var maxPrice = document.getElementById('maxPrice').value || '';
+    var cleanName = cityName.replace(/county/gi, '').trim();
+    var isCounty = cityName.toLowerCase().indexOf('county') >= 0;
+    
+    var searchTerm = isCounty ? cleanName + '-County-OR' : cityName.replace(/\s+/g, '-') + '-OR';
+    
+    var realtorUrl = 'https://www.realtor.com/realestateandhomes-search/' + searchTerm;
+    if (maxPrice) realtorUrl += '/price-na-' + maxPrice;
+    
+    document.getElementById('realtorLink').href = realtorUrl;
+    document.getElementById('realtorLink').setAttribute('data-url', realtorUrl);
+    
+    var zillowUrl = 'https://www.zillow.com/' + searchTerm.toLowerCase() + '/houses/';
+    document.getElementById('zillowLink').href = zillowUrl;
+    document.getElementById('zillowLink').setAttribute('data-url', zillowUrl);
+    
+    var priceLabel = maxPrice ? ' (Max $' + parseInt(maxPrice).toLocaleString() + ')' : '';
+    if (isCounty) {
+        document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong> (' + cleanName + ' County' + priceLabel + ')';
+        document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong> (' + cleanName + ' County)';
+    } else {
+        document.getElementById('realtorLink').innerHTML = '⭐ <strong>Realtor.com</strong>' + priceLabel;
+        document.getElementById('zillowLink').innerHTML = '🏘️ <strong>Zillow.com</strong>';
+    }
+}
 
-        function toggleOpportunityZones() {
-            var btn = document.getElementById('btnOZ');
-            
-            if (ozLayerVisible) {
-                if (ozLayerGroup) { map.removeLayer(ozLayerGroup); ozLayerGroup = null; }
-                btn.classList.remove('active');
-                btn.textContent = '💎 Opportunity Zones';
-                ozLayerVisible = false;
-                return;
-            }
-            
-            if (!ozDataLoaded) {
-                document.getElementById('loadingBadge').style.display = 'block';
-                document.getElementById('loadingBadge').textContent = '⏳ Loading Opportunity Zone data...';
-                btn.disabled = true;
-                
-                var script = document.createElement('script');
-                script.src = 'oregon-oz.js';
-                script.onload = function() {
-                    document.getElementById('loadingBadge').style.display = 'none';
-                    ozDataLoaded = true;
-                    btn.disabled = false;
-                    showOZLayer(btn);
-                };
-                script.onerror = function() {
-                    document.getElementById('loadingBadge').style.display = 'none';
-                    btn.disabled = false;
-                    alert('Could not load Opportunity Zone data. Make sure oregon-oz.js is uploaded.');
-                };
-                document.body.appendChild(script);
-            } else {
-                showOZLayer(btn);
-            }
-        }
+function setPrice(price, el) {
+    document.getElementById('maxPrice').value = price || '';
+    document.querySelectorAll('.price-tag').forEach(function(t) { t.classList.remove('active'); });
+    if (el) el.classList.add('active');
+    updateLinks();
+}
+
+function updateLinks() {
+    var city = currentCity || document.getElementById('searchInput').value.trim() || document.getElementById('citySelect').value.replace(/-/g, ' ') || '';
+    if (city) updateLinksForCity(city);
+}
+
+function resetMap() {
+    if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
+    ffiecShapesVisible = false;
+    var btn = document.getElementById('btnFFIECShapes');
+    if (btn) { btn.classList.remove('active'); btn.textContent = '📊 Tract Income Level'; }
+    if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
+    usdaLayerVisible = false;
+    var usdaBtn = document.getElementById('btnUSDAToggle');
+    if (usdaBtn) { usdaBtn.classList.remove('active'); usdaBtn.textContent = '🗺️ USDA RD Zones'; }
+    if (ozLayerGroup) { map.removeLayer(ozLayerGroup); ozLayerGroup = null; }
+    ozLayerVisible = false;
+    var ozBtn = document.getElementById('btnOZ');
+    if (ozBtn) { ozBtn.classList.remove('active'); ozBtn.textContent = '💎 Opportunity Zones'; }
+    if (trifectaLayer) { map.removeLayer(trifectaLayer); trifectaLayer = null; }
+    trifectaVisible = false;
+    var trifectaBtn = document.getElementById('btnTrifecta');
+    if (trifectaBtn) { trifectaBtn.classList.remove('active'); trifectaBtn.textContent = '🟢 Trifecta Investment'; }
+    
+    var banner = document.getElementById('trifectaBanner');
+    if (banner) banner.classList.remove('show');
+
+    document.getElementById('citySelect').value = '';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchInput').style.borderColor = '#f59e0b';
+    document.getElementById('selectedCityDisplay').textContent = 'Search a city or county above';
+    document.getElementById('searchDropdown').classList.remove('show');
+    currentCity = null;
+    map.setView([44.0, -120.5], 7);
+    updateTractList([]);
+}
+
+document.addEventListener('click', function(e) { 
+    if (!e.target.closest('.search-container')) document.getElementById('searchDropdown').classList.remove('show'); 
+});
+
+// ============================================================================
+// 2. USDA & OPPORTUNITY ZONE LAYERS
+// ============================================================================
+function toggleUSDALayer() {
+    var btn = document.getElementById('btnUSDAToggle');
+    if (usdaLayerVisible) {
+        if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); usdaLayerGroup = null; }
+        btn.classList.remove('active');
+        btn.textContent = '🗺️ USDA RD Zones';
+        usdaLayerVisible = false;
+        return;
+    }
+    
+    if (!usdaDataLoaded) {
+        document.getElementById('loadingBadge').style.display = 'block';
+        document.getElementById('loadingBadge').textContent = '⏳ Loading USDA eligibility zones...';
+        btn.disabled = true;
         
-        function showOZLayer(btn) {
-            if (!ozData || !ozData.features) {
-                alert('Opportunity Zone data not properly loaded.');
-                return;
-            }
-            
-            function webMercatorToLatLng(x, y) {
-                var lng = (x / 20037508.34) * 180;
-                var lat = (y / 20037508.34) * 180;
-                lat = 180 / Math.PI * (2 * Math.atan(Math.exp(lat * Math.PI / 180)) - Math.PI / 2);
-                return [lng, lat];
-            }
-            
-            // Filter for Oregon
-            var oregonFeatures = ozData.features.filter(function(feature) {
-                if (!feature.geometry || !feature.geometry.coordinates) return false;
-                var coords = JSON.stringify(feature.geometry.coordinates);
-                var hasOregonY = false;
-                var matches = coords.match(/\d{7}/g);
-                if (matches) {
-                    for (var i = 0; i < matches.length; i++) {
-                        var num = parseInt(matches[i]);
-                        if (num >= 4800000 && num <= 5850000) {
-                            hasOregonY = true;
-                            break;
-                        }
-                    }
-                }
-                return hasOregonY;
-            });
-            
-            if (oregonFeatures.length === 0) {
-                oregonFeatures = ozData.features.slice(0, 50);
-            }
-            
-            var convertedFeatures = oregonFeatures.map(function(feature) {
-                var newFeature = JSON.parse(JSON.stringify(feature));
-                function convertCoords(coords) {
-                    if (typeof coords[0] === 'number' && typeof coords[1] === 'number' && Math.abs(coords[0]) > 180 && Math.abs(coords[1]) > 90) {
-                        return webMercatorToLatLng(coords[0], coords[1]);
-                    }
-                    if (Array.isArray(coords[0])) {
-                        return coords.map(function(c) { return convertCoords(c); });
-                    }
-                    return coords;
-                }
-                if (newFeature.geometry && newFeature.geometry.coordinates) {
-                    newFeature.geometry.coordinates = convertCoords(newFeature.geometry.coordinates);
-                }
-                return newFeature;
-            });
-            
-            var convertedData = {type: "FeatureCollection", features: convertedFeatures};
-            
-            if (ozLayerGroup) { map.removeLayer(ozLayerGroup); }
-            
-            ozLayerGroup = L.geoJSON(convertedData, {
-                style: function(feature) {
-                    return { color: '#7c3aed', fillColor: '#8b5cf6', fillOpacity: 0.3, weight: 2 };
-                },
-                onEachFeature: function(feature, layer) {
-                    var props = feature.properties || {};
-                    var name = props.NAME || props.name || props.GEOID || props.objectid || '';
-                    layer.bindPopup('<strong>💎 Opportunity Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#7c3aed;">Designated Opportunity Zone census tract</small>');
-                }
-            }).addTo(map);
-            
-            btn.classList.add('active');
-            btn.textContent = '✅ Hide OZs';
-            ozLayerVisible = true;
-            
-            try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
-        }        
-       
-       // ============================================================================
-// GLOBAL LAYER STATES & MASTER EMBEDDED DATASET (ALL 20 LOW, 194 MOD, 507 MID)
+        var script = document.createElement('script');
+        script.src = 'usda-oregon.js';
+        script.onload = function() {
+            document.getElementById('loadingBadge').style.display = 'none';
+            usdaDataLoaded = true;
+            btn.disabled = false;
+            showUSDALayer(btn);
+        };
+        script.onerror = function() {
+            document.getElementById('loadingBadge').style.display = 'none';
+            btn.disabled = false;
+            alert('Could not load USDA data. Make sure usda-oregon.js is uploaded.');
+        };
+        document.body.appendChild(script);
+    } else {
+        showUSDALayer(btn);
+    }
+}
+
+function showUSDALayer(btn) {
+    if (!usdaData || !usdaData.features) { alert('USDA data not properly loaded.'); return; }
+    if (usdaLayerGroup) { map.removeLayer(usdaLayerGroup); }
+    
+    usdaLayerGroup = L.geoJSON(usdaData, {
+        style: function() { return { color: '#374151', fillColor: '#6b7280', fillOpacity: 0.2, weight: 2, dashArray: '5, 5' }; },
+        onEachFeature: function(feature, layer) {
+            var props = feature.properties || {};
+            var name = props.objectid || props.NAME || props.name || '';
+            if (name === 'Washington') name = 'Oregon (Portland Region)';
+            layer.bindPopup('<strong>🚫 USDA RD INELIGIBLE Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#374151;">Shaded = NOT eligible</small><br><small style="color:#22c55e;">✅ Outside shading = ELIGIBLE</small>');
+        }
+    }).addTo(map);
+    
+    btn.classList.add('active');
+    btn.textContent = '✅ Hide USDA Zones';
+    usdaLayerVisible = true;
+    try { map.fitBounds(usdaLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+}
+
+function toggleOpportunityZones() {
+    var btn = document.getElementById('btnOZ');
+    if (ozLayerVisible) {
+        if (ozLayerGroup) { map.removeLayer(ozLayerGroup); ozLayerGroup = null; }
+        btn.classList.remove('active');
+        btn.textContent = '💎 Opportunity Zones';
+        ozLayerVisible = false;
+        return;
+    }
+    
+    if (!ozDataLoaded) {
+        document.getElementById('loadingBadge').style.display = 'block';
+        document.getElementById('loadingBadge').textContent = '⏳ Loading Opportunity Zone data...';
+        btn.disabled = true;
+        
+        var script = document.createElement('script');
+        script.src = 'oregon-oz.js';
+        script.onload = function() {
+            document.getElementById('loadingBadge').style.display = 'none';
+            ozDataLoaded = true;
+            btn.disabled = false;
+            showOZLayer(btn);
+        };
+        script.onerror = function() {
+            document.getElementById('loadingBadge').style.display = 'none';
+            btn.disabled = false;
+            alert('Could not load Opportunity Zone data.');
+        };
+        document.body.appendChild(script);
+    } else {
+        showOZLayer(btn);
+    }
+}
+
+function showOZLayer(btn) {
+    if (!ozData || !ozData.features) { alert('Opportunity Zone data not properly loaded.'); return; }
+    if (ozLayerGroup) { map.removeLayer(ozLayerGroup); }
+    
+    ozLayerGroup = L.geoJSON(ozData, {
+        style: function() { return { color: '#7c3aed', fillColor: '#8b5cf6', fillOpacity: 0.3, weight: 2 }; },
+        onEachFeature: function(feature, layer) {
+            var props = feature.properties || {};
+            var name = props.NAME || props.name || props.GEOID || props.objectid || '';
+            layer.bindPopup('<strong>💎 Opportunity Zone</strong><br>' + (name ? 'Zone: ' + name + '<br>' : '') + '<small style="color:#7c3aed;">Designated Opportunity Zone census tract</small>');
+        }
+    }).addTo(map);
+    
+    btn.classList.add('active');
+    btn.textContent = '✅ Hide OZs';
+    ozLayerVisible = true;
+    try { map.fitBounds(ozLayerGroup.getBounds().pad(0.1)); } catch(e) { map.setView([44.0, -120.5], 7); }
+}
+
+// ============================================================================
+// 3. MASTER DATASETS & FFIEC ENGINE (EXCLUDES REGULAR UPPER INCOME TRACTS)
 // ============================================================================
 var ffiecShapeLayer = null;
 var ffiecShapesVisible = false;
@@ -1041,70 +923,33 @@ var ffiecLookupData = null;
 var trifectaLayer = null;
 var trifectaVisible = false;
 var trifectaData = null;
-var ffiecLookupData = null;
-var ffiecShapesData = null;
-var ffiecShapeLayer = null;
-var ffiecShapesVisible = false;
 
 window.trifectaCache = {};
 window.verifiedTrifectaTracts = [];
 var tempTrifectaMarkers = [];
 
-// MASTER EMBEDDED DATASET FOR MINORITY PERCENTAGES & COORDINATES
 var masterOregonFFIECLookup = {
     // 17 TARGETED MINORITY MIDDLE & UPPER INCOME TRACTS (>50% MINORITY POPULATION)
     "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
-    "009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
-
     "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
-    "009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
-
     "41051008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
-    "008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
-
     "41051008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
-    "008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
-
     "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
-    "000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
-
     "41047001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
-    "001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
-
     "41059950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
-    "950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
-
     "41059950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
-    "950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
-
     "41059950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
-    "950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
-
-    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Middle", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
-    "960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Middle", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
-
-    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Middle", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
-    "960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Middle", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
-
-    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Middle", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
-    "031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Middle", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
-
-    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Middle", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
-    "032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Middle", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
-
-    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Middle", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
-    "033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Middle", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
-
+    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Moderate", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Moderate", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
+    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Moderate", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Moderate", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
+    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
     "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
-    "970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
-
     "41035970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
-    "970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
-
-    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted Minority >50%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
-    "004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted Minority >50%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
 
     // LOW & MODERATE INCOME TRIFECTA TRACTS
+    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low", minorityPct: 62.50, isOz: true, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
     "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
     "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 48.30, isOz: true, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
     "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", minorityPct: 22.50, isOz: true, county: "COOS COUNTY", city: "COOS BAY", coords: [43.366, -124.218] },
@@ -1301,11 +1146,10 @@ function showFFIECShapes(btn) {
             document.body.appendChild(script);
         }
     } else {
-        renderFFIECLayer(ffiecShapesData, btn);
+        renderFFIECLayer(geojsonData, btn);
     }
 }
 
-// RENDER FFIEC SHAPE POLYGONS (EXCLUDES UPPER INCOME POLYGONS UNLESS >50% MINORITY)
 function renderFFIECLayer(geojsonData, btn) {
     if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
     
@@ -1326,7 +1170,7 @@ function renderFFIECLayer(geojsonData, btn) {
             // EXCLUDE ALL UPPER INCOME POLYGONS UNLESS >50% MINORITY POPULATION
             if (level.indexOf('Upper') >= 0) {
                 if (minPct <= 50.0 && level.indexOf('>50%') < 0) {
-                    return false; // HIDE REGULAR UPPER INCOME SHAPE POLYGONS FROM MAP
+                    return false; // HIDE REGULAR UPPER INCOME SHAPE POLYGONS
                 }
             }
             return true;
@@ -1343,6 +1187,10 @@ function renderFFIECLayer(geojsonData, btn) {
             var isTargeted = lookup && (lookup.minorityPct > 50.0 || String(lookup.level).indexOf('>50%') >= 0);
 
             var color = isTargeted ? '#7c3aed' : (levelColors[level] || '#3b82f6');
+            
+            // Attach clean level to feature for toggleLevel filtering
+            feature._ffiecLevel = isTargeted ? 'Middle' : level;
+
             return { color: color, fillColor: color, fillOpacity: 0.4, weight: 1.5 };
         },
         onEachFeature: function(feature, layer) {
@@ -1369,7 +1217,6 @@ function renderFFIECLayer(geojsonData, btn) {
     }).addTo(map);
 }
 
-// FULL CATALOG SIDEBAR POPULATOR (20 LOW, 194 MOD, 507 MID, 29 MINORITY >50%)
 function populateFullOregonTractList() {
     try {
         var container = document.getElementById('tractListContent');
@@ -1448,7 +1295,7 @@ function populateFullOregonTractList() {
             });
         });
 
-        // HEADER BANNER WITH EXACT PDF SHEET TOTALS
+        // SIDEBAR HEADER BANNER WITH EXACT PDF TOTALS
         var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #3b82f6;margin-bottom:6px;">' +
             '<p style="color:#60a5fa;font-size:10px;font-weight:bold;margin:0;">📊 Official FFIEC Tract Income Levels (' + allTracts.length + ' Total Presented)</p>' +
             '<p style="color:#93c5fd;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | 🟣 ' + minorityTargetedCount + ' Minority Pop (>50%)</p>' +
