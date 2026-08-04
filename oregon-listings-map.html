@@ -913,7 +913,7 @@ function showOZLayer(btn) {
 }
 
 // ============================================================================
-// GLOBAL LAYER STATES & MASTER EMBEDDED DATASET (ALL 20 LOW, 194 MOD, 507 MID)
+// GLOBAL LAYER STATES & MASTER EMBEDDED DATASET (STRICT UPPER INCOME POLYGON BAN)
 // ============================================================================
 var ffiecShapeLayer = null;
 var ffiecShapesVisible = false;
@@ -1150,7 +1150,6 @@ function toggleFFIECShapes() {
     Promise.all([loadLookup, loadShapes])
         .then(function() {
             if (loadingBadge) loadingBadge.style.display = 'none';
-            // INSTANT PRE-LOAD INTO MEMORY CACHE
             populateFullOregonTractList();
             showFFIECShapes(btn);
         })
@@ -1220,9 +1219,18 @@ function renderFFIECLayer(geojsonData, btn) {
             var level = lookup ? lookup.level : (feature._ffiecLevel || 'Middle');
             var isTargeted = lookup && (lookup.minorityPct > 50.0 || String(lookup.level).indexOf('>50%') >= 0);
 
-            var color = isTargeted ? '#7c3aed' : (levelColors[level] || '#3b82f6');
-            feature._ffiecLevel = isTargeted ? 'Middle' : level;
+            var category = 'Middle';
+            if (isTargeted) {
+                category = 'Targeted';
+            } else if (String(level).indexOf('Low') >= 0) {
+                category = 'Low';
+            } else if (String(level).indexOf('Moderate') >= 0) {
+                category = 'Moderate';
+            }
 
+            feature._ffiecLevel = category;
+
+            var color = isTargeted ? '#7c3aed' : (levelColors[category] || '#3b82f6');
             return { color: color, fillColor: color, fillOpacity: 0.4, weight: 1.5 };
         },
         onEachFeature: function(feature, layer) {
@@ -1303,9 +1311,9 @@ function populateFullOregonTractList() {
                 minorityTargetedCount++;
             }
 
-            if (level.indexOf('Low') >= 0 || (ratio > 0 && ratio < 50.0)) {
+            if (level.indexOf('Low') >= 0 || (ratio > 0 && ratio <= 50.0)) {
                 lowCount++;
-            } else if (level.indexOf('Moderate') >= 0 || (ratio >= 50.0 && ratio <= 80.0)) {
+            } else if (level.indexOf('Moderate') >= 0 || (ratio > 50.0 && ratio <= 80.0)) {
                 modCount++;
             } else {
                 midCount++;
@@ -1313,7 +1321,6 @@ function populateFullOregonTractList() {
 
             var cleanLvl = level.split('(')[0].trim();
 
-            // PRE-CALCULATE COORDINATES IF MISSING
             var countyFips = geoid.substring(0, 5);
             var countyDefault = countyMsaDefaults[countyFips] || countyMsaDefaults["41051"];
             var coords = t.coords || [countyDefault.lat || 45.515, countyDefault.lng || -122.678];
@@ -1333,7 +1340,6 @@ function populateFullOregonTractList() {
                 coords: coords
             };
 
-            // PRE-INDEX INTO MEMORY CACHE FOR INSTANT 0MS CLICK RESPONSE
             window.trifectaCache[geoid] = tractObj;
             allTracts.push(tractObj);
         });
@@ -1520,7 +1526,7 @@ function showTrifectaLayer(btn) {
         if (mNum1) mNum1.textContent = totalVerifiedCount;
         if (mNum2) mNum2.textContent = (totalVerifiedCount * 100).toLocaleString() + '+';
         if (mNum3) mNum3.textContent = (totalVerifiedCount * 50).toLocaleString() + '+';
-        banner.classList.add('show');
+        banner.classList.show ? banner.classList.add('show') : banner.classList.add('show');
     }
 
     renderVerifiedTrifectaTractList();
