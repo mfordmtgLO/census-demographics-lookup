@@ -1179,6 +1179,7 @@ function extractFipsFromFeature(feature) {
     return '';
 }
 
+// TOGGLE FFIEC SHAPES LAYER & POPULATE FULL 721-TRACT OREGON CATALOG
 function toggleFFIECShapes() {
     var btn = document.getElementById('btnFFIECShapes');
     
@@ -1186,7 +1187,7 @@ function toggleFFIECShapes() {
         if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
         if (btn) {
             btn.classList.remove('active');
-            btn.textContent = '📊 Tract Income Level';
+            btn.textContent = '📊 Tract Income Level'; // CONSISTENT BUTTON TITLE
         }
         ffiecShapesVisible = false;
         return;
@@ -1198,29 +1199,67 @@ function toggleFFIECShapes() {
     }
     ffiecShapesVisible = true;
 
-    populateFullOregonTractList();
+    var loadingBadge = document.getElementById('loadingBadge');
+    if (loadingBadge) {
+        loadingBadge.style.display = 'block';
+        loadingBadge.textContent = '⏳ Loading official FFIEC catalog (721 tracts)...';
+    }
 
-    if (!ffiecShapesData) {
-        var loadingBadge = document.getElementById('loadingBadge');
-        if (loadingBadge) {
-            loadingBadge.style.display = 'block';
-            loadingBadge.textContent = '⏳ Loading FFIEC tract boundaries...';
-        }
-        
-        fetch('ffiec-shapes.json')
+    // 1. FETCH FULL FFIEC LOOKUP DATASET (721 TRACTS)
+    var loadLookup = (!ffiecLookupData)
+        ? fetch('ffiec-lookup.json')
             .then(function(resp) { return resp.json(); })
             .then(function(data) {
-                if (loadingBadge) loadingBadge.style.display = 'none';
-                ffiecShapesData = data;
-                showFFIECShapes(btn);
+                ffiecLookupData = {};
+                data.forEach(function(row) {
+                    var fips = String(row["FIPS code"] || row["fips"] || row["FIPS"] || row["GEOID"] || '').trim();
+                    if (fips) {
+                        var msaMfi = parseInt(row["MSA/MD MFI"] || row["MSA MFI"] || row["msaMfi"] || (row.MSA && row.MSA["MD MFI"])) || 0;
+                        var tractMfi = parseInt(row["Tract MFI"] || row["tractMfi"] || row["TractMfi"]) || 0;
+                        var ratioVal = parseFloat(row["Tract income percentage"] || row["ratio"] || row["TractIncomePercentage"]) || 0;
+                        var level = row["Tract income level"] || row["incomeLevel"] || row["level"] || 'Middle';
+                        var county = row["County name"] || row["county"] || '';
+                        var city = row["MSA/MD name"] || row["city"] || '';
+
+                        if (ratioVal === 0 && msaMfi > 0 && tractMfi > 0) {
+                            ratioVal = (tractMfi / msaMfi) * 100;
+                        }
+
+                        ffiecLookupData[fips] = {
+                            msaMfi: msaMfi,
+                            tractMfi: tractMfi,
+                            ratio: ratioVal,
+                            level: level,
+                            city: city,
+                            county: county
+                        };
+                    }
+                });
             })
             .catch(function(err) {
-                if (loadingBadge) loadingBadge.style.display = 'none';
-                console.log("Shapefile polygons deferred:", err.message);
-            });
-    } else {
-        showFFIECShapes(btn);
-    }
+                console.log("ffiec-lookup fetch error:", err);
+            })
+        : Promise.resolve();
+
+    // 2. FETCH MAP POLYGON SHAPES
+    var loadShapes = (!ffiecShapesData)
+        ? fetch('ffiec-shapes.json')
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) { ffiecShapesData = data; })
+            .catch(function(err) { console.log("ffiec-shapes fetch error:", err); })
+        : Promise.resolve();
+
+    Promise.all([loadLookup, loadShapes])
+        .then(function() {
+            if (loadingBadge) loadingBadge.style.display = 'none';
+            // POPULATE ALL 721 TRACTS INTO SIDEBAR
+            populateFullOregonTractList();
+            showFFIECShapes(btn);
+        })
+        .catch(function(err) {
+            if (loadingBadge) loadingBadge.style.display = 'none';
+            populateFullOregonTractList();
+        });
 }
 
 function showFFIECShapes(btn) {
@@ -1256,6 +1295,10 @@ function renderFFIECLayer(geojsonData, btn) {
             var props = feature.properties || {};
             var geoid = props.GEOID || props.geoid || '';
             var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
+            if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
+                lookup = ffiecLookupData[geoid];
+            }
+
             var level = lookup ? lookup.level : (feature._ffiecLevel || 'Middle');
             var isTargeted = lookup && (lookup.minorityPct > 50.0 || String(lookup.level).indexOf('>50%') >= 0);
 
@@ -1266,6 +1309,9 @@ function renderFFIECLayer(geojsonData, btn) {
             var props = feature.properties || {};
             var geoid = props.GEOID || props.geoid || '';
             var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
+            if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
+                lookup = ffiecLookupData[geoid];
+            }
 
             var level = lookup ? lookup.level : 'Middle';
             var tractMfi = lookup ? lookup.tractMfi : 0;
@@ -1283,6 +1329,7 @@ function renderFFIECLayer(geojsonData, btn) {
     }).addTo(map);
 }
 
+// SAFE CATALOG POPULATOR (POPS ALL 721 OREGON CENSUS TRACTS)
 function populateFullOregonTractList() {
     try {
         var container = document.getElementById('tractListContent');
@@ -1295,15 +1342,33 @@ function populateFullOregonTractList() {
         var safeLookupData = (ffiecLookupData && typeof ffiecLookupData === 'object') ? ffiecLookupData : {};
         var sourceData = {};
 
+        // 1. Merge master PDF embedded dataset
         for (var k1 in masterOregonFFIECLookup) {
             if (masterOregonFFIECLookup.hasOwnProperty(k1)) {
                 sourceData[k1] = masterOregonFFIECLookup[k1];
             }
         }
+        // 2. Merge full fetched FFIEC lookup dataset (721 tracts)
         for (var k2 in safeLookupData) {
             if (safeLookupData.hasOwnProperty(k2)) {
                 sourceData[k2] = safeLookupData[k2];
             }
+        }
+        // 3. Merge embedded ffiecTracts array
+        if (typeof ffiecTracts !== 'undefined' && Array.isArray(ffiecTracts)) {
+            ffiecTracts.forEach(function(item) {
+                var g = item.geoid || (item.tract ? '41051' + item.tract : '');
+                if (g && !sourceData[g]) {
+                    sourceData[g] = {
+                        tractMfi: item.income || 0,
+                        msaMfi: item.msaIncome || 0,
+                        ratio: item.ratio ? item.ratio * 100 : 0,
+                        level: item.level || 'Middle',
+                        county: item.county || 'Oregon',
+                        city: item.city || 'Local Area'
+                    };
+                }
+            });
         }
 
         Object.keys(sourceData).forEach(function(geoid) {
@@ -1345,9 +1410,10 @@ function populateFullOregonTractList() {
             });
         });
 
+        // HEADER BANNER WITH EXACT OFFICIAL TOTALS
         var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #3b82f6;margin-bottom:6px;">' +
             '<p style="color:#60a5fa;font-size:10px;font-weight:bold;margin:0;">📊 Official FFIEC Tract Income Levels (' + allTracts.length + ' Total)</p>' +
-            '<p style="color:#93c5fd;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | 🟣 ' + minorityTargetedCount + ' Minority Pop (>50%)</p>' +
+            '<p style="color:#93c5fd;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | 🟣 ' + minorityTargetCount + ' Minority Pop (>50%)</p>' +
             '</div>';
 
         allTracts.forEach(function(t) {
