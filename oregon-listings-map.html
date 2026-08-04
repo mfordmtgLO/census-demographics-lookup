@@ -913,7 +913,7 @@ function showOZLayer(btn) {
 }
 
 // ============================================================================
-// 3. MASTER DATASETS & FFIEC ENGINE (EXCLUDES REGULAR UPPER INCOME TRACTS)
+// GLOBAL LAYER STATES & MASTER EMBEDDED DATASET (ALL 20 LOW, 194 MOD, 507 MID)
 // ============================================================================
 var ffiecShapeLayer = null;
 var ffiecShapesVisible = false;
@@ -931,25 +931,57 @@ var tempTrifectaMarkers = [];
 var masterOregonFFIECLookup = {
     // 17 TARGETED MINORITY MIDDLE & UPPER INCOME TRACTS (>50% MINORITY POPULATION)
     "41051009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
+    "009604": { tractMfi: 48254, msaMfi: 94727, ratio: 50.94, level: "Middle", minorityPct: 56.94, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.525, -122.480] },
+
     "41051009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
+    "009603": { tractMfi: 60982, msaMfi: 94727, ratio: 64.37, level: "Middle", minorityPct: 52.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.520, -122.485] },
+
     "41051008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
+    "008902": { tractMfi: 80227, msaMfi: 94727, ratio: 84.69, level: "Middle", minorityPct: 53.40, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.515, -122.530] },
+
     "41051008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
+    "008301": { tractMfi: 50917, msaMfi: 94727, ratio: 53.75, level: "Middle", minorityPct: 51.80, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.508, -122.568] },
+
     "41047000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
+    "000600": { tractMfi: 66214, msaMfi: 73679, ratio: 89.87, level: "Middle", minorityPct: 54.30, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.943, -123.027] },
+
     "41047001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
+    "001503": { tractMfi: 55341, msaMfi: 73679, ratio: 75.11, level: "Middle", minorityPct: 52.60, isOz: false, county: "MARION COUNTY", city: "SALEM", coords: [44.935, -122.980] },
+
     "41059950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
+    "950200": { tractMfi: 58000, msaMfi: 62963, ratio: 92.10, level: "Middle", minorityPct: 58.40, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.840, -119.289] },
+
     "41059950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
+    "950201": { tractMfi: 61316, msaMfi: 62963, ratio: 97.38, level: "Middle", minorityPct: 56.20, isOz: false, county: "UMATILLA COUNTY", city: "HERMISTON", coords: [45.835, -119.295] },
+
     "41059950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
-    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Moderate", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
-    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Moderate", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
-    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Moderate", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
-    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Moderate", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
-    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
+    "950202": { tractMfi: 65513, msaMfi: 62963, ratio: 104.04, level: "Middle", minorityPct: 53.80, isOz: false, county: "UMATILLA COUNTY", city: "UMATILLA", coords: [45.918, -119.342] },
+
+    "41031960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Middle", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+    "960201": { tractMfi: 51726, msaMfi: 78059, ratio: 66.26, level: "Middle", minorityPct: 58.10, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
+
+    "41031960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Middle", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
+    "960305": { tractMfi: 56972, msaMfi: 78059, ratio: 72.98, level: "Middle", minorityPct: 78.60, isOz: false, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.762, -121.250] },
+
+    "41067031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Middle", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+    "031201": { tractMfi: 58038, msaMfi: 94727, ratio: 61.26, level: "Middle", minorityPct: 51.90, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
+
+    "41067032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Middle", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
+    "032501": { tractMfi: 49375, msaMfi: 94727, ratio: 52.12, level: "Middle", minorityPct: 53.20, isOz: false, county: "WASHINGTON COUNTY", city: "ALOHA", coords: [45.490, -122.880] },
+
+    "41067033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Middle", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
+    "033201": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Middle", minorityPct: 54.80, isOz: false, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.520, -123.060] },
+
     "41045970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
+    "970300": { tractMfi: 48931, msaMfi: 62963, ratio: 77.71, level: "Moderate", minorityPct: 52.40, isOz: true, county: "MALHEUR COUNTY", city: "ONTARIO", coords: [44.026, -116.963] },
+
     "41035970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
+    "970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
+
     "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    "004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
 
     // LOW & MODERATE INCOME TRIFECTA TRACTS
-    "41031940000": { tractMfi: 38125, msaMfi: 78059, ratio: 48.84, level: "Low", minorityPct: 62.50, isOz: true, county: "JEFFERSON COUNTY", city: "MADRAS", coords: [44.633, -121.129] },
     "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
     "41067033200": { tractMfi: 51909, msaMfi: 94727, ratio: 54.79, level: "Moderate", minorityPct: 48.30, isOz: true, county: "WASHINGTON COUNTY", city: "HILLSBORO", coords: [45.523, -122.990] },
     "41011000504": { tractMfi: 49901, msaMfi: 62963, ratio: 79.25, level: "Moderate", minorityPct: 22.50, isOz: true, county: "COOS COUNTY", city: "COOS BAY", coords: [43.366, -124.218] },
@@ -958,36 +990,36 @@ var masterOregonFFIECLookup = {
 };
 
 var countyMsaDefaults = {
-    "41001": { county: "BAKER COUNTY", msaMfi: 62963, avgLmi: 46875 },
-    "41003": { county: "BENTON COUNTY", msaMfi: 89816, avgLmi: 50513 },
-    "41005": { county: "CLACKAMAS COUNTY", msaMfi: 94727, avgLmi: 61429 },
-    "41007": { county: "CLATSOP COUNTY", msaMfi: 62963, avgLmi: 43000 },
-    "41009": { county: "COLUMBIA COUNTY", msaMfi: 94727, avgLmi: 64353 },
-    "41011": { county: "COOS COUNTY", msaMfi: 62963, avgLmi: 49901 },
-    "41013": { county: "CROOK COUNTY", msaMfi: 78059, avgLmi: 38125 },
-    "41015": { county: "CURRY COUNTY", msaMfi: 62963, avgLmi: 39306 },
-    "41017": { county: "DESCHUTES COUNTY", msaMfi: 78059, avgLmi: 47205 },
-    "41019": { county: "DOUGLAS COUNTY", msaMfi: 62963, avgLmi: 46440 },
-    "41025": { county: "HARNEY COUNTY", msaMfi: 62963, avgLmi: 49375 },
-    "41027": { county: "HOOD RIVER COUNTY", msaMfi: 62963, avgLmi: 52000 },
-    "41029": { county: "JACKSON COUNTY", msaMfi: 70436, avgLmi: 41680 },
-    "41031": { county: "JEFFERSON COUNTY", msaMfi: 78059, avgLmi: 38125 },
-    "41033": { county: "JOSEPHINE COUNTY", msaMfi: 57003, avgLmi: 43429 },
-    "41035": { county: "KLAMATH COUNTY", msaMfi: 62963, avgLmi: 20885 },
-    "41037": { county: "LAKE COUNTY", msaMfi: 62963, avgLmi: 49712 },
-    "41039": { county: "LANE COUNTY", msaMfi: 72092, avgLmi: 49375 },
-    "41041": { county: "LINCOLN COUNTY", msaMfi: 62963, avgLmi: 48427 },
-    "41043": { county: "LINN COUNTY", msaMfi: 68860, avgLmi: 53668 },
-    "41045": { county: "MALHEUR COUNTY", msaMfi: 62963, avgLmi: 32129 },
-    "41047": { county: "MARION COUNTY", msaMfi: 73679, avgLmi: 32392 },
-    "41051": { county: "MULTNOMAH COUNTY", msaMfi: 94727, avgLmi: 37172 },
-    "41053": { county: "POLK COUNTY", msaMfi: 73679, avgLmi: 52109 },
-    "41057": { county: "TILLAMOOK COUNTY", msaMfi: 62963, avgLmi: 38229 },
-    "41059": { county: "UMATILLA COUNTY", msaMfi: 62963, avgLmi: 42000 },
-    "41061": { county: "UNION COUNTY", msaMfi: 62963, avgLmi: 48621 },
-    "41065": { county: "WASCO COUNTY", msaMfi: 62963, avgLmi: 49865 },
-    "41067": { county: "WASHINGTON COUNTY", msaMfi: 94727, avgLmi: 51909 },
-    "41071": { county: "YAMHILL COUNTY", msaMfi: 94727, avgLmi: 59304 }
+    "41001": { county: "BAKER COUNTY", msaMfi: 62963, avgLmi: 46875, lat: 44.775, lng: -117.834 },
+    "41003": { county: "BENTON COUNTY", msaMfi: 89816, avgLmi: 50513, lat: 44.564, lng: -123.262 },
+    "41005": { county: "CLACKAMAS COUNTY", msaMfi: 94727, avgLmi: 61429, lat: 45.357, lng: -122.607 },
+    "41007": { county: "CLATSOP COUNTY", msaMfi: 62963, avgLmi: 43000, lat: 46.188, lng: -123.831 },
+    "41009": { county: "COLUMBIA COUNTY", msaMfi: 94727, avgLmi: 64353, lat: 45.864, lng: -122.806 },
+    "41011": { county: "COOS COUNTY", msaMfi: 62963, avgLmi: 49901, lat: 43.366, lng: -124.218 },
+    "41013": { county: "CROOK COUNTY", msaMfi: 78059, avgLmi: 38125, lat: 44.300, lng: -120.834 },
+    "41015": { county: "CURRY COUNTY", msaMfi: 62963, avgLmi: 39306, lat: 42.407, lng: -124.422 },
+    "41017": { county: "DESCHUTES COUNTY", msaMfi: 78059, avgLmi: 47205, lat: 44.058, lng: -121.315 },
+    "41019": { county: "DOUGLAS COUNTY", msaMfi: 62963, avgLmi: 46440, lat: 43.216, lng: -123.342 },
+    "41025": { county: "HARNEY COUNTY", msaMfi: 62963, avgLmi: 49375, lat: 43.586, lng: -119.054 },
+    "41027": { county: "HOOD RIVER COUNTY", msaMfi: 62963, avgLmi: 52000, lat: 45.705, lng: -121.521 },
+    "41029": { county: "JACKSON COUNTY", msaMfi: 70436, avgLmi: 41680, lat: 42.326, lng: -122.876 },
+    "41031": { county: "JEFFERSON COUNTY", msaMfi: 78059, avgLmi: 38125, lat: 44.633, lng: -121.129 },
+    "41033": { county: "JOSEPHINE COUNTY", msaMfi: 57003, avgLmi: 43429, lat: 42.439, lng: -123.328 },
+    "41035": { county: "KLAMATH COUNTY", msaMfi: 62963, avgLmi: 20885, lat: 42.225, lng: -121.782 },
+    "41037": { county: "LAKE COUNTY", msaMfi: 62963, avgLmi: 49712, lat: 42.188, lng: -120.345 },
+    "41039": { county: "LANE COUNTY", msaMfi: 72092, avgLmi: 49375, lat: 44.052, lng: -123.087 },
+    "41041": { county: "LINCOLN COUNTY", msaMfi: 62963, avgLmi: 48427, lat: 44.637, lng: -124.053 },
+    "41043": { county: "LINN COUNTY", msaMfi: 68860, avgLmi: 53668, lat: 44.636, lng: -123.106 },
+    "41045": { county: "MALHEUR COUNTY", msaMfi: 62963, avgLmi: 32129, lat: 44.026, lng: -116.963 },
+    "41047": { county: "MARION COUNTY", msaMfi: 73679, avgLmi: 32392, lat: 44.942, lng: -123.035 },
+    "41051": { county: "MULTNOMAH COUNTY", msaMfi: 94727, avgLmi: 37172, lat: 45.515, lng: -122.678 },
+    "41053": { county: "POLK COUNTY", msaMfi: 73679, avgLmi: 52109, lat: 44.919, lng: -123.317 },
+    "41057": { county: "TILLAMOOK COUNTY", msaMfi: 62963, avgLmi: 38229, lat: 45.456, lng: -123.843 },
+    "41059": { county: "UMATILLA COUNTY", msaMfi: 62963, avgLmi: 42000, lat: 45.672, lng: -118.788 },
+    "41061": { county: "UNION COUNTY", msaMfi: 62963, avgLmi: 48621, lat: 45.325, lng: -118.088 },
+    "41065": { county: "WASCO COUNTY", msaMfi: 62963, avgLmi: 49865, lat: 45.594, lng: -121.179 },
+    "41067": { county: "WASHINGTON COUNTY", msaMfi: 94727, avgLmi: 51909, lat: 45.523, lng: -122.990 },
+    "41071": { county: "YAMHILL COUNTY", msaMfi: 94727, avgLmi: 59304, lat: 45.210, lng: -123.194 }
 };
 
 function extractFipsFromFeature(feature) {
@@ -1094,7 +1126,7 @@ function toggleFFIECShapes() {
     var loadingBadge = document.getElementById('loadingBadge');
     if (loadingBadge) {
         loadingBadge.style.display = 'block';
-        loadingBadge.textContent = '⏳ Loading official FFIEC catalog...';
+        loadingBadge.textContent = '⏳ Pre-loading official FFIEC catalog...';
     }
 
     var loadLookup = (!ffiecLookupData)
@@ -1118,6 +1150,7 @@ function toggleFFIECShapes() {
     Promise.all([loadLookup, loadShapes])
         .then(function() {
             if (loadingBadge) loadingBadge.style.display = 'none';
+            // INSTANT PRE-LOAD INTO MEMORY CACHE
             populateFullOregonTractList();
             showFFIECShapes(btn);
         })
@@ -1146,10 +1179,11 @@ function showFFIECShapes(btn) {
             document.body.appendChild(script);
         }
     } else {
-        renderFFIECLayer(geojsonData, btn);
+        renderFFIECLayer(ffiecShapesData, btn);
     }
 }
 
+// RENDER FFIEC MAP POLYGONS (STRICT BAN ON REGULAR UPPER INCOME POLYGONS)
 function renderFFIECLayer(geojsonData, btn) {
     if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
     
@@ -1167,10 +1201,10 @@ function renderFFIECLayer(geojsonData, btn) {
             var level = lookup ? String(lookup.level) : (feature._ffiecLevel || '');
             var minPct = lookup ? lookup.minorityPct : 0;
 
-            // EXCLUDE ALL UPPER INCOME POLYGONS UNLESS >50% MINORITY POPULATION
+            // ABSOLUTE BAN ON REGULAR UPPER INCOME POLYGONS
             if (level.indexOf('Upper') >= 0) {
                 if (minPct <= 50.0 && level.indexOf('>50%') < 0) {
-                    return false; // HIDE REGULAR UPPER INCOME SHAPE POLYGONS
+                    return false; // NEVER DRAW REGULAR UPPER POLYGONS ON MAP!
                 }
             }
             return true;
@@ -1187,8 +1221,6 @@ function renderFFIECLayer(geojsonData, btn) {
             var isTargeted = lookup && (lookup.minorityPct > 50.0 || String(lookup.level).indexOf('>50%') >= 0);
 
             var color = isTargeted ? '#7c3aed' : (levelColors[level] || '#3b82f6');
-            
-            // Attach clean level to feature for toggleLevel filtering
             feature._ffiecLevel = isTargeted ? 'Middle' : level;
 
             return { color: color, fillColor: color, fillOpacity: 0.4, weight: 1.5 };
@@ -1217,6 +1249,7 @@ function renderFFIECLayer(geojsonData, btn) {
     }).addTo(map);
 }
 
+// INSTANT PRE-LOADING POPULATOR (PRE-INDEXES ALL 721 TRACTS)
 function populateFullOregonTractList() {
     try {
         var container = document.getElementById('tractListContent');
@@ -1257,10 +1290,10 @@ function populateFullOregonTractList() {
             var minPct = parseFloat(t.minorityPct) || 0;
             var isTargeted = minPct > 50.0 || level.indexOf('>50%') >= 0;
 
-            // STRICT FILTER RULE: EXCLUDE REGULAR UPPER INCOME TRACTS FROM SIDEBAR
+            // STRICT FILTER RULE: EXCLUDE REGULAR UPPER INCOME TRACTS
             if (level.indexOf('Upper') >= 0 || ratio > 120.0) {
                 if (!isTargeted) {
-                    return; // EXCLUDE REGULAR UPPER INCOME TRACTS!
+                    return; // DISQUALIFY REGULAR UPPER TRACTS FROM SIDEBAR
                 }
             }
 
@@ -1280,22 +1313,32 @@ function populateFullOregonTractList() {
 
             var cleanLvl = level.split('(')[0].trim();
 
-            allTracts.push({
+            // PRE-CALCULATE COORDINATES IF MISSING
+            var countyFips = geoid.substring(0, 5);
+            var countyDefault = countyMsaDefaults[countyFips] || countyMsaDefaults["41051"];
+            var coords = t.coords || [countyDefault.lat || 45.515, countyDefault.lng || -122.678];
+
+            var tractObj = {
                 geoid: geoid,
                 tract: geoid.slice(-6),
-                tractMfi: t.tractMfi || 0,
-                msaMfi: t.msaMfi || 0,
+                tractMfi: t.tractMfi || countyDefault.avgLmi,
+                msaMfi: t.msaMfi || countyDefault.msaMfi,
                 ratio: ratio,
                 level: cleanLvl,
                 minorityPct: minPct,
-                county: t.county || 'Oregon',
+                county: t.county || countyDefault.county,
                 city: t.city || 'Local Area',
                 isTargeted: isTargeted,
-                coords: t.coords || null
-            });
+                isOz: t.isOz || false,
+                coords: coords
+            };
+
+            // PRE-INDEX INTO MEMORY CACHE FOR INSTANT 0MS CLICK RESPONSE
+            window.trifectaCache[geoid] = tractObj;
+            allTracts.push(tractObj);
         });
 
-        // SIDEBAR HEADER BANNER WITH EXACT PDF TOTALS
+        // HEADER BANNER WITH EXACT PDF TOTALS
         var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #3b82f6;margin-bottom:6px;">' +
             '<p style="color:#60a5fa;font-size:10px;font-weight:bold;margin:0;">📊 Official FFIEC Tract Income Levels (' + allTracts.length + ' Total Presented)</p>' +
             '<p style="color:#93c5fd;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | 🟣 ' + minorityTargetedCount + ' Minority Pop (>50%)</p>' +
@@ -1305,8 +1348,6 @@ function populateFullOregonTractList() {
             var cardClass = t.isTargeted ? "tract-item minority-targeted" : "tract-item " + t.level.toLowerCase();
             var badgeTag = t.isTargeted ? '<span class="minority-badge-tag">MINORITY POPULATION (' + t.minorityPct.toFixed(1) + '%)</span>' : '';
             var levelColor = t.level === 'Low' ? '#ef4444' : (t.level === 'Moderate' ? '#f59e0b' : '#3b82f6');
-
-            window.trifectaCache[t.geoid] = t;
 
             html += '<div class="' + cardClass + '" onclick="focusFFIECTract(\'' + t.geoid + '\')" dblclick="focusFFIECTract(\'' + t.geoid + '\')">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;">' +
@@ -1554,6 +1595,7 @@ function renderVerifiedTrifectaTractList() {
 
 var tempTrifectaMarkers = [];
 
+// INSTANT ZERO-DELAY SIDEBAR TRACT MAP FOCUS
 function focusFFIECTract(geoid) {
     var foundLayer = false;
     if (ffiecShapeLayer) {
