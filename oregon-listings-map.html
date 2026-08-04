@@ -1410,21 +1410,21 @@ function extractFipsFromFeature(feature) {
     return '';
 }
 
-// TOGGLE FFIEC SHAPES LAYER WITH CONSISTENT BUTTON TITLE
+// TOGGLE FFIEC SHAPES LAYER WITH TOPOJSON CONVERTER FIX
 function toggleFFIECShapes() {
     var btn = document.getElementById('btnFFIECShapes');
     
     if (ffiecShapesVisible) {
         if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); ffiecShapeLayer = null; }
         btn.classList.remove('active');
-        btn.textContent = '📊 Tract Income Level'; // ALWAYS CONSISTENT BUTTON TITLE
+        btn.textContent = '📊 Tract Income Level'; // CONSISTENT BUTTON TEXT
         ffiecShapesVisible = false;
         return;
     }
     
     if (!ffiecShapesData) {
         document.getElementById('loadingBadge').style.display = 'block';
-        document.getElementById('loadingBadge').textContent = '⏳ Loading FFIEC LMI tract data...';
+        document.getElementById('loadingBadge').textContent = '⏳ Loading FFIEC tract boundaries...';
         btn.disabled = true;
         
         fetch('ffiec-shapes.json')
@@ -1447,7 +1447,30 @@ function toggleFFIECShapes() {
 
 function showFFIECShapes(btn) {
     if (!ffiecShapesData) { alert('FFIEC shape data not properly loaded.'); return; }
-    renderFFIECLayer(ffiecShapesData, btn);
+    
+    // CONVERT TOPOJSON TO GEOJSON BEFORE PASSING TO LEAFLET
+    if (ffiecShapesData.type === 'Topology') {
+        if (typeof topojson !== 'undefined') {
+            var objectsKey = Object.keys(ffiecShapesData.objects)[0];
+            var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
+            renderFFIECLayer(geojsonData, btn);
+        } else {
+            document.getElementById('loadingBadge').style.display = 'block';
+            document.getElementById('loadingBadge').textContent = '⏳ Loading TopoJSON converter...';
+            var script = document.createElement('script');
+            script.src = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
+            script.onload = function() {
+                document.getElementById('loadingBadge').style.display = 'none';
+                var objectsKey = Object.keys(ffiecShapesData.objects)[0];
+                var geojsonData = topojson.feature(ffiecShapesData, ffiecShapesData.objects[objectsKey]);
+                renderFFIECLayer(geojsonData, btn);
+            };
+            document.body.appendChild(script);
+            return;
+        }
+    } else {
+        renderFFIECLayer(ffiecShapesData, btn);
+    }
 }
 
 function renderFFIECLayer(geojsonData, btn) {
