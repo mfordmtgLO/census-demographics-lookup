@@ -1101,8 +1101,8 @@ var masterOregonFFIECLookup = {
     "41035970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
     "970800": { tractMfi: 65129, msaMfi: 62963, ratio: 103.44, level: "Middle", minorityPct: 51.50, isOz: false, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.215, -121.750] },
 
-    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
-    "004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    "41051004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted Minority >50%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
+    "004601": { tractMfi: 250001, msaMfi: 94727, ratio: 263.91, level: "Upper (OHCS Targeted Minority >50%)", minorityPct: 51.10, isOz: false, county: "MULTNOMAH COUNTY", city: "PORTLAND", coords: [45.512, -122.600] },
 
     // LOW & MODERATE INCOME TRIFECTA TRACTS
     "41035970200": { tractMfi: 20885, msaMfi: 62963, ratio: 33.17, level: "Low", minorityPct: 42.10, isOz: true, county: "KLAMATH COUNTY", city: "KLAMATH FALLS", coords: [42.225, -121.782] },
@@ -1184,7 +1184,6 @@ function extractFipsFromFeature(feature) {
     return '';
 }
 
-// PARSER FOR FETCHED FFIEC JSON DATA (MATCHES PDF COLUMNS)
 function processFFIECLookupData(dataArray) {
     if (!Array.isArray(dataArray)) return;
     ffiecLookupData = {};
@@ -1306,12 +1305,32 @@ function showFFIECShapes(btn) {
     }
 }
 
+// RENDER FFIEC SHAPE POLYGONS (EXCLUDES UPPER INCOME POLYGONS UNLESS >50% MINORITY)
 function renderFFIECLayer(geojsonData, btn) {
     if (ffiecShapeLayer) { map.removeLayer(ffiecShapeLayer); }
     
-    var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6","Upper":"#10b981"};
+    var levelColors = {"Low":"#ef4444","Moderate":"#f59e0b","Middle":"#3b82f6"};
     
     ffiecShapeLayer = L.geoJSON(geojsonData, {
+        filter: function(feature) {
+            var props = feature.properties || {};
+            var geoid = props.GEOID || props.geoid || '';
+            var lookup = (geoid && masterOregonFFIECLookup && masterOregonFFIECLookup[geoid]) ? masterOregonFFIECLookup[geoid] : null;
+            if (!lookup && geoid && typeof ffiecLookupData !== 'undefined' && ffiecLookupData) {
+                lookup = ffiecLookupData[geoid];
+            }
+
+            var level = lookup ? String(lookup.level) : (feature._ffiecLevel || '');
+            var minPct = lookup ? lookup.minorityPct : 0;
+
+            // EXCLUDE ALL UPPER INCOME POLYGONS UNLESS >50% MINORITY POPULATION
+            if (level.indexOf('Upper') >= 0) {
+                if (minPct <= 50.0 && level.indexOf('>50%') < 0) {
+                    return false; // HIDE REGULAR UPPER INCOME SHAPE POLYGONS FROM MAP
+                }
+            }
+            return true;
+        },
         style: function(feature) {
             var props = feature.properties || {};
             var geoid = props.GEOID || props.geoid || '';
@@ -1350,30 +1369,31 @@ function renderFFIECLayer(geojsonData, btn) {
     }).addTo(map);
 }
 
-// FULL STATEWIDE CATALOG POPULATOR (20 LOW, 194 MOD, 507 MID, 29 MINORITY >50%)
+// FULL CATALOG SIDEBAR POPULATOR (20 LOW, 194 MOD, 507 MID, 29 MINORITY >50%)
 function populateFullOregonTractList() {
     try {
         var container = document.getElementById('tractListContent');
         if (!container) return;
 
-        var lowCount = 0, modCount = 0, midCount = 0, upperCount = 0, minorityTargetedCount = 0;
+        var lowCount = 0, modCount = 0, midCount = 0, minorityTargetedCount = 0;
         var allTracts = [];
         var seenGeoids = {};
 
         var safeLookupData = (ffiecLookupData && typeof ffiecLookupData === 'object') ? ffiecLookupData : {};
         var sourceData = {};
 
+        // 1. Merge master PDF embedded dataset
         for (var k1 in masterOregonFFIECLookup) {
             if (masterOregonFFIECLookup.hasOwnProperty(k1)) {
                 sourceData[k1] = masterOregonFFIECLookup[k1];
             }
         }
+        // 2. Merge full fetched FFIEC lookup dataset
         for (var k2 in safeLookupData) {
             if (safeLookupData.hasOwnProperty(k2)) {
                 if (!sourceData[k2]) {
                     sourceData[k2] = safeLookupData[k2];
                 } else {
-                    // Merge metrics
                     if (safeLookupData[k2].tractMfi > 0) sourceData[k2].tractMfi = safeLookupData[k2].tractMfi;
                     if (safeLookupData[k2].msaMfi > 0) sourceData[k2].msaMfi = safeLookupData[k2].msaMfi;
                     if (safeLookupData[k2].ratio > 0) sourceData[k2].ratio = safeLookupData[k2].ratio;
@@ -1383,13 +1403,21 @@ function populateFullOregonTractList() {
 
         Object.keys(sourceData).forEach(function(geoid) {
             if (geoid.length < 11 || seenGeoids[geoid]) return;
-            seenGeoids[geoid] = true;
 
             var t = sourceData[geoid] || {};
             var level = String(t.level || 'Middle').trim();
             var ratio = parseFloat(t.ratio) || 0;
             var minPct = parseFloat(t.minorityPct) || 0;
             var isTargeted = minPct > 50.0 || level.indexOf('>50%') >= 0;
+
+            // STRICT FILTER RULE: EXCLUDE REGULAR UPPER INCOME TRACTS FROM SIDEBAR
+            if (level.indexOf('Upper') >= 0 || ratio > 120.0) {
+                if (!isTargeted) {
+                    return; // EXCLUDE REGULAR UPPER INCOME TRACTS!
+                }
+            }
+
+            seenGeoids[geoid] = true;
 
             if (isTargeted) {
                 minorityTargetedCount++;
@@ -1399,8 +1427,6 @@ function populateFullOregonTractList() {
                 lowCount++;
             } else if (level.indexOf('Moderate') >= 0 || (ratio >= 50.0 && ratio <= 80.0)) {
                 modCount++;
-            } else if (level.indexOf('Upper') >= 0 || ratio > 120.0) {
-                upperCount++;
             } else {
                 midCount++;
             }
@@ -1422,15 +1448,16 @@ function populateFullOregonTractList() {
             });
         });
 
+        // HEADER BANNER WITH EXACT PDF SHEET TOTALS
         var html = '<div style="position:sticky;top:0;background:#0d2137;padding:5px;z-index:5;border-bottom:2px solid #3b82f6;margin-bottom:6px;">' +
-            '<p style="color:#60a5fa;font-size:10px;font-weight:bold;margin:0;">📊 Official FFIEC Tract Income Levels (' + allTracts.length + ' Total)</p>' +
+            '<p style="color:#60a5fa;font-size:10px;font-weight:bold;margin:0;">📊 Official FFIEC Tract Income Levels (' + allTracts.length + ' Total Presented)</p>' +
             '<p style="color:#93c5fd;font-size:8px;margin:2px 0 0 0;">🔴 ' + lowCount + ' Low | 🟠 ' + modCount + ' Moderate | 🔵 ' + midCount + ' Middle | 🟣 ' + minorityTargetedCount + ' Minority Pop (>50%)</p>' +
             '</div>';
 
         allTracts.forEach(function(t) {
             var cardClass = t.isTargeted ? "tract-item minority-targeted" : "tract-item " + t.level.toLowerCase();
             var badgeTag = t.isTargeted ? '<span class="minority-badge-tag">MINORITY POPULATION (' + t.minorityPct.toFixed(1) + '%)</span>' : '';
-            var levelColor = t.level === 'Low' ? '#ef4444' : (t.level === 'Moderate' ? '#f59e0b' : (t.level === 'Upper' ? '#10b981' : '#3b82f6'));
+            var levelColor = t.level === 'Low' ? '#ef4444' : (t.level === 'Moderate' ? '#f59e0b' : '#3b82f6');
 
             window.trifectaCache[t.geoid] = t;
 
