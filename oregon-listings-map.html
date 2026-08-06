@@ -644,6 +644,79 @@ header .subtitle {
   line-height: 1.5;
 }
 
+
+/* Workforce Tracks */
+.tracks-section {
+  background: linear-gradient(135deg, #fef9ec 0%, #f4f8f1 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  margin: 40px 0;
+  padding: 48px 0;
+}
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+.track-card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  border-top: 5px solid var(--accent);
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+.track-card:hover { transform: translateY(-4px); }
+.track-card.tb { border-top-color: var(--success); }
+.track-card.tc { border-top-color: #0f766e; }
+.track-card.tg { border-top-color: #7c3aed; }
+.track-card .track-tag {
+  display: inline-block;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 10px; margin-bottom: 10px;
+  background: var(--accent); color: white;
+}
+.track-card.tb .track-tag { background: var(--success); }
+.track-card.tc .track-tag { background: #0f766e; }
+.track-card.tg .track-tag { background: #7c3aed; }
+.track-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+.track-card p { font-size: 0.85rem; color: var(--muted, #6b7280); line-height: 1.55; }
+.track-card .track-amount { font-size: 1.25rem; font-weight: 800; color: var(--accent); margin: 8px 0 4px; }
+.track-card.tb .track-amount { color: var(--success); }
+.track-card.tc .track-amount { color: #0f766e; }
+.track-card.tg .track-amount { color: #7c3aed; }
+.lc-card-visual {
+  background: linear-gradient(120deg, #14532d 0%, #166534 55%, #1d7a45 100%);
+  border-radius: 18px;
+  padding: 22px 26px;
+  color: white;
+  max-width: 420px;
+  box-shadow: 0 10px 28px rgba(20,83,45,0.35);
+  position: relative;
+}
+.lc-card-visual .lc-chip { width: 42px; height: 30px; border-radius: 6px; background: linear-gradient(135deg,#f6d365,#c9a227); margin-bottom: 12px; }
+.lc-card-visual .lc-num { font-family: monospace; font-size: 1.15rem; letter-spacing: 2px; opacity: 0.9; }
+.lc-card-visual .lc-brand { position: absolute; top: 18px; right: 22px; font-weight: 800; font-style: italic; font-size: 1.1rem; letter-spacing: 1px; }
+.lc-card-visual { min-height: 195px; }
+.lc-card-visual .lc-cu { position: absolute; bottom: 12px; left: 26px; font-size: 0.62rem; opacity: 0.8; text-align: left; line-height: 1.25; }
+.lc-card-visual .lc-name { position: absolute; bottom: 40px; left: 26px; font-size: 0.72rem; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.9; }
+.loop-strip {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 8px; margin-top: 28px; font-size: 0.85rem; font-weight: 600;
+}
+.loop-strip .loop-node {
+  background: white; border: 1px solid var(--border); border-radius: 20px;
+  padding: 8px 16px; box-shadow: var(--shadow);
+}
+.loop-strip .loop-arrow { color: var(--accent); font-weight: 800; }
+.win-badges { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+.win-badge {
+  font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 14px;
+  background: #fff7e0; border: 1px solid var(--accent); color: #8a6d1a;
+}
+.win-badge.w3 { background: #ecfdf3; border-color: var(--success); color: #065f46; }
+
 /* Projects */
 .projects-grid {
   display: grid;
@@ -968,6 +1041,68 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
           <li>Fifth Third — $100M CRA-aligned OZ investment</li>
           <li>KeyBank — $50M bank-sponsored QOF</li>
         </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFORCE TRACKS -->
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="tracks-section">
+      <div class="container">
+        <h2 class="section-title">The Youth Workforce Engine — Grounded in Ownership</h2>
+        <p class="section-subtitle">Why talent joins, stays, and relocates to our Superfecta &amp; Trifecta zones: every participating employer offers three compensation tracks that build residence + career stability — paid through the credit-union-branded <strong>Local Coin Visa debit card</strong>.</p>
+        <div class="tracks-grid">
+          <div class="track-card">
+            <span class="track-tag">TRACK A</span>
+            <h3>Fractional Ownership Payout</h3>
+            <div class="track-amount">Quarterly / Annual</div>
+            <p>Shared-equity &amp; profit-sharing payouts (mini-ESOP, ERISA-qualified) deposited <b>straight to the Local Coin card</b>. Workers literally own a piece of the company they build — the ultimate low-turnover incentive.</p>
+          </div>
+          <div class="track-card tb">
+            <span class="track-tag">TRACK B</span>
+            <h3>Homebuyer DPA — Closing Costs</h3>
+            <div class="track-amount">→ Local Coin card</div>
+            <p>Employer-funded down payment assistance for closing costs, forgivable 20%/yr vesting. Local Coin balance counts as an OHCS Flex Lending <b>qualified down payment source</b> — a renter becomes an owner in a 🎯 Targeted tract.</p>
+          </div>
+          <div class="track-card tc">
+            <span class="track-tag">TRACK C</span>
+            <h3>Student Loan Paydown</h3>
+            <div class="track-amount">$5,250 / yr tax-free</div>
+            <p>Employer pays the loan servicer <b>directly on behalf of the employee</b> — CARES Act tax-free through 2025-extended rules. Debt relief that frees up homebuying power years earlier.</p>
+          </div>
+          <div class="track-card tg">
+            <span class="track-tag">💡 GAME CHANGER</span>
+            <h3>Idea Rewards</h3>
+            <div class="track-amount">Paid via Track A</div>
+            <p>Worker-submitted ideas that become actionable, trackable company policy improvements earn Innovation Prize payouts — real buy-in, higher morale, and a visible "good things XYZ Co. does" story the community repeats for free.</p>
+          </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:28px; align-items:center; justify-content:center; margin-top:32px;">
+          <div class="lc-card-visual">
+            <div class="lc-brand">VISA</div>
+            <div class="lc-chip"></div>
+            <div class="lc-num">4021 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 7390</div>
+            <div class="lc-name">Local Coin Community Card</div>
+            <div class="lc-cu">Issued by a participating<br>Oregon credit union</div>
+          </div>
+          <div style="max-width:480px;">
+            <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:8px;">🪙 Why the credit union joins the network</h3>
+            <p style="font-size:0.87rem; line-height:1.6; color:var(--muted, #6b7280);">The CU wins too — cardholder <b>rebates &amp; rewards</b>, <b>near-zero merchant service fees</b>, fewer banking fees, and a lower-interest Visa product. Spend it at the <b>farmers market</b> or any participating Local Coin small business and the dollar recirculates inside the zone — worker wins, business wins, vendor wins, community wins.</p>
+          </div>
+        </div>
+        <div class="loop-strip">
+          <span class="loop-node">😊 Motivated workers</span><span class="loop-arrow">→</span>
+          <span class="loop-node">📉 Low turnover</span><span class="loop-arrow">→</span>
+          <span class="loop-node">📣 Community buzz</span><span class="loop-arrow">→</span>
+          <span class="loop-node">📈 Higher sales</span><span class="loop-arrow">→</span>
+          <span class="loop-node">🌱 Sustainable growth</span><span class="loop-arrow">⟳</span>
+        </div>
+        <div class="win-badges">
+          <span class="win-badge">🔶 SUPERFECTA zones: WIN × 4 — worker · business · vendor · community</span>
+          <span class="win-badge w3">🟢 TRIFECTA zones: WIN × 3 — worker · business · community</span>
+        </div>
       </div>
     </div>
   </div>
