@@ -815,6 +815,8 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
 .t-level.Moderate { background:#fef3c7; color:#92400e; }
 .t-level.Middle { background:#fef9c3; color:#a16207; }
 .tract-item .t-tri { display:inline-block; padding:1px 7px; border-radius:8px; font-size:0.65rem; font-weight:700; margin-left:4px; background:#dcfce7; color:#15803d; }
+.tract-item .t-sup { display:inline-block; padding:1px 7px; border-radius:8px; font-size:0.65rem; font-weight:700; margin-left:4px; background:#fee2e2; color:#8B4513; border:1px solid #d4a017; }
+.tract-item.sup-item { border-left:3px solid #8B4513; background:#fffaf2; }
 .sidebar-empty { padding:18px 12px; font-size:0.75rem; color:var(--text-muted); text-align:center; }
 .loading-badge { position:absolute; top:12px; left:50%; transform:translateX(-50%); background:rgba(15,76,58,0.94); color:#fff; padding:7px 18px; border-radius:20px; font-size:0.8rem; font-weight:600; z-index:1001; display:none; box-shadow:var(--shadow-lg); }
 
@@ -1094,7 +1096,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
     <div class="sidebar-header">
       <h4>📋 Tract Explorer</h4>
       <input type="text" id="tractFilter" placeholder="Filter by tract # or county..." oninput="renderTractList()">
-      <div class="sidebar-note">FFIEC income-level census tracts (Low &amp; Moderate first). Click any tract to zoom. 🟢 = verified Trifecta convergence. 🏘️ = QCT/OHCS targeted (FTHB waived). 👥 = majority-minority (CRA).</div>
+      <div class="sidebar-note">FFIEC income-level census tracts (Low &amp; Moderate first). Click any tract to zoom. 🟢 = verified Trifecta convergence. 🔶 = SUPERFECTA 4-layer zone tract (matches map pins). 🏘️ = QCT/OHCS targeted (FTHB waived). 👥 = majority-minority (CRA).</div>
     </div>
     <div id="tractList"><div class="sidebar-empty">Loading tract list…</div></div>
   </div>
@@ -2201,6 +2203,7 @@ geoLayers.lmi.addTo(map);
 // TRACT SIDEBAR
 // ============================================================
 const LEVEL_ORDER = { Low: 0, Moderate: 1, Middle: 2 };
+const SUPERFECTA_SET = new Set(superfectaTracts.map(t => t.tract));
 const sidebarTracts = LMI_DATA.features
   .filter(f => LEVEL_ORDER[f.properties.LEVEL] !== undefined)
   .sort((a, b) =>
@@ -2223,9 +2226,11 @@ function renderTractList() {
   el.innerHTML = items.map(f => {
     const p = f.properties;
     const tri = TRIFECTA_SET.has(p.GEOID);
-    return '<div class="tract-item" onclick="zoomToTract(\'' + p.GEOID + '\')">' +
+    const sup = SUPERFECTA_SET.has(p.GEOID);
+    return '<div class="tract-item' + (sup ? ' sup-item' : '') + '" onclick="zoomToTract(\'' + p.GEOID + '\')">' +
       '<span class="t-geoid">' + p.GEOID + '</span>' +
       '<span class="t-level ' + p.LEVEL + '">' + p.LEVEL + '</span>' +
+      (sup ? '<span class="t-sup">🔶 SUPERFECTA</span>' : '') +
       (tri ? '<span class="t-tri">🟢 TRIFECTA</span>' : '') +
       '<div class="t-meta">' + (p.COUNTYNAME || '—') + ' County • ' + p.LOWMODPCT + '% LMI' + (OZ_SET.has(p.GEOID) ? ' • ⭐ OZ' : '') + (QCT_SET.has(p.GEOID) ? ' • 🏘️ QCT' : '') + (MM_SET.has(p.GEOID) ? ' • 👥 MM' : '') + '</div></div>';
   }).join('');
