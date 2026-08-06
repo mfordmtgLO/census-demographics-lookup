@@ -1219,7 +1219,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
         <div class="zone-card-header superfecta">
           <div class="zone-rank">3</div>
           <h3>Ontario-Malheur Agri-Resilience</h3>
-          <div class="zone-location">Ontario/Nyssa, Malheur County &bull; Tract 41045970500 &bull; SUPERFECTA</div>
+          <div class="zone-location">Ontario/Nyssa, Malheur County &bull; Tracts 41045970500 + 41045970400 &bull; DUAL-TRACT SUPERFECTA</div>
         </div>
         <div class="zone-card-body">
           <div class="zone-metrics">
@@ -1905,7 +1905,7 @@ const zoneData = [
     name: "Ontario-Malheur Agri-Resilience",
     lat: 44.03, lng: -116.98, rank: 3, tier: 1, city: "Ontario",
     popGrowth: "+2%", medianHome: "$275K", score: "97",
-    censusTract: "41045970500",
+    censusTract: "41045970500 + 41045970400",
     county: "Malheur",
     projectName: "Ontario-Malheur Agri-Resilience",
     projectType: "Agri-Workforce Housing",
@@ -1919,7 +1919,7 @@ const zoneData = [
     superfecta: true,
     tags: ["SUPERFECTA", "OZ 2.0 Rural QROF 30%", "USDA RD", "CRA", "Lowest Cost OZ", "Local Coin Pilot"],
     bullets: [
-      "SUPERFECTA: USDA RD + OZ 2.0 + LMI + CRA — all 4 layers converge",
+      "DUAL-TRACT SUPERFECTA: OZ anchor 41045970500 (USDA + OZ 1.0/OZ 2.0 pool + CRA; FFIEC Middle 82.6% — income layer fails) pairs with adjacent housing anchor 41045970400 (FFIEC Moderate 51% — OHCS Flex ✓, HUD QCT FTHB-waived, median home $152,800, ~1 mi) — all 4 layers covered across the two tracts",
       "Most affordable OZ city in Oregon: $275K median (47% below state median)",
       "Nyssa nearby: $250K median — lowest in Oregon with OZ designation",
       "Only 25 rental properties in entire county — housing famine",
@@ -2119,7 +2119,16 @@ const superfectaTracts = [
     note: 'The only Low/Moderate-income tract inside Coos Bay city limits (FFIEC 2024-26). Pairs with port anchor 41011000300 (3.6 mi north) so the dual-tract zone covers all 4 layers in one market: workforce housing + OHCS Flex Lending here, port/OZ investment at the anchor.',
     badge: '3 of 4 layers — housing half of dual-tract zone' },
   { lat: 42.22, lng: -121.78, name: "Klamath Falls", tract: "41035971800", score: 95 },
-  { lat: 44.03, lng: -116.98, name: "Ontario", tract: "41045970500", score: 97 },
+  { lat: 44.038, lng: -116.975, name: "Ontario — OZ Anchor", tract: "41045970500", score: 94,
+    title: "ONTARIO DUAL-TRACT ZONE — OZ ANCHOR",
+    layers: ['✓ USDA RD Eligible', '⭐ OZ 1.0 designated; in OZ 2.0 eligible pool (rural)', '✗ FFIEC Middle income (82.6% MFI) — OHCS Flex Lending FAILS in this tract', '✓ CRA assessment area (majority-minority 63.2%)'],
+    note: 'Income layer fails here, so this tract alone is NOT a superfecta. It stays the OZ/USDA anchor (agri-industrial + QROF 30% rural step-up) and pairs with housing anchor 41045970400, adjacent ~1 mi east.',
+    badge: '3 of 4 layers — OZ half of dual-tract zone' },
+  { lat: 44.0273, lng: -116.958, name: "Ontario — Housing Anchor", tract: "41045970400", score: 91,
+    title: "ONTARIO DUAL-TRACT ZONE — HOUSING ANCHOR",
+    layers: ['✓ USDA RD Eligible', '🗺️ OZ 2.0 eligible pool — needs Gov. nomination by Sept 28, 2026 (not OZ 1.0)', '✓ FFIEC Moderate (51% MFI) — OHCS Flex Lending ✓ + HUD QCT (first-time-buyer rule waived)', '✓ CRA assessment area (majority-minority 56.2%)'],
+    note: 'The income-qualified half of the Ontario zone: FFIEC Moderate 51%, HUD QCT 2026 (FirstHome FTHB requirement waived), majority-minority 56.2%, median home $152,800 — the deepest affordability in the strategy. Pairs with OZ anchor 41045970500 (adjacent). If the Governor nominates it into OZ 2.0, this tract becomes a full standalone 4-layer superfecta.',
+    badge: '3 of 4 layers (4 if OZ 2.0 nominated) — housing half' },
 ];
 
 layerGroups.superfecta = L.layerGroup();
@@ -2134,7 +2143,6 @@ superfectaTracts.forEach(t => {
     '<div class="tract-metric"><span class="t-label">Convergence Score</span><span class="t-value">' + t.score + '/100</span></div>' +
     layerLines.map((l, i) => '<div class="tract-metric"><span class="t-label">Layer ' + (i + 1) + '</span><span class="t-value">' + l + '</span></div>').join('') +
     (t.note ? '<div class="tract-metric"><span class="t-label">⚠️ Audit Note</span><span class="t-value">' + t.note + '</span></div>' : '') +
-    (t.tract === '41045970500' ? '<div class="tract-metric"><span class="t-label">⚠️ FFIEC Check</span><span class="t-value">Tract is Middle income (82.6%) — Trifecta income layer FAILS here. Ontario alternate: adjacent 41045970400 (Moderate 51%, Rural, OZ 2.0 eligible)</span></div>' : '') +
     '<div class="tract-badge superfecta">' + (t.badge || '4-LAYER CONVERGENCE') + '</div>' +
     '<div class="tract-badge trifecta">Bank-Ready Capital</div></div>', { maxWidth: 320 });
   layerGroups.superfecta.addLayer(marker);
