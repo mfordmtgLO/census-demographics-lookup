@@ -1759,6 +1759,8 @@ geoLayers.lmi = L.geoJSON(LMI_DATA, {
       '<div class="tract-metric"><span class="t-label">LMI Population</span><span class="t-value">' + (p.LOWMODPCT != null ? p.LOWMODPCT + '%' : 'n/a') + '</span></div>' +
       (p.LOWMODPCT == null && p.MFI_PCT != null ? '<div class="tract-metric"><span class="t-label">Median Family Income</span><span class="t-value">' + p.MFI_PCT + '% of area MFI (FFIEC 2024-26)</span></div>' : '') +
       '<div class="tract-metric"><span class="t-label">Opportunity Zone</span><span class="t-value">' + (oz ? '⭐ Yes' : 'No') + '</span></div>' +
+      (QCT_SET.has(p.GEOID) ? '<div class="tract-metric"><span class="t-label">🏘️ HUD QCT</span><span class="t-value">OHCS targeted area — FirstHome first-time-buyer requirement WAIVED</span></div>' : '') +
+      (MM_SET.has(p.GEOID) ? '<div class="tract-metric"><span class="t-label">👥 Majority-Minority</span><span class="t-value">&gt;50% minority population — strengthens bank CRA lending case</span></div>' : '') +
       (tri ? '<div class="tract-badge trifecta">🟢 TRIFECTA QUALIFIED — USDA RD + OZ + ' + p.LEVEL + ' income</div>' : '') +
       (p.LEVEL === 'Low' || p.LEVEL === 'Moderate'
         ? '<div class="tract-badge oz">✓ OHCS Flex Lending eligible (LMI)</div>'
@@ -2142,6 +2144,8 @@ superfectaTracts.forEach(t => {
     '<div class="tract-metric"><span class="t-label">Census Tract</span><span class="t-value">' + t.tract + '</span></div>' +
     '<div class="tract-metric"><span class="t-label">Convergence Score</span><span class="t-value">' + t.score + '/100</span></div>' +
     layerLines.map((l, i) => '<div class="tract-metric"><span class="t-label">Layer ' + (i + 1) + '</span><span class="t-value">' + l + '</span></div>').join('') +
+    (QCT_SET.has(t.tract) ? '<div class="tract-metric"><span class="t-label">🏘️ HUD QCT</span><span class="t-value">OHCS targeted area — FirstHome first-time-buyer requirement WAIVED</span></div>' : '') +
+    (MM_SET.has(t.tract) ? '<div class="tract-metric"><span class="t-label">👥 Majority-Minority</span><span class="t-value">&gt;50% minority population — strengthens bank CRA lending case</span></div>' : '') +
     (t.note ? '<div class="tract-metric"><span class="t-label">⚠️ Audit Note</span><span class="t-value">' + t.note + '</span></div>' : '') +
     '<div class="tract-badge superfecta">' + (t.badge || '4-LAYER CONVERGENCE') + '</div>' +
     '<div class="tract-badge trifecta">Bank-Ready Capital</div></div>', { maxWidth: 320 });
