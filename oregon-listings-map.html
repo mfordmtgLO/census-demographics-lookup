@@ -926,10 +926,15 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
       <div class="pillar-card">
         <div class="pillar-num">Pillar 1</div>
         <h3>Housing Stability & Home Affordability</h3>
-        <p>OHCS Flex Lending FirstHome + NextStep DPA in LMI tracts. <span style="color:#15803d;font-weight:600;">🎯 In OHCS Targeted Areas (8 entire counties + 41 listed tracts — incl. all 3 superfecta zones): first-time-buyer requirement waived + higher household income & purchase price limits.</span> Now expanded with Fannie Mae Certified Shared Equity, employer forgivable down payment loans, and Local Coin 5% match bonus.</p>
+        <p>OHCS Flex Lending FirstHome + NextStep DPA in LMI tracts. <span style="color:#15803d;font-weight:600;">🎯 In OHCS Targeted Areas (8 entire counties + 41 listed tracts — incl. all 3 superfecta zones): first-time-buyer requirement waived + higher household income & purchase price limits.</span> <span style="color:#0f766e;font-weight:600;">💰 LIHTC: QCT tracts get a 30% basis boost on 9% credits — the multifamily construction engine for our QCT-flagged tracts.</span> Now expanded with Fannie Mae Certified Shared Equity, employer forgivable down payment loans, and Local Coin 5% match bonus.</p>
         <ul class="pillar-examples">
           <li>SquareOne Villages (Eugene) — $5K membership equity model</li>
           <li>Fannie Mae Duty to Serve — certified shared equity list</li>
+          <li><b>💰 LIHTC 30% QCT basis boost</b> — 9% credits on 130% eligible basis (Klamath + Ontario housing anchor tracts)</li>
+          <li>Via Verde (Bronx) — 222 mixed-income units, $98.8M, LEED Gold model</li>
+          <li>Orchards at Orenco (Hillsboro, OR) — 57 units, largest Passive House affordable bldg in N. America, 68% energy savings</li>
+          <li>The Lace Mill (Kingston, NY) — 55-unit adaptive-reuse rehab via 4% LIHTC + historic credits</li>
+          <li>NAHB model: 100 multifamily units = 161 local jobs yr 1 (+44 recurring) + $11.7M local income</li>
           <li>Track B: Employer DPA as forgivable loan (20%/yr)</li>
         </ul>
       </div>
@@ -956,9 +961,10 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
       <div class="pillar-card">
         <div class="pillar-num">Pillar 4</div>
         <h3>Investor ROI & Company Growth</h3>
-        <p>Superfecta 4-layer stack: USDA RD + OZ 2.0 QROF 30% + LMI OHCS + CRA bank credit. Bank-sponsored QROF template. Federal grants (CHIPS/BIL/IRA).</p>
+        <p>Superfecta 4-layer stack: USDA RD + OZ 2.0 QROF 30% + LMI OHCS + CRA bank credit. <span style="color:#0f766e;font-weight:600;">💰 LIHTC equity: banks earn dollar-for-dollar federal tax reduction + CRA investment-test credit (3.7M+ affordable homes financed nationwide) — QCT 130% basis boost deepens returns on Klamath &amp; Ontario housing tracts.</span> Bank-sponsored QROF template. Federal grants (CHIPS/BIL/IRA).</p>
         <ul class="pillar-examples">
           <li>Woodforest CEI-Boulos Fund — $26M OZ+CRA+LMI</li>
+          <li>LIHTC + CRA tandem: bank equity funds affordable construction &amp; earns CRA credit (OCC/Fed precedent)</li>
           <li>Fifth Third — $100M CRA-aligned OZ investment</li>
           <li>KeyBank — $50M bank-sponsored QOF</li>
         </ul>
@@ -1016,7 +1022,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
   <button class="map-toggle" data-layer="oz2pool" onclick="toggleLayer('oz2pool')">🗺️ OZ 2.0 Pool (229)</button>
   <button class="map-toggle active" data-layer="lmi" onclick="toggleLayer('lmi')">💰 LMI</button>
   <button class="map-toggle trifecta-toggle" data-layer="trifecta" onclick="toggleLayer('trifecta')">🟢 Trifecta Zones</button>
-  <button class="map-toggle" data-layer="qct" onclick="toggleLayer('qct')">🏘️ QCT / OHCS</button>
+  <button class="map-toggle" data-layer="qct" onclick="toggleLayer('qct')">🏘️ QCT + LIHTC</button>
   <button class="map-toggle" data-layer="targeted" onclick="toggleLayer('targeted')">🎯 OHCS Targeted</button>
   <button class="map-toggle" data-layer="mm" onclick="toggleLayer('mm')">👥 >50% Minority</button>
   <button class="map-toggle" data-layer="cra" onclick="toggleLayer('cra')">🏛️ CRA</button>
@@ -1133,7 +1139,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
     <div class="sidebar-header">
       <h4>📋 Tract Explorer</h4>
       <input type="text" id="tractFilter" placeholder="Filter by tract # or county..." oninput="renderTractList()">
-      <div class="sidebar-note">FFIEC income-level census tracts (Low &amp; Moderate first). Click any tract to zoom. 🟢 = verified Trifecta convergence. 🔶 = SUPERFECTA 4-layer zone tract (matches map pins). 🏘️ = QCT/OHCS targeted (FTHB waived). 👥 = majority-minority (CRA).</div>
+      <div class="sidebar-note">FFIEC income-level census tracts (Low &amp; Moderate first). Click any tract to zoom. 🟢 = verified Trifecta convergence. 🔶 = SUPERFECTA 4-layer zone tract (matches map pins). 🏘️ = QCT — OHCS targeted (FTHB waived) + LIHTC 130% basis boost. 👥 = majority-minority (CRA).</div>
     </div>
     <div id="tractList"><div class="sidebar-empty">Loading tract list…</div></div>
   </div>
@@ -1777,7 +1783,7 @@ geoLayers.lmi = L.geoJSON(LMI_DATA, {
       '<div class="tract-metric"><span class="t-label">LMI Population</span><span class="t-value">' + (p.LOWMODPCT != null ? p.LOWMODPCT + '%' : 'n/a') + '</span></div>' +
       (p.LOWMODPCT == null && p.MFI_PCT != null ? '<div class="tract-metric"><span class="t-label">Median Family Income</span><span class="t-value">' + p.MFI_PCT + '% of area MFI (FFIEC 2024-26)</span></div>' : '') +
       '<div class="tract-metric"><span class="t-label">Opportunity Zone</span><span class="t-value">' + (oz ? '⭐ Yes' : 'No') + '</span></div>' +
-      (QCT_SET.has(p.GEOID) ? '<div class="tract-metric"><span class="t-label">🏘️ HUD QCT</span><span class="t-value">OHCS targeted area — FirstHome first-time-buyer requirement WAIVED</span></div>' : '') +
+      (QCT_SET.has(p.GEOID) ? '<div class="tract-metric"><span class="t-label">🏘️ HUD QCT</span><span class="t-value">OHCS targeted — FTHB WAIVED + 💰 LIHTC 30% basis boost eligible (130% basis)</span></div>' : '') +
       (isTargetedTract(p.GEOID) ? '<div class="tract-metric"><span class="t-label">🎯 OHCS Targeted</span><span class="t-value">Targeted Area — FTHB waived + higher income & price limits' + targetedLimitText(p.COUNTYNAME) + '</span></div>' : '') +
       (MM_SET.has(p.GEOID) ? '<div class="tract-metric"><span class="t-label">👥 Majority-Minority</span><span class="t-value">&gt;50% minority population — strengthens bank CRA lending case</span></div>' : '') +
       (tri ? '<div class="tract-badge trifecta">🟢 TRIFECTA QUALIFIED — USDA RD + OZ + ' + p.LEVEL + ' income</div>' : '') +
@@ -1823,6 +1829,8 @@ geoLayers.qct = L.geoJSON(TRACTS2020_DATA, {
       '<div class="tract-metric"><span class="t-label">Median Home Value</span><span class="t-value">' + (p.MED_HOME != null ? '$' + p.MED_HOME.toLocaleString() : '—') + '</span></div>' +
       '<div class="tract-metric"><span class="t-label">Minority Population</span><span class="t-value">' + (p.MIN_PCT != null ? p.MIN_PCT + '%' : '—') + '</span></div>' +
       '<div class="tract-badge oz">🏘️ HUD QCT 2026 = OHCS Targeted Area</div>' +
+      '<div class="tract-metric"><span class="t-label">💰 LIHTC Boost</span><span class="t-value">QCT → <b>30% basis boost</b>: 9% credits on 130% eligible basis (IRC §42) — more equity, less debt. Apply via OHCS ORCA</span></div>' +
+      '<div style="margin-top:6px;font-size:0.72rem;"><a href="https://www.huduser.gov/portal/datasets/lihtc.html" target="_blank" rel="noopener">🏛️ HUD LIHTC database (existing tax-credit properties)</a> · <a href="https://www.oregon.gov/ohcs/rental-housing/housing-development/development-resources/pages/low-income-housing-tax-credits.aspx" target="_blank" rel="noopener">OHCS LIHTC/QAP</a></div>' +
       '<div class="tract-badge trifecta">✓ FirstHome FTHB requirement WAIVED here</div>' +
       (p.MM ? '<div class="tract-badge superfecta">👥 Also majority-minority (CRA)</div>' : '') +
       (oz ? '<div class="tract-badge oz">⭐ Opportunity Zone' + (OZ2_AT_RISK.has(p.GEOID) ? ' 1.0 — expires 12/31/2028' : ' — OZ 2.0 eligible') + '</div>' : '') +
@@ -1934,6 +1942,7 @@ const zoneData = [
       "⚠️ USDA WATCH: eligible TODAY, but Klamath Falls urban area 2020 pop 43,208 exceeds 35k — proposed ineligible when USDA finalizes its 2020-Census update (orange layer)",
       "SUPERFECTA: USDA RD + OZ 2.0 + LMI + CRA — all 4 layers converge",
       "🎯 OHCS TARGETED TRACT (9718.00 on official OHCS chart): first-time-buyer rule waived + higher income/price limits",
+      "💰 LIHTC: QCT tract = 30% basis boost — 9% credits on 130% eligible basis via OHCS ORCA; bank LIHTC equity earns CRA investment credit",
       "Sky Lakes Medical Center: 750+ employees, largest private employer in south-central Oregon",
       "Oregon Tech: 400 annual graduates, many seeking local housing",
       "Median rent $1,500/mo rising 16.5% YoY — documented rental crisis",
@@ -1968,6 +1977,7 @@ const zoneData = [
     bullets: [
       "DUAL-TRACT SUPERFECTA: OZ anchor 41045970500 (USDA + OZ 1.0/OZ 2.0 pool + CRA; FFIEC Middle 82.6% — income layer fails) pairs with adjacent housing anchor 41045970400 (FFIEC Moderate 51% — OHCS Flex ✓, HUD QCT FTHB-waived, median home $152,800, ~1 mi) — all 4 layers covered across the two tracts",
       "🎯 OHCS TARGETED TRACT: housing anchor 41045970400 is tract 9704.00 on the official OHCS chart — first-time-buyer rule waived + higher income/price limits",
+      "💰 LIHTC: housing anchor 41045970400 is a QCT — 30% basis boost on 9% credits (130% eligible basis): multifamily construction stacks with $152,800 median-home affordability",
       "Most affordable OZ city in Oregon: $275K median (47% below state median)",
       "Nyssa nearby: $250K median — lowest in Oregon with OZ designation",
       "Only 25 rental properties in entire county — housing famine",
@@ -2195,6 +2205,7 @@ superfectaTracts.forEach(t => {
     layerLines.map((l, i) => '<div class="tract-metric"><span class="t-label">Layer ' + (i + 1) + '</span><span class="t-value">' + l + '</span></div>').join('') +
     (QCT_SET.has(t.tract) ? '<div class="tract-metric"><span class="t-label">🏘️ HUD QCT</span><span class="t-value">OHCS targeted area — FirstHome first-time-buyer requirement WAIVED</span></div>' : '') +
     (MM_SET.has(t.tract) ? '<div class="tract-metric"><span class="t-label">👥 Majority-Minority</span><span class="t-value">&gt;50% minority population — strengthens bank CRA lending case</span></div>' : '') +
+    (QCT_SET.has(t.tract) ? '<div class="tract-metric"><span class="t-label">💰 LIHTC Boost</span><span class="t-value">QCT → 30% basis boost — 9% credits on 130% eligible basis via OHCS ORCA; bank equity earns CRA credit</span></div>' : '') +
     (t.note ? '<div class="tract-metric"><span class="t-label">⚠️ Audit Note</span><span class="t-value">' + t.note + '</span></div>' : '') +
     '<div class="tract-badge superfecta">' + (t.badge || '4-LAYER CONVERGENCE') + '</div>' +
     '<div class="tract-badge trifecta">Bank-Ready Capital</div></div>', { maxWidth: 320 });
@@ -2391,7 +2402,7 @@ function renderTractList() {
       (USDA_INELIGIBLE_TRACTS.has(p.GEOID) ? '' : ' <img class="usda-pill usda-pill-sm" src="' + USDA_RD_ICON + '" alt="USDA RD eligible" title="USDA RD eligible">') +
       (sup ? '<span class="t-sup">🔶 SUPERFECTA</span>' : '') +
       (tri ? '<span class="t-tri">🟢 TRIFECTA</span>' : '') +
-      '<div class="t-meta">' + (p.COUNTYNAME || '—') + ' County • ' + (p.LOWMODPCT != null ? p.LOWMODPCT + '% LMI' : 'MFI ' + p.MFI_PCT + '% (FFIEC)') + (OZ_SET.has(p.GEOID) ? (OZ2_AT_RISK.has(p.GEOID) ? ' • ⭐ OZ⚠️28' : ' • ⭐ OZ✓2.0') : (OZ2POOL_SET.has(p.GEOID) ? ' • 🗺️ OZ2 pool' : '')) + (QCT_SET.has(p.GEOID) ? ' • 🏘️ QCT' : '') + (isTargetedTract(p.GEOID) ? ' • 🎯 Targeted' : '') + (MM_SET.has(p.GEOID) ? ' • 👥 MM' : '') + '</div></div>';
+      '<div class="t-meta">' + (p.COUNTYNAME || '—') + ' County • ' + (p.LOWMODPCT != null ? p.LOWMODPCT + '% LMI' : 'MFI ' + p.MFI_PCT + '% (FFIEC)') + (OZ_SET.has(p.GEOID) ? (OZ2_AT_RISK.has(p.GEOID) ? ' • ⭐ OZ⚠️28' : ' • ⭐ OZ✓2.0') : (OZ2POOL_SET.has(p.GEOID) ? ' • 🗺️ OZ2 pool' : '')) + (QCT_SET.has(p.GEOID) ? ' • 🏘️ QCT+LIHTC' : '') + (isTargetedTract(p.GEOID) ? ' • 🎯 Targeted' : '') + (MM_SET.has(p.GEOID) ? ' • 👥 MM' : '') + '</div></div>';
   }).join('');
 }
 renderTractList();
