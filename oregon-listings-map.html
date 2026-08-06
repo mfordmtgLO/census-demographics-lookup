@@ -790,6 +790,16 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
   .leaflet-popup-content-wrapper { max-width: 340px !important; width: 340px !important; }
   .leaflet-popup-content { width: 340px !important; }
 }
+/* ===== V4.3: FFIEC official lookup banner ===== */
+.ffiec-lookup { display:flex; align-items:center; gap:14px; margin-top:10px; padding:10px 14px; background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid var(--primary); border-radius:8px; flex-wrap:wrap; }
+.ffiec-btn { display:inline-block; background:var(--primary); color:#fff !important; font-weight:700; font-size:0.82rem; padding:8px 16px; border-radius:8px; text-decoration:none; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.15); transition:background 0.15s; }
+.ffiec-btn:hover { background:#166534; }
+.usda-btn { display:inline-block; background:#4b5563; color:#fff !important; font-weight:700; font-size:0.82rem; padding:8px 16px; border-radius:8px; text-decoration:none; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.15); transition:background 0.15s; }
+.usda-btn:hover { background:#374151; }
+.lookup-btns { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.ffiec-note { font-size:0.72rem; color:#374151; line-height:1.45; flex:1; min-width:280px; }
+.ffiec-note strong { color:var(--primary); }
+
 /* ===== V3: Search bar ===== */
 .map-search { display:flex; gap:8px; align-items:center; flex:1; min-width:260px; max-width:520px; }
 .map-search input { flex:1; padding:8px 14px; border-radius:20px; border:1px solid var(--border); font-size:0.85rem; font-family:'Inter',sans-serif; }
@@ -973,6 +983,13 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
           <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Moderate Inc.</div>
           <div class="legend-item"><div class="legend-dot" style="background:#14b8a6;"></div> QCT / OHCS Targeted</div>
           <div class="legend-item"><div class="legend-dot" style="background:#f43f5e;"></div> Majority-Minority</div>
+        </div>
+        <div class="ffiec-lookup">
+          <span class="lookup-btns">
+            <a class="ffiec-btn" href="https://geomap.ffiec.gov/ffiecgeomap/" target="_blank" rel="noopener">🔎 FFIEC Official Property Lookup</a>
+            <a class="usda-btn" href="https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do?pageAction=sfp" target="_blank" rel="noopener">🌾 USDA RD Official Property Lookup</a>
+          </span>
+          <span class="ffiec-note"><strong>Address-level verification required:</strong> this map shows <em>tract-level</em> data. <strong>FFIEC lookup</strong> → the exact income level OHCS Flex Lending programs (FirstHome mortgage + NextStep DPA) apply to a specific property — tract boundaries and annual MSA median-income updates can change an address's Low/Moderate/Middle/Upper status. <strong>USDA RD lookup</strong> → select "Single Family Housing Guaranteed" and enter the address to confirm it sits in an <strong>"Eligible"</strong> rural area — our gray/orange shading is metro-scale and parcel results near edges can differ. Both open official .gov tools in a new tab.</span>
         </div>
       </div>
       
@@ -1624,10 +1641,11 @@ geoLayers.usda = L.geoJSON(USDA_DATA, {
     layer.bindPopup(p.STATUS === 'proposed2020'
       ? '<div class="bank-popup"><div class="bank-name">⚠️ USDA RD — PROPOSED Ineligible: ' + p.NAME + '</div>' +
         '<div class="bank-type">2020 Census urban area pop ' + (p.UA_POP != null ? p.UA_POP.toLocaleString() : '') + ' (>35,000 threshold). Currently ELIGIBLE — proposed ineligible when USDA finalizes its 2020-Census update.</div>' +
-        '<div class="bank-cra">Verify per address: eligibility.sc.egov.usda.gov</div></div>'
+        '<div class="bank-cra"><a href="https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do?pageAction=sfp" target="_blank" rel="noopener">🌾 Verify exact address → official USDA RD lookup</a></div></div>'
       : '<div class="bank-popup"><div class="bank-name">🌾 USDA RD INELIGIBLE Zone' + (p.NAME && p.NAME.indexOf('Urbanized') === -1 ? ' — ' + p.NAME : '') + '</div>' +
         '<div class="bank-type">Urbanized area — shaded = NOT eligible</div>' +
-        '<div class="bank-cra">✅ Outside shading = USDA RD ELIGIBLE</div></div>');
+        '<div class="bank-cra">✅ Outside shading = USDA RD ELIGIBLE</div>' +
+        '<div class="bank-cra"><a href="https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do?pageAction=sfp" target="_blank" rel="noopener">🌾 Verify exact address → official USDA RD lookup</a></div></div>');
   }
 });
 
@@ -1677,6 +1695,7 @@ geoLayers.lmi = L.geoJSON(LMI_DATA, {
       (p.LEVEL === 'Low' || p.LEVEL === 'Moderate'
         ? '<div class="tract-badge oz">✓ OHCS Flex Lending eligible (LMI)</div>'
         : '<div class="tract-badge">✗ Middle/Upper — no OHCS Flex Lending</div>') +
+      '<div style="margin-top:8px;font-size:0.72rem;"><a href="https://geomap.ffiec.gov/ffiecgeomap/" target="_blank" rel="noopener">🔎 Verify exact property address → official FFIEC lookup</a></div>' +
       '</div>', { maxWidth: 320 });
   }
 });
