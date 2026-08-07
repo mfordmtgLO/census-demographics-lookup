@@ -419,7 +419,7 @@ header .subtitle {
 .zone-card-body { padding: 24px 28px; }
 .zone-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -759,91 +759,6 @@ header .subtitle {
 .fm-vendors { font-size: 0.78rem; color: rgba(255,255,255,0.65); margin-top: 14px; }
 .fm-vendors a { color: #7dd3fc; }
 
-/* Projects */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-}
-.project-card {
-  background: var(--card);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-.project-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
-}
-.project-image {
-  height: 180px;
-  background: linear-gradient(135deg, var(--primary) 0%, #2d6a4f 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-.project-image.superfecta {
-  background: linear-gradient(135deg, var(--superfecta) 0%, #8B6914 100%);
-}
-.project-image .project-type {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  background: rgba(255,255,255,0.95);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-.project-image svg { width: 64px; height: 64px; color: rgba(255,255,255,0.3); }
-.project-body { padding: 24px; }
-.project-body h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 8px;
-}
-.project-body .project-location {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.project-body .project-location svg { width: 16px; height: 16px; }
-.project-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.project-stat {
-  background: var(--bg);
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-}
-.project-stat .num {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-.project-stat .label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.project-desc {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
 
 /* Precedents */
 .precedents-grid {
@@ -891,7 +806,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
   .pdf-btn { display: none !important; }
   body { background: white; }
   .section { padding: 30px 0; }
-  .zone-card, .project-card, .summary-card, .pillar-card, .precedent-card { break-inside: avoid; }
+  .zone-card, .summary-card, .pillar-card, .precedent-card { break-inside: avoid; }
 }
 
 /* Responsive */
@@ -965,6 +880,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
 }
 
 </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -1353,6 +1269,10 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
               <div class="num">40</div>
               <div class="label">Housing Units</div>
             </div>
+            <div class="zone-metric">
+              <div class="num">120</div>
+              <div class="label">Workers</div>
+            </div>
           </div>
           <div class="zone-tags">
             <span class="tag superfecta-tag">SUPERFECTA</span>
@@ -1362,7 +1282,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
             <span class="tag accent-tag">15yr Enterprise Zone</span>
             <span class="tag primary-tag">Local Coin</span>
           </div>
-          <p class="zone-desc">Only deep-water port between San Francisco and Puget Sound. Maritime industrial + workforce housing. USDA B&I guaranteed loan. 40 families become first-time homeowners via OHCS Flex Lending + employer forgivable DPA at $350K — 28% below state median. Local Coin 5% employer match. Track A/B/C profit-sharing + student loan paydown for 120 port workers.</p>
+          <p class="zone-desc">Only deep-water port between San Francisco and Puget Sound. Maritime industrial + workforce housing. USDA B&I guaranteed loan. 40 families become first-time homeowners via OHCS Flex Lending + employer forgivable DPA at $350K — 28% below state median. Local Coin 5% employer match. Track A/B/C profit-sharing + student loan paydown ($630K/yr) for 120 port workers.</p>
         </div>
       </div>
 
@@ -1387,6 +1307,10 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
               <div class="num">50</div>
               <div class="label">Housing Units</div>
             </div>
+            <div class="zone-metric">
+              <div class="num">100</div>
+              <div class="label">Workers</div>
+            </div>
           </div>
           <div class="zone-tags">
             <span class="tag superfecta-tag">SUPERFECTA</span>
@@ -1396,7 +1320,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
             <span class="tag accent-tag">Sky Lakes Anchor</span>
             <span class="tag primary-tag">Local Coin</span>
           </div>
-          <p class="zone-desc">Sky Lakes Medical Center (750 employees) + Oregon Tech (400 grads/year). Median rent $1,500 rising 16.5% YoY. Median home $317K — 42% below state median. Rent-to-own arbitrage makes OHCS Flex Lending cheaper than renting. Hospital 10-year workforce housing MOU. Fannie Mae Certified Shared Equity eligible. Track B profit-share convertible to down payment via forgivable employer loan.</p>
+          <p class="zone-desc">Sky Lakes Medical Center (750 employees) + Oregon Tech (400 grads/year). Median rent $1,500 rising 16.5% YoY. Typical home value $317K — 42% below state median. Rent-to-own arbitrage makes OHCS Flex Lending cheaper than renting. Hospital 10-year workforce housing MOU. Fannie Mae Certified Shared Equity eligible. Track B profit-share convertible to down payment via forgivable employer loan. Innovation Prize: $2,500 bonus for top employee ideas.</p>
         </div>
       </div>
 
@@ -1421,6 +1345,10 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
               <div class="num">45</div>
               <div class="label">Housing Units</div>
             </div>
+            <div class="zone-metric">
+              <div class="num">90</div>
+              <div class="label">Workers</div>
+            </div>
           </div>
           <div class="zone-tags">
             <span class="tag superfecta-tag">SUPERFECTA</span>
@@ -1430,7 +1358,7 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
             <span class="tag accent-tag">Lowest Cost OZ</span>
             <span class="tag primary-tag">Local Coin Pilot</span>
           </div>
-          <p class="zone-desc">Most affordable OZ city in Oregon at $275K median — 47% below state median. Only 25 rental properties in entire county. Snake River Produce + Treasure Valley Potato employ hundreds year-round. Cross-border Idaho workers can access OHCS Flex Lending. USDA REAP + ODA grants. RECOMMENDED Local Coin pilot zone: lowest cost, highest impact, simplest rollout.</p>
+          <p class="zone-desc">Most affordable OZ city in Oregon — $275K typical home value (47% below state median); anchor tract median just $152,800 (ACS 2024). Only 25 rental properties in entire county. Snake River Produce + Treasure Valley Potato employ hundreds year-round. Cross-border Idaho workers can access OHCS Flex Lending. USDA REAP + ODA grants. Track C: $5,250/yr tax-free student loan paydown. RECOMMENDED Local Coin pilot zone: lowest cost, highest impact, simplest rollout.</p>
         </div>
       </div>
 
@@ -1696,119 +1624,6 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- SAMPLE PROJECTS -->
-<section class="section">
-  <div class="container">
-    <h2 class="section-title">Sample SUPERFECTA Projects</h2>
-    <p class="section-subtitle">Three archetype projects demonstrating the full 4-layer stack, shared equity employment, and Local Coin integration.</p>
-    <div class="projects-grid">
-
-      <!-- Project 1: Coos Bay -->
-      <div class="project-card">
-        <div class="project-image superfecta">
-          <span class="project-type">Maritime Industrial + Housing</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-4h8v4"/></svg>
-        </div>
-        <div class="project-body">
-          <h3>Coos Bay Pacific Gateway</h3>
-          <div class="project-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Coos Bay, OR &bull; SUPERFECTA Zone 1
-          </div>
-          <div class="project-stats">
-            <div class="project-stat">
-              <div class="num">$25M</div>
-              <div class="label">Total Cost</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">58.5%</div>
-              <div class="label">Incentive Stack</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">40</div>
-              <div class="label">Housing Units</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">120</div>
-              <div class="label">Workers</div>
-            </div>
-          </div>
-          <p class="project-desc">SUPERFECTA: USDA RD + OZ 2.0 QROF 30% + LMI + CRA. Maritime industrial park + workforce housing. QROF 30% step-up + 15-year Enterprise Zone + USDA B&I + CRA bank credit. OHCS Flex Lending + employer forgivable DPA for 40 first-time buyers. Local Coin 5% match. Track A/B/C for 120 port workers. Annual student loan paydown $630K.</p>
-        </div>
-      </div>
-
-      <!-- Project 2: Klamath Falls -->
-      <div class="project-card">
-        <div class="project-image superfecta">
-          <span class="project-type">Healthcare Workforce Housing</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        </div>
-        <div class="project-body">
-          <h3>Klamath Falls Health & Heritage</h3>
-          <div class="project-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Klamath Falls, OR &bull; SUPERFECTA Zone 2
-          </div>
-          <div class="project-stats">
-            <div class="project-stat">
-              <div class="num">$22M</div>
-              <div class="label">Total Cost</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">52.8%</div>
-              <div class="label">Incentive Stack</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">50</div>
-              <div class="label">Housing Units</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">100</div>
-              <div class="label">Workers</div>
-            </div>
-          </div>
-          <p class="project-desc">SUPERFECTA: USDA RD + OZ 2.0 QROF 30% + LMI + CRA. 50 workforce homes for Sky Lakes + Oregon Tech. $317K median — rent-to-own arbitrage. Hospital 10-year MOU. Fannie Mae Certified Shared Equity. Track B: profit-share → forgivable employer DPA. Local Coin down payment bridge. Innovation Prize: $2,500 bonus for top employee ideas.</p>
-        </div>
-      </div>
-
-      <!-- Project 3: Ontario/Malheur -->
-      <div class="project-card">
-        <div class="project-image superfecta">
-          <span class="project-type">Agri-Resilience Housing</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <div class="project-body">
-          <h3>Ontario-Malheur Agri-Resilience</h3>
-          <div class="project-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Ontario, OR &bull; SUPERFECTA Zone 3
-          </div>
-          <div class="project-stats">
-            <div class="project-stat">
-              <div class="num">$20M</div>
-              <div class="label">Total Cost</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">53.0%</div>
-              <div class="label">Incentive Stack</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">45</div>
-              <div class="label">Housing Units</div>
-            </div>
-            <div class="project-stat">
-              <div class="num">90</div>
-              <div class="label">Workers</div>
-            </div>
-          </div>
-          <p class="project-desc">SUPERFECTA: USDA RD + OZ 2.0 QROF 30% + LMI + CRA. 45 workforce homes at $275K — 47% below state median. Only 25 rentals in entire county. Snake River Produce workforce housing agreement. Cross-border Idaho workers eligible for OHCS. USDA REAP + ODA grants. RECOMMENDED Local Coin pilot zone. Track C: $5,250/yr tax-free student loan paydown.</p>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
@@ -2152,7 +1967,7 @@ const zoneData = [
       "Sky Lakes Medical Center: 750+ employees, largest private employer in south-central Oregon",
       "Oregon Tech: 400 annual graduates, many seeking local housing",
       "Median rent $1,500/mo rising 16.5% YoY — documented rental crisis",
-      "Median home $317K — 42% below state median; rent-to-own arbitrage",
+      "Typical home value $317K — 42% below state median; rent-to-own arbitrage",
       "QROF 30% step-up + 10-year gain exclusion = $4.6M NPV tax benefit",
       "USDA B&I: $7M guaranteed loan at reduced rate = $1.4M NPV savings",
       "CRA Bank Credit: $3.5M loan at 50bps reduction = $185K NPV savings",
@@ -2184,8 +1999,8 @@ const zoneData = [
       "DUAL-TRACT SUPERFECTA: OZ anchor 41045970500 (USDA + OZ 1.0/OZ 2.0 pool + CRA; FFIEC Middle 82.6% — income layer fails) pairs with adjacent housing anchor 41045970400 (FFIEC Moderate 51% — OHCS Flex ✓, HUD QCT FTHB-waived, median home $152,800, ~1 mi) — all 4 layers covered across the two tracts",
       "🎯 OHCS TARGETED TRACT: housing anchor 41045970400 is tract 9704.00 on the official OHCS chart — first-time-buyer rule waived + higher income/price limits",
       "💰 LIHTC: housing anchor 41045970400 is a QCT — 30% basis boost on 9% credits (130% eligible basis): multifamily construction stacks with $152,800 median-home affordability",
-      "Most affordable OZ city in Oregon: $275K median (47% below state median)",
-      "Nyssa nearby: $250K median — lowest in Oregon with OZ designation",
+      "Most affordable OZ city in Oregon: $275K typical home value (47% below state median)",
+      "Nyssa nearby: $250K typical value — lowest in Oregon with OZ designation",
       "Only 25 rental properties in entire county — housing famine",
       "Snake River Produce + Treasure Valley Potato: year-round employers",
       "Cross-border advantage: Idaho workers can buy in Oregon, access OHCS",
@@ -2302,7 +2117,7 @@ function buildPopupHTML(z) {
         <div class="popup-metrics">
           <div class="popup-metric">
             <div class="num">${z.medianHome}</div>
-            <div class="label">Median Home</div>
+            <div class="label">Typical Home Value</div>
           </div>
           <div class="popup-metric">
             <div class="num positive">${z.projectedIRR}</div>
