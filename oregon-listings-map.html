@@ -717,6 +717,48 @@ header .subtitle {
 }
 .win-badge.w3 { background: #ecfdf3; border-color: var(--success); color: #065f46; }
 
+
+.fm-panel {
+  grid-column: 1 / -1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(201,162,39,0.45);
+  border-radius: 16px;
+  padding: 28px;
+}
+.fm-panel .fm-hypo {
+  display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 1px;
+  color: #1a1a2e; background: var(--accent); border-radius: 10px; padding: 3px 10px; margin-left: 10px; vertical-align: middle;
+}
+.fm-facts { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 20px; }
+.fm-fact {
+  font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px; padding: 5px 12px;
+}
+.fm-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.fm-step {
+  background: rgba(255,255,255,0.05); border-left: 3px solid var(--success);
+  border-radius: 10px; padding: 14px 16px; font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.5;
+}
+.fm-step b { color: white; display: block; margin-bottom: 4px; font-size: 0.9rem; }
+.fm-math {
+  background: rgba(5,150,105,0.12); border: 1px solid rgba(5,150,105,0.4);
+  border-radius: 12px; padding: 18px 20px;
+}
+.fm-math h4 { color: #34d399; font-size: 0.95rem; margin-bottom: 10px; }
+.fm-math .fm-formula {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: 0.9rem; color: rgba(255,255,255,0.9); font-weight: 600;
+}
+.fm-math .fm-num {
+  background: rgba(255,255,255,0.1); border-radius: 8px; padding: 6px 12px;
+  font-weight: 800; color: #fbbf24; white-space: nowrap;
+}
+.fm-math .fm-op { color: rgba(255,255,255,0.5); font-weight: 800; }
+.fm-math .fm-note { font-size: 0.72rem; color: rgba(255,255,255,0.55); margin-top: 10px; line-height: 1.5; }
+.fm-vendors { font-size: 0.78rem; color: rgba(255,255,255,0.65); margin-top: 14px; }
+.fm-vendors a { color: #7dd3fc; }
+
 /* Projects */
 .projects-grid {
   display: grid;
@@ -1493,6 +1535,35 @@ footer p { opacity: 0.7; font-size: 0.9rem; }
         <p>Participating vendors get "Trifecta Preferred" badge. Cardholders get $25 bonus after spending $500 locally. Vendors can see branded card at checkout, reinforcing community identity. Backend tracks all vendor sales monthly.</p>
       </div>
     </div>
+
+      <div class="fm-panel">
+        <h3>🌾 Farmers Market Network — Lane County Farmers Market, Eugene <span class="fm-hypo">HYPOTHETICAL MODEL</span></h3>
+        <div class="fm-facts">
+          <span class="fm-fact">🏆 No. 1 in Oregon — 2025 America's Farmers Market Celebration</span>
+          <span class="fm-fact">🧑‍🌾 100+ farm &amp; food artisan vendors, all Oregon-grown/made</span>
+          <span class="fm-fact">📅 Saturdays mid-Jan → mid-Dec @ 8th &amp; Oak</span>
+          <span class="fm-fact">📅 + Tuesday &amp; Springfield Sunday markets</span>
+          <span class="fm-fact">💳 SNAP/EBT · WIC · Senior Farm Direct · market tokens</span>
+        </div>
+        <div class="fm-steps">
+          <div class="fm-step"><b>1 · Vendors enroll</b>Every vendor in the market signs up as an official <b>Local Coin participant vendor</b> — one network agreement covers the whole market via the LCFM member list.</div>
+          <div class="fm-step"><b>2 · Members shop</b>Credit union members pay any market vendor with the CU-branded <b>Local Coin Visa debit card</b> — zero merchant fees for vendors, rewards for shoppers.</div>
+          <div class="fm-step"><b>3 · Quarterly give-back</b>The credit union deposits <b>0.5% of gross Local Coin Visa vendor transactions</b> (combined vendor quarterly sales) into the <b>Farmers Market Network "Local Coin" savings account</b> at the same CU.</div>
+        </div>
+        <div class="fm-math">
+          <h4>📊 The quarterly deposit, estimated (OFMA vendor/crowd-count method)</h4>
+          <div class="fm-formula">
+            <span class="fm-num">≈ $2.0M</span> combined vendor sales / quarter<span class="fm-op">×</span>
+            <span class="fm-num">25%</span> on Local Coin Visa<span class="fm-op">=</span>
+            <span class="fm-num">$500K</span> card volume<span class="fm-op">×</span>
+            <span class="fm-num">0.5%</span><span class="fm-op">=</span>
+            <span class="fm-num">$2,500 / quarter</span><span class="fm-op">→</span>
+            <span class="fm-num">≈ $10,000 / year</span> network fund
+          </div>
+          <div class="fm-note">Estimation basis: Oregon Farmers Markets Association method — vendor counts × average per-vendor sales, cross-checked with crowd counts × average spend (OSU Extension Rapid Market Assessment). Illustrative figures: 100+ vendors × ~13 Saturday + ~13 Tuesday market days per quarter; 25% card-share assumption. The network fund can bankroll vendor stall-fee relief, new-vendor microgrants, and market marketing — while deposits, float, and loyalty stay at the credit union.</div>
+        </div>
+        <div class="fm-vendors">Real LCFM member vendors the network would include: <b>Hideaway Bakery</b>, <b>SLO Farm (Seasonal · Local · Organic)</b> &amp; 100+ more — full member list at <a href="https://www.lanecountyfarmersmarket.org/vendors" target="_blank" rel="noopener">lanecountyfarmersmarket.org/vendors</a></div>
+      </div>
   </div>
 </section>
 
